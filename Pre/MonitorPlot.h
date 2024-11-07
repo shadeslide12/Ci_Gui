@@ -26,7 +26,7 @@ public:
                      QVector<QVector<double>>& data,
                      QVector<int>& iteration);
 
-    QChart* monitorChart;
+    QChart* monitorchart;
 
 private:
     QValueAxis* axisX;

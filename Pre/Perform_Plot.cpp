@@ -49,3 +49,4 @@ void Perform_Plot::setupPerformPlot()  {
     axisX->setTickCount(8);
     axisY->setTickCount(6);
 }
+

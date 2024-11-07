@@ -4,7 +4,7 @@
 #include <QDebug>
 
 MonitorPlot::MonitorPlot(QWidget *parent):
-        monitorChart(new QChart),
+        monitorchart(new QChart),
         axisX(new QValueAxis(this)),
         axisY(new QValueAxis(this))
 {
@@ -14,14 +14,14 @@ MonitorPlot::MonitorPlot(QWidget *parent):
 }
 
 void MonitorPlot::setupChart() {
-    this->setChart(monitorChart);
+    this->setChart(monitorchart);
     QLineSeries* defaultSeries = new QLineSeries(this);
 
     QFont titleFont("Arial",26,QFont::Bold);
     QColor titleColor(Qt::darkGray);
-    monitorChart->setTitle("Monitor");
-    monitorChart->setTitleFont(titleFont);
-    monitorChart->setTitleBrush(titleColor);
+    monitorchart->setTitle("Monitor");
+    monitorchart->setTitleFont(titleFont);
+    monitorchart->setTitleBrush(titleColor);
 
     qDebug()<<"ok1";
 
@@ -32,8 +32,8 @@ void MonitorPlot::setupChart() {
     QColor yColor(Qt::red);
     axisY->setTitleBrush(yColor);
 
-    monitorChart->addAxis(axisX,Qt::AlignBottom);
-    monitorChart->addAxis(axisY,Qt::AlignLeft);
+    monitorchart->addAxis(axisX, Qt::AlignBottom);
+    monitorchart->addAxis(axisY, Qt::AlignLeft);
 
     axisX->setTitleText("Iter");
     axisY->setTitleText("Value");
@@ -45,7 +45,7 @@ void MonitorPlot::setupChart() {
     axisY->setRange(yMin,yMax);
     qDebug()<<"ok2";
 
-    monitorChart->addSeries(defaultSeries);
+    monitorchart->addSeries(defaultSeries);
 }
 
 void MonitorPlot::updateChart(QList<int> &selectedColumns, QList<QListWidgetItem *> selectedItems,
@@ -59,7 +59,7 @@ void MonitorPlot::updateChart(QList<int> &selectedColumns, QList<QListWidgetItem
             series->append(iteration[j], data[i][j]);
         }
 
-        monitorChart->addSeries(series);
+        monitorchart->addSeries(series);
         series->attachAxis(axisX);
         series->attachAxis(axisY);
     }

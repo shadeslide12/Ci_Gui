@@ -7,7 +7,6 @@ PreMainWindow::PreMainWindow(QWidget *parent)
     , ui(new Ui::PreMainWindow)
     , process(new QProcess(this))
     ,timer (new QTimer(this))
-    ,residualPlotView(new QChartView(this))
     ,residualplot(new Residual_Plot)
     ,performPlotView(new QChartView(this))
     ,performplot(new Perform_Plot)
@@ -91,10 +90,22 @@ void PreMainWindow::Setup_UI()
   Setup_Validators();
   Assign_Value();
   setIcons();
-  ui->LayoutforConverPlot->addWidget(residualPlotView);
-  residualPlotView->setChart(residualplot);
   ui->LayoutforPerform->addWidget(performPlotView);
   performPlotView->setChart(performplot);
+  //Residual Start Here
+  ui->LayoutforConverPlot->addWidget(residualplot);
+
+  connect(ui->Btn_ManualScale_Res,&QPushButton::clicked,this,[this](){residualplot->setManualScaleMode();});
+  connect(ui->Btn_AutoScale_Res, &QPushButton::clicked,this,[this](){residualplot->setAutoScaleMode();});
+
+  connect(ui->Line_RangeX_Res_Min,&QLineEdit::textChanged,this,[this](const QString& text){
+    residualplot->setRangeX_Min(text);});
+  connect(ui->Line_RangeX_Res_Max,&QLineEdit::textChanged,this,[this](const QString& text){
+    residualplot->setRangeX_Max(text);});
+  connect(ui->Line_RangeY1_Res_Min,&QLineEdit::textChanged,this,[this](const QString& text){
+    residualplot->setRangeY1_Min(text);});
+  connect(ui->Line_RangeY1_Res_Max,&QLineEdit::textChanged,this,[this](const QString& text){
+    residualplot->setRangeY1_Max(text);});
   //Monitor Start Here
   ui->Lay_MonitorPlot->addWidget(monitorplot);
   connect(ui->Btn_SelectMonitor, &QPushButton::clicked, this, &PreMainWindow::onSelectFile);
@@ -2078,7 +2089,7 @@ void PreMainWindow::onVariableSelectionChanged()
         selectedColumns.append(ui->List_Variable->row(item) + 1);
     }
 
-    monitorplot->monitorChart->removeAllSeries();
+    monitorplot->monitorchart->removeAllSeries();
 
     QVector<QVector<double>> data = readData(selectedColumns);
     qDebug() << data[0];

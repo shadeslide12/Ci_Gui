@@ -48,11 +48,7 @@ public:
     PreProcessSettings cfg;
     SelectFile *NewCase;
 
-signals:
-    void s_UpdateResidual(const QVector<double>& iteration,const QVector<double>& convergence1,const QVector<double>& convergence2);
-
 private slots:
-    void updateResidual();
 
     void handleError(QProcess::ProcessError error);
 
@@ -196,9 +192,7 @@ private slots:
 private:
     Ui::PreMainWindow *ui;
     QProcess *process;
-    QChartView* residualPlotView;
     QChartView* performPlotView;
-    Residual_Plot* residualplot;
     Perform_Plot* performplot;
 
     void Setup_UI();
@@ -233,6 +227,14 @@ private:
     void ShowPerformanceCurve(bool isShow);
     void ShowPassageRepeatTree();
 
+//Residual Start Here
+private:
+    Residual_Plot* residualplot;
+signals:
+    void s_UpdateResidual(const QVector<double>& iteration,const QVector<double>& convergence1,const QVector<double>& convergence2);
+private slots:
+    void updateResidual();
+
 //Monitor Start Here
 
 private slots:
@@ -251,6 +253,7 @@ private:
     QStringList parseVariables(const QString &headerLine);
     QVector<QVector<double>> readData(const QList<int> &selectedColumns);
 
+private:
 //    renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 //    renderer = vtkSmartPointer<vtkRenderer>::New();
 //    vtkWidget = new QVTKOpenGLNativeWidget(this);
