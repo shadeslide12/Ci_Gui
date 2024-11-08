@@ -1458,7 +1458,6 @@ void PreMainWindow::on_start_simulation_button_clicked() {
   cfg.isPreProcessRun=false;
   ui->skip_pre_checkBox->setChecked(!cfg.isPreProcessRun);
 
-//   std::cout<<program.toStdString()<<std::endl;
 
   process->start("/bin/bash", QStringList() << "-c" << program);
 
@@ -2010,6 +2009,8 @@ void PreMainWindow::on_generate_film_boundary_clicked()
     }
   }
 }
+
+//Residual Start Here
 
 void PreMainWindow::updateResidual() {
     QVector<double> iteration, convergence1,convergence2;

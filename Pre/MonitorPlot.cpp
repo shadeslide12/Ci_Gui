@@ -10,6 +10,7 @@ MonitorPlot::MonitorPlot(QWidget *parent):
 {
     yMin=0 ; yMax=10;
     xMin=0 ; xMax=10;
+    autoScale = 1;
     setupChart();
 }
 
@@ -50,10 +51,10 @@ void MonitorPlot::setupChart() {
 
 void MonitorPlot::updateChart(QList<int> &selectedColumns, QList<QListWidgetItem *> selectedItems,
                               QVector<QVector<double>> &data, QVector<int> &iteration)  {
+
     for (int i = 0; i < selectedColumns.size(); ++i) {
         QLineSeries *series = new QLineSeries();
         series->setName(selectedItems[i]->text());
-
 
         for (int j = 0; j < data[0].size(); ++j) {
             series->append(iteration[j], data[i][j]);
@@ -64,25 +65,52 @@ void MonitorPlot::updateChart(QList<int> &selectedColumns, QList<QListWidgetItem
         series->attachAxis(axisY);
     }
 
+    if(!iteration.isEmpty() && autoScale){
+        double cal_yMin = 1000000;
+        double cal_yMax = 0;
+
+        int maxIter = *std::max_element(iteration.begin(), iteration.end());
+
+        for(int i=0 ; i < data.size(); ++i){
+            double temp_yMin = *std::min_element(data[i].begin(), data[i].end());
+            double temp_yMax = *std::max_element(data[i].begin(), data[i].end());
+            if(cal_yMin > temp_yMin)
+                cal_yMin = temp_yMin;
+            if(cal_yMax < temp_yMax)
+                cal_yMax = temp_yMax;
+        }
+
+        axisY->setRange(cal_yMin,cal_yMax);
+        axisX->setRange(0,maxIter);
+    }
+
 
 }
 
 void MonitorPlot::setRangeX_Max(const QString &text_xMax) {
-    xMax = text_xMax.toDouble();
-    axisX->setRange(xMin,xMax);
+    if(!autoScale) {
+        xMax = text_xMax.toDouble();
+        axisX->setRange(xMin, xMax);
+    }
 }
 
 void MonitorPlot::setRangeX_Min(const QString &text_xMin) {
-    xMin = text_xMin.toDouble();
-    axisX->setRange(xMin,xMax);
+    if(!autoScale) {
+        xMin = text_xMin.toDouble();
+        axisX->setRange(xMin, xMax);
+    }
 }
 
 void MonitorPlot::setRangeY_Min(const QString &text_yMin) {
-    yMin = text_yMin.toDouble();
-    axisX->setRange(yMin,yMax);
+    if(!autoScale) {
+        yMin = text_yMin.toDouble();
+        axisX->setRange(yMin, yMax);
+    }
 }
 
 void MonitorPlot::setRangeY_Max(const QString &text_yMax) {
-    yMax = text_yMax.toDouble();
-    axisY->setRange(yMin,yMax);
+    if(!autoScale) {
+        yMax = text_yMax.toDouble();
+        axisY->setRange(yMin, yMax);
+    }
 }

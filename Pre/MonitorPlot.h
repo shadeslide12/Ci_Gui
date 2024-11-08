@@ -25,6 +25,8 @@ public:
                      QList<QListWidgetItem*> selectedItems,
                      QVector<QVector<double>>& data,
                      QVector<int>& iteration);
+    void setAutoScaleMode();
+    void setManualScaleMode();
 
     QChart* monitorchart;
 
@@ -32,6 +34,7 @@ private:
     QValueAxis* axisX;
     QValueAxis* axisY;
 
+    bool autoScale;
     double yMin;
     double yMax;
     double xMin;

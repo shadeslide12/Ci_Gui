@@ -65,14 +65,19 @@ void Residual_Plot::updateResidualPlot(const QVector<double> &iteration, const Q
     for(int i =0; i<iteration.size();++i){
         series_con1->append(iteration[i],convergence1[i]);
         series_con2->append(iteration[i],convergence2[i]);
+
     }
 
-    if(!iteration.isEmpty()){
+    if(!iteration.isEmpty() && autoScale){
         int maxIter = *std::max_element(iteration.begin(), iteration.end());
         double maxCon1 = *std::max_element(convergence1.begin(), convergence1.end());
         double maxCon2 = *std::max_element(convergence2.begin(), convergence2.end());
-        if(autoScale)
-            axisX->setRange(0,maxIter+4);
+        double minCon1 = *std::min_element(convergence1.begin(), convergence1.end());
+        double minCon2 = *std::min_element(convergence2.begin(), convergence2.end());
+
+        axisX->setRange(0,maxIter);
+        axisY1->setRange(minCon1,maxCon1);
+        axisY2->setRange(minCon2,maxCon2);
     }
 
     residualchart->update();
