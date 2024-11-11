@@ -23,6 +23,7 @@ PreMainWindow::PreMainWindow(QWidget *parent)
         this, &PreMainWindow::showFinishDialog);
 
   connect(timer,&QTimer::timeout,this,&PreMainWindow::updateResidual);
+  connect(timer,&QTimer::timeout,this,&PreMainWindow::onVariableSelectionChanged);
   connect(this, &PreMainWindow::s_UpdateResidual, residualplot, &Residual_Plot::updateResidualPlot);
 
   ui->load_steady_flow->setVisible(false);

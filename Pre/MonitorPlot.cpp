@@ -52,12 +52,14 @@ void MonitorPlot::setupChart() {
 void MonitorPlot::updateChart(QList<int> &selectedColumns, QList<QListWidgetItem *> selectedItems,
                               QVector<QVector<double>> &data, QVector<int> &iteration)  {
 
+
     for (int i = 0; i < selectedColumns.size(); ++i) {
         QLineSeries *series = new QLineSeries();
         series->setName(selectedItems[i]->text());
 
-        for (int j = 0; j < data[0].size(); ++j) {
-            series->append(iteration[j], data[i][j]);
+        const QVector<double> &columnData = data[i];
+        for (int j = 0; j < columnData.size(); ++j) {
+            series->append(iteration[j], columnData[j]);
         }
 
         monitorchart->addSeries(series);
@@ -66,18 +68,17 @@ void MonitorPlot::updateChart(QList<int> &selectedColumns, QList<QListWidgetItem
     }
 
     if(!iteration.isEmpty() && autoScale){
-        double cal_yMin = 1000000;
-        double cal_yMax = 0;
+        double cal_yMin = std::numeric_limits<double>::max();
+        double cal_yMax = std::numeric_limits<double>::lowest();
 
         int maxIter = *std::max_element(iteration.begin(), iteration.end());
 
-        for(int i=0 ; i < data.size(); ++i){
-            double temp_yMin = *std::min_element(data[i].begin(), data[i].end());
-            double temp_yMax = *std::max_element(data[i].begin(), data[i].end());
-            if(cal_yMin > temp_yMin)
-                cal_yMin = temp_yMin;
-            if(cal_yMax < temp_yMax)
-                cal_yMax = temp_yMax;
+        for(const auto& columnData: data){
+            double temp_yMin = *std::min_element(columnData.begin(), columnData.end());
+            double temp_yMax = *std::max_element(columnData.begin(), columnData.end());
+
+            cal_yMin = std::min(cal_yMin,temp_yMin);
+            cal_yMax = std::max(cal_yMax,temp_yMax);
         }
 
         axisY->setRange(cal_yMin,cal_yMax);

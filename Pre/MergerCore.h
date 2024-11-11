@@ -24,8 +24,9 @@ public:
   };
 
   std::map <std::string, std::vector<std::vector<std::string>>> rule_subgroups={
-          {"period_lo",{{"per","lo"},{"per","down"}}},
-          {"period_up",{{"per","up"},{"per","hi"}}},
+  //*small change for easy test
+          {"period_lo",{{"per","lo"},{"per","down"},{"periodic1"}}},
+          {"period_up",{{"per","up"},{"per","hi"},{"periodic2"}}},
           {"inflow",{{"inflow"},{"inlet"}}},
           {"outflow",{{"outflow"},{"outlet"}}},
           {"visc_wall",{{"wall"}}},

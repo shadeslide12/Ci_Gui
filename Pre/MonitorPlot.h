@@ -33,7 +33,6 @@ public:
 private:
     QValueAxis* axisX;
     QValueAxis* axisY;
-
     bool autoScale;
     double yMin;
     double yMax;
