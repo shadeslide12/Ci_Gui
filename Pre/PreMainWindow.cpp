@@ -95,9 +95,9 @@ void PreMainWindow::Setup_UI()
   performPlotView->setChart(performplot);
   //Residual Start Here
   ui->LayoutforConverPlot->addWidget(residualplot);
-
-  connect(ui->Btn_ManualScale_Res,&QPushButton::clicked,this,[this](){residualplot->setManualScaleMode();});
-  connect(ui->Btn_AutoScale_Res, &QPushButton::clicked,this,[this](){residualplot->setAutoScaleMode();});
+  ui->control_panel_Range_Res->setEnabled(0);
+  connect(ui->Btn_ManualScale_Res,&QPushButton::clicked,this,[this](){residualplot->setManualScaleMode();ui->control_panel_Range_Res->setEnabled(1);});
+  connect(ui->Btn_AutoScale_Res, &QPushButton::clicked,this,[this](){residualplot->setAutoScaleMode();ui->control_panel_Range_Res->setEnabled(0);});
 
   connect(ui->Line_RangeX_Res_Min,&QLineEdit::textChanged,this,[this](const QString& text){
     residualplot->setRangeX_Min(text);});
@@ -109,6 +109,7 @@ void PreMainWindow::Setup_UI()
     residualplot->setRangeY1_Max(text);});
   //Monitor Start Here
   ui->Lay_MonitorPlot->addWidget(monitorplot);
+  ui->control_panel_Range_Mon->setEnabled(0);
   connect(ui->Btn_SelectMonitor, &QPushButton::clicked, this, &PreMainWindow::onSelectFile);
   connect(ui->List_Variable, &QListWidget::itemSelectionChanged,
         this, &PreMainWindow::onVariableSelectionChanged);
@@ -120,6 +121,10 @@ void PreMainWindow::Setup_UI()
         monitorplot->setRangeY_Min(text);});
   connect(ui->Line_RangeY_Mon_Max,&QLineEdit::textChanged,this,[this](const QString& text){
       monitorplot->setRangeY_Max(text);});
+
+  connect(ui->Btn_ManualScale_Mon,&QPushButton::clicked,this,[this](){monitorplot->setManualScaleMode();ui->control_panel_Range_Mon->setEnabled(1);});
+  connect(ui->Btn_AutoScale_Mon, &QPushButton::clicked,this,[this](){monitorplot->setAutoScaleMode();ui->control_panel_Range_Mon->setEnabled(0);});
+
 }
 
 void PreMainWindow::setIcons()
@@ -1477,6 +1482,9 @@ void PreMainWindow::on_stop_simulation_button_clicked() {
   ui->continue_simulation_button->setEnabled(true);
   ui->run_pre_process->setEnabled(true);
   EnablePerformanceCurve(true);
+
+  //*timer
+  timer->stop();
 }
 
 void PreMainWindow::on_gas_type_combo_currentTextChanged(const QString &arg1)
@@ -1709,6 +1717,9 @@ void PreMainWindow::on_continue_simulation_button_clicked()
   ui->continue_simulation_button->setEnabled(false);
   ui->run_pre_process->setEnabled(false);
   EnablePerformanceCurve(false);
+
+  //* timer
+  timer->start();
 }
 
 

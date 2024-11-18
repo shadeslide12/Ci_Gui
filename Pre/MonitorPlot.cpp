@@ -105,7 +105,7 @@ void MonitorPlot::setRangeX_Min(const QString &text_xMin) {
 void MonitorPlot::setRangeY_Min(const QString &text_yMin) {
     if(!autoScale) {
         yMin = text_yMin.toDouble();
-        axisX->setRange(yMin, yMax);
+        axisY->setRange(yMin, yMax);
     }
 }
 
@@ -114,4 +114,12 @@ void MonitorPlot::setRangeY_Max(const QString &text_yMax) {
         yMax = text_yMax.toDouble();
         axisY->setRange(yMin, yMax);
     }
+}
+
+void MonitorPlot::setAutoScaleMode() {
+    autoScale = 1;
+}
+
+void MonitorPlot::setManualScaleMode() {
+    autoScale = 0;
 }

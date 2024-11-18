@@ -263,27 +263,33 @@ public:
     QWidget *Show_Convergence;
     QHBoxLayout *horizontalLayout_14;
     QWidget *Panel_Conver;
-    QVBoxLayout *verticalLayout_4;
     QLabel *label_27;
     QWidget *widget_9;
     QHBoxLayout *horizontalLayout_17;
     QPushButton *Btn_AutoScale_Res;
     QPushButton *Btn_ManualScale_Res;
-    QLabel *label_29;
-    QWidget *widget_8;
-    QHBoxLayout *horizontalLayout_16;
-    QLabel *label_25;
-    QLineEdit *Line_RangeX_Res_Min;
-    QLabel *label_26;
-    QLineEdit *Line_RangeX_Res_Max;
-    QLabel *label_28;
-    QWidget *widget_7;
+    QWidget *control_panel_Range_Res;
+    QWidget *Widget_Res_RangeY1_2;
+    QHBoxLayout *horizontalLayout_18;
+    QLabel *label_31;
+    QLineEdit *Line_RangeY2_Res_Min;
+    QLabel *label_32;
+    QLineEdit *Line_RangeY2_Res_Max;
+    QWidget *Widget_Res_RangeY1;
     QHBoxLayout *horizontalLayout_15;
     QLabel *label_23;
     QLineEdit *Line_RangeY1_Res_Min;
     QLabel *label_24;
     QLineEdit *Line_RangeY1_Res_Max;
-    QSpacerItem *verticalSpacer_6;
+    QWidget *Widget_Res_RangeX;
+    QHBoxLayout *horizontalLayout_16;
+    QLabel *label_25;
+    QLineEdit *Line_RangeX_Res_Min;
+    QLabel *label_26;
+    QLineEdit *Line_RangeX_Res_Max;
+    QLabel *label_29;
+    QLabel *label_33;
+    QLabel *label_28;
     QWidget *Plot_Convergence;
     QVBoxLayout *LayoutforConverPlot;
     QWidget *Show_Monitor;
@@ -297,8 +303,10 @@ public:
     QListWidget *List_Variable;
     QWidget *widget_5;
     QHBoxLayout *horizontalLayout_12;
-    QPushButton *Btn_AutoScale;
-    QPushButton *Btn_ManualScale;
+    QPushButton *Btn_AutoScale_Mon;
+    QPushButton *Btn_ManualScale_Mon;
+    QWidget *control_panel_Range_Mon;
+    QVBoxLayout *verticalLayout_4;
     QLabel *label_16;
     QWidget *widget;
     QHBoxLayout *horizontalLayout_10;
@@ -384,7 +392,7 @@ public:
         scrollAreaWidgetContents_2 = new QWidget();
         scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
         scrollAreaWidgetContents_2->setEnabled(true);
-        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 348, 993));
+        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 348, 987));
         verticalLayout_3 = new QVBoxLayout(scrollAreaWidgetContents_2);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
         stackedWidget = new QStackedWidget(scrollAreaWidgetContents_2);
@@ -1350,11 +1358,11 @@ public:
         horizontalLayout_14->setObjectName(QString::fromUtf8("horizontalLayout_14"));
         Panel_Conver = new QWidget(Show_Convergence);
         Panel_Conver->setObjectName(QString::fromUtf8("Panel_Conver"));
+        Panel_Conver->setMinimumSize(QSize(300, 0));
         Panel_Conver->setMaximumSize(QSize(300, 16777215));
-        verticalLayout_4 = new QVBoxLayout(Panel_Conver);
-        verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
         label_27 = new QLabel(Panel_Conver);
         label_27->setObjectName(QString::fromUtf8("label_27"));
+        label_27->setGeometry(QRect(9, 9, 131, 19));
         label_27->setMaximumSize(QSize(16777215, 20));
         QFont font2;
         font2.setPointSize(12);
@@ -1364,11 +1372,9 @@ public:
         font2.setWeight(75);
         font2.setStrikeOut(false);
         label_27->setFont(font2);
-
-        verticalLayout_4->addWidget(label_27);
-
         widget_9 = new QWidget(Panel_Conver);
         widget_9->setObjectName(QString::fromUtf8("widget_9"));
+        widget_9->setGeometry(QRect(9, 35, 204, 43));
         horizontalLayout_17 = new QHBoxLayout(widget_9);
         horizontalLayout_17->setSpacing(15);
         horizontalLayout_17->setObjectName(QString::fromUtf8("horizontalLayout_17"));
@@ -1382,81 +1388,99 @@ public:
 
         horizontalLayout_17->addWidget(Btn_ManualScale_Res);
 
+        control_panel_Range_Res = new QWidget(Panel_Conver);
+        control_panel_Range_Res->setObjectName(QString::fromUtf8("control_panel_Range_Res"));
+        control_panel_Range_Res->setGeometry(QRect(10, 90, 281, 351));
+        Widget_Res_RangeY1_2 = new QWidget(control_panel_Range_Res);
+        Widget_Res_RangeY1_2->setObjectName(QString::fromUtf8("Widget_Res_RangeY1_2"));
+        Widget_Res_RangeY1_2->setGeometry(QRect(0, 270, 282, 77));
+        horizontalLayout_18 = new QHBoxLayout(Widget_Res_RangeY1_2);
+        horizontalLayout_18->setObjectName(QString::fromUtf8("horizontalLayout_18"));
+        horizontalLayout_18->setContentsMargins(-1, 0, -1, 0);
+        label_31 = new QLabel(Widget_Res_RangeY1_2);
+        label_31->setObjectName(QString::fromUtf8("label_31"));
 
-        verticalLayout_4->addWidget(widget_9);
+        horizontalLayout_18->addWidget(label_31);
 
-        label_29 = new QLabel(Panel_Conver);
-        label_29->setObjectName(QString::fromUtf8("label_29"));
-        label_29->setMaximumSize(QSize(16777215, 20));
+        Line_RangeY2_Res_Min = new QLineEdit(Widget_Res_RangeY1_2);
+        Line_RangeY2_Res_Min->setObjectName(QString::fromUtf8("Line_RangeY2_Res_Min"));
 
-        verticalLayout_4->addWidget(label_29);
+        horizontalLayout_18->addWidget(Line_RangeY2_Res_Min);
 
-        widget_8 = new QWidget(Panel_Conver);
-        widget_8->setObjectName(QString::fromUtf8("widget_8"));
-        horizontalLayout_16 = new QHBoxLayout(widget_8);
-        horizontalLayout_16->setObjectName(QString::fromUtf8("horizontalLayout_16"));
-        horizontalLayout_16->setContentsMargins(-1, 0, -1, 0);
-        label_25 = new QLabel(widget_8);
-        label_25->setObjectName(QString::fromUtf8("label_25"));
+        label_32 = new QLabel(Widget_Res_RangeY1_2);
+        label_32->setObjectName(QString::fromUtf8("label_32"));
 
-        horizontalLayout_16->addWidget(label_25);
+        horizontalLayout_18->addWidget(label_32);
 
-        Line_RangeX_Res_Min = new QLineEdit(widget_8);
-        Line_RangeX_Res_Min->setObjectName(QString::fromUtf8("Line_RangeX_Res_Min"));
+        Line_RangeY2_Res_Max = new QLineEdit(Widget_Res_RangeY1_2);
+        Line_RangeY2_Res_Max->setObjectName(QString::fromUtf8("Line_RangeY2_Res_Max"));
 
-        horizontalLayout_16->addWidget(Line_RangeX_Res_Min);
+        horizontalLayout_18->addWidget(Line_RangeY2_Res_Max);
 
-        label_26 = new QLabel(widget_8);
-        label_26->setObjectName(QString::fromUtf8("label_26"));
-
-        horizontalLayout_16->addWidget(label_26);
-
-        Line_RangeX_Res_Max = new QLineEdit(widget_8);
-        Line_RangeX_Res_Max->setObjectName(QString::fromUtf8("Line_RangeX_Res_Max"));
-
-        horizontalLayout_16->addWidget(Line_RangeX_Res_Max);
-
-
-        verticalLayout_4->addWidget(widget_8);
-
-        label_28 = new QLabel(Panel_Conver);
-        label_28->setObjectName(QString::fromUtf8("label_28"));
-        label_28->setMaximumSize(QSize(16777215, 20));
-
-        verticalLayout_4->addWidget(label_28);
-
-        widget_7 = new QWidget(Panel_Conver);
-        widget_7->setObjectName(QString::fromUtf8("widget_7"));
-        horizontalLayout_15 = new QHBoxLayout(widget_7);
+        Widget_Res_RangeY1 = new QWidget(control_panel_Range_Res);
+        Widget_Res_RangeY1->setObjectName(QString::fromUtf8("Widget_Res_RangeY1"));
+        Widget_Res_RangeY1->setGeometry(QRect(-1, 158, 282, 77));
+        horizontalLayout_15 = new QHBoxLayout(Widget_Res_RangeY1);
         horizontalLayout_15->setObjectName(QString::fromUtf8("horizontalLayout_15"));
         horizontalLayout_15->setContentsMargins(-1, 0, -1, 0);
-        label_23 = new QLabel(widget_7);
+        label_23 = new QLabel(Widget_Res_RangeY1);
         label_23->setObjectName(QString::fromUtf8("label_23"));
 
         horizontalLayout_15->addWidget(label_23);
 
-        Line_RangeY1_Res_Min = new QLineEdit(widget_7);
+        Line_RangeY1_Res_Min = new QLineEdit(Widget_Res_RangeY1);
         Line_RangeY1_Res_Min->setObjectName(QString::fromUtf8("Line_RangeY1_Res_Min"));
 
         horizontalLayout_15->addWidget(Line_RangeY1_Res_Min);
 
-        label_24 = new QLabel(widget_7);
+        label_24 = new QLabel(Widget_Res_RangeY1);
         label_24->setObjectName(QString::fromUtf8("label_24"));
 
         horizontalLayout_15->addWidget(label_24);
 
-        Line_RangeY1_Res_Max = new QLineEdit(widget_7);
+        Line_RangeY1_Res_Max = new QLineEdit(Widget_Res_RangeY1);
         Line_RangeY1_Res_Max->setObjectName(QString::fromUtf8("Line_RangeY1_Res_Max"));
 
         horizontalLayout_15->addWidget(Line_RangeY1_Res_Max);
 
+        Widget_Res_RangeX = new QWidget(control_panel_Range_Res);
+        Widget_Res_RangeX->setObjectName(QString::fromUtf8("Widget_Res_RangeX"));
+        Widget_Res_RangeX->setGeometry(QRect(-1, 48, 282, 78));
+        horizontalLayout_16 = new QHBoxLayout(Widget_Res_RangeX);
+        horizontalLayout_16->setObjectName(QString::fromUtf8("horizontalLayout_16"));
+        horizontalLayout_16->setContentsMargins(-1, 0, -1, 0);
+        label_25 = new QLabel(Widget_Res_RangeX);
+        label_25->setObjectName(QString::fromUtf8("label_25"));
 
-        verticalLayout_4->addWidget(widget_7);
+        horizontalLayout_16->addWidget(label_25);
 
-        verticalSpacer_6 = new QSpacerItem(20, 600, QSizePolicy::Minimum, QSizePolicy::Fixed);
+        Line_RangeX_Res_Min = new QLineEdit(Widget_Res_RangeX);
+        Line_RangeX_Res_Min->setObjectName(QString::fromUtf8("Line_RangeX_Res_Min"));
 
-        verticalLayout_4->addItem(verticalSpacer_6);
+        horizontalLayout_16->addWidget(Line_RangeX_Res_Min);
 
+        label_26 = new QLabel(Widget_Res_RangeX);
+        label_26->setObjectName(QString::fromUtf8("label_26"));
+
+        horizontalLayout_16->addWidget(label_26);
+
+        Line_RangeX_Res_Max = new QLineEdit(Widget_Res_RangeX);
+        Line_RangeX_Res_Max->setObjectName(QString::fromUtf8("Line_RangeX_Res_Max"));
+
+        horizontalLayout_16->addWidget(Line_RangeX_Res_Max);
+
+        label_29 = new QLabel(control_panel_Range_Res);
+        label_29->setObjectName(QString::fromUtf8("label_29"));
+        label_29->setGeometry(QRect(-1, 28, 59, 17));
+        label_29->setMaximumSize(QSize(16777215, 20));
+        label_33 = new QLabel(control_panel_Range_Res);
+        label_33->setObjectName(QString::fromUtf8("label_33"));
+        label_33->setGeometry(QRect(0, 250, 282, 20));
+        label_33->setMaximumSize(QSize(16777215, 20));
+        label_28 = new QLabel(control_panel_Range_Res);
+        label_28->setObjectName(QString::fromUtf8("label_28"));
+        label_28->setGeometry(QRect(-1, 138, 56, 17));
+        label_28->setMaximumSize(QSize(16777215, 20));
 
         horizontalLayout_14->addWidget(Panel_Conver);
 
@@ -1518,26 +1542,31 @@ public:
         horizontalLayout_12 = new QHBoxLayout(widget_5);
         horizontalLayout_12->setSpacing(15);
         horizontalLayout_12->setObjectName(QString::fromUtf8("horizontalLayout_12"));
-        Btn_AutoScale = new QPushButton(widget_5);
-        Btn_AutoScale->setObjectName(QString::fromUtf8("Btn_AutoScale"));
+        Btn_AutoScale_Mon = new QPushButton(widget_5);
+        Btn_AutoScale_Mon->setObjectName(QString::fromUtf8("Btn_AutoScale_Mon"));
 
-        horizontalLayout_12->addWidget(Btn_AutoScale);
+        horizontalLayout_12->addWidget(Btn_AutoScale_Mon);
 
-        Btn_ManualScale = new QPushButton(widget_5);
-        Btn_ManualScale->setObjectName(QString::fromUtf8("Btn_ManualScale"));
+        Btn_ManualScale_Mon = new QPushButton(widget_5);
+        Btn_ManualScale_Mon->setObjectName(QString::fromUtf8("Btn_ManualScale_Mon"));
 
-        horizontalLayout_12->addWidget(Btn_ManualScale);
+        horizontalLayout_12->addWidget(Btn_ManualScale_Mon);
 
 
         verticalLayout_10->addWidget(widget_5);
 
-        label_16 = new QLabel(Panel_Monitor);
+        control_panel_Range_Mon = new QWidget(Panel_Monitor);
+        control_panel_Range_Mon->setObjectName(QString::fromUtf8("control_panel_Range_Mon"));
+        verticalLayout_4 = new QVBoxLayout(control_panel_Range_Mon);
+        verticalLayout_4->setSpacing(20);
+        verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
+        label_16 = new QLabel(control_panel_Range_Mon);
         label_16->setObjectName(QString::fromUtf8("label_16"));
         label_16->setMaximumSize(QSize(16777215, 20));
 
-        verticalLayout_10->addWidget(label_16);
+        verticalLayout_4->addWidget(label_16);
 
-        widget = new QWidget(Panel_Monitor);
+        widget = new QWidget(control_panel_Range_Mon);
         widget->setObjectName(QString::fromUtf8("widget"));
         horizontalLayout_10 = new QHBoxLayout(widget);
         horizontalLayout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
@@ -1563,15 +1592,15 @@ public:
         horizontalLayout_10->addWidget(Line_RangeX_Mon_Max);
 
 
-        verticalLayout_10->addWidget(widget);
+        verticalLayout_4->addWidget(widget);
 
-        label_17 = new QLabel(Panel_Monitor);
+        label_17 = new QLabel(control_panel_Range_Mon);
         label_17->setObjectName(QString::fromUtf8("label_17"));
         label_17->setMaximumSize(QSize(16777215, 20));
 
-        verticalLayout_10->addWidget(label_17);
+        verticalLayout_4->addWidget(label_17);
 
-        widget_6 = new QWidget(Panel_Monitor);
+        widget_6 = new QWidget(control_panel_Range_Mon);
         widget_6->setObjectName(QString::fromUtf8("widget_6"));
         horizontalLayout_13 = new QHBoxLayout(widget_6);
         horizontalLayout_13->setObjectName(QString::fromUtf8("horizontalLayout_13"));
@@ -1597,7 +1626,10 @@ public:
         horizontalLayout_13->addWidget(Line_RangeY_Mon_Max);
 
 
-        verticalLayout_10->addWidget(widget_6);
+        verticalLayout_4->addWidget(widget_6);
+
+
+        verticalLayout_10->addWidget(control_panel_Range_Mon);
 
         widget_3 = new QWidget(Panel_Monitor);
         widget_3->setObjectName(QString::fromUtf8("widget_3"));
@@ -1676,7 +1708,7 @@ public:
         PreMainWindow->addToolBar(Qt::TopToolBarArea, toolBar);
         menubar = new QMenuBar(PreMainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 1920, 24));
+        menubar->setGeometry(QRect(0, 0, 1920, 28));
         QFont font3;
         font3.setPointSize(12);
         menubar->setFont(font3);
@@ -1702,7 +1734,7 @@ public:
         retranslateUi(PreMainWindow);
 
         stackedWidget->setCurrentIndex(5);
-        Show_MainWindow->setCurrentIndex(1);
+        Show_MainWindow->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(PreMainWindow);
@@ -1908,18 +1940,21 @@ public:
         label_27->setText(QCoreApplication::translate("PreMainWindow", "Graph Options", nullptr));
         Btn_AutoScale_Res->setText(QCoreApplication::translate("PreMainWindow", "AutoScale", nullptr));
         Btn_ManualScale_Res->setText(QCoreApplication::translate("PreMainWindow", "ManualScale", nullptr));
-        label_29->setText(QCoreApplication::translate("PreMainWindow", "Range X:", nullptr));
-        label_25->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
-        label_26->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));
-        label_28->setText(QCoreApplication::translate("PreMainWindow", "Range Y:", nullptr));
+        label_31->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
+        label_32->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));
         label_23->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
         label_24->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));
+        label_25->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
+        label_26->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));
+        label_29->setText(QCoreApplication::translate("PreMainWindow", "Range X:", nullptr));
+        label_33->setText(QCoreApplication::translate("PreMainWindow", "Range Y2:", nullptr));
+        label_28->setText(QCoreApplication::translate("PreMainWindow", "Range Y1:", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Convergence), QCoreApplication::translate("PreMainWindow", "Convergence", nullptr));
         label_22->setText(QCoreApplication::translate("PreMainWindow", "Graph Options", nullptr));
         Btn_SelectMonitor->setText(QCoreApplication::translate("PreMainWindow", "Select MonitorFile", nullptr));
         label_30->setText(QCoreApplication::translate("PreMainWindow", "Variable List :", nullptr));
-        Btn_AutoScale->setText(QCoreApplication::translate("PreMainWindow", "AutoScale", nullptr));
-        Btn_ManualScale->setText(QCoreApplication::translate("PreMainWindow", "ManualScale", nullptr));
+        Btn_AutoScale_Mon->setText(QCoreApplication::translate("PreMainWindow", "AutoScale", nullptr));
+        Btn_ManualScale_Mon->setText(QCoreApplication::translate("PreMainWindow", "ManualScale", nullptr));
         label_16->setText(QCoreApplication::translate("PreMainWindow", "Range X:", nullptr));
         label_18->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
         label_19->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));

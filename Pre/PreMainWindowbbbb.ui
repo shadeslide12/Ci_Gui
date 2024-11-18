@@ -1636,12 +1636,6 @@
           <layout class="QHBoxLayout" name="horizontalLayout_14">
            <item>
             <widget class="QWidget" name="Panel_Conver" native="true">
-             <property name="minimumSize">
-              <size>
-               <width>300</width>
-               <height>0</height>
-              </size>
-             </property>
              <property name="maximumSize">
               <size>
                <width>300</width>
@@ -1706,186 +1700,176 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="control_panel_Range_Res" native="true">
+             <widget class="QLabel" name="label_29">
+              <property name="geometry">
+               <rect>
+                <x>9</x>
+                <y>118</y>
+                <width>59</width>
+                <height>17</height>
+               </rect>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Range X:</string>
+              </property>
+             </widget>
+             <widget class="QWidget" name="Widget_Res_RangeX" native="true">
+              <property name="geometry">
+               <rect>
+                <x>9</x>
+                <y>144</y>
+                <width>282</width>
+                <height>78</height>
+               </rect>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_16">
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_25">
+                 <property name="text">
+                  <string>Min</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="Line_RangeX_Res_Min"/>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_26">
+                 <property name="text">
+                  <string>Max</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="Line_RangeX_Res_Max"/>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QLabel" name="label_28">
+              <property name="geometry">
+               <rect>
+                <x>9</x>
+                <y>228</y>
+                <width>56</width>
+                <height>17</height>
+               </rect>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Range Y1:</string>
+              </property>
+             </widget>
+             <widget class="QWidget" name="Widget_Res_RangeY1" native="true">
+              <property name="geometry">
+               <rect>
+                <x>9</x>
+                <y>254</y>
+                <width>282</width>
+                <height>77</height>
+               </rect>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_15">
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_23">
+                 <property name="text">
+                  <string>Min</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="Line_RangeY1_Res_Min"/>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_24">
+                 <property name="text">
+                  <string>Max</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="Line_RangeY1_Res_Max"/>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="Widget_Res_RangeY1_2" native="true">
               <property name="geometry">
                <rect>
                 <x>10</x>
-                <y>90</y>
-                <width>281</width>
-                <height>351</height>
+                <y>366</y>
+                <width>282</width>
+                <height>77</height>
                </rect>
               </property>
-              <widget class="QWidget" name="Widget_Res_RangeY1_2" native="true">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>270</y>
-                 <width>282</width>
-                 <height>77</height>
-                </rect>
+              <layout class="QHBoxLayout" name="horizontalLayout_18">
+               <property name="topMargin">
+                <number>0</number>
                </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_18">
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="label_31">
-                  <property name="text">
-                   <string>Min</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeY2_Res_Min"/>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_32">
-                  <property name="text">
-                   <string>Max</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeY2_Res_Max"/>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QWidget" name="Widget_Res_RangeY1" native="true">
-               <property name="geometry">
-                <rect>
-                 <x>-1</x>
-                 <y>158</y>
-                 <width>282</width>
-                 <height>77</height>
-                </rect>
+               <property name="bottomMargin">
+                <number>0</number>
                </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_15">
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="label_23">
-                  <property name="text">
-                   <string>Min</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeY1_Res_Min"/>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_24">
-                  <property name="text">
-                   <string>Max</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeY1_Res_Max"/>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QWidget" name="Widget_Res_RangeX" native="true">
-               <property name="geometry">
-                <rect>
-                 <x>-1</x>
-                 <y>48</y>
-                 <width>282</width>
-                 <height>78</height>
-                </rect>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_16">
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="label_25">
-                  <property name="text">
-                   <string>Min</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeX_Res_Min"/>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_26">
-                  <property name="text">
-                   <string>Max</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeX_Res_Max"/>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QLabel" name="label_29">
-               <property name="geometry">
-                <rect>
-                 <x>-1</x>
-                 <y>28</y>
-                 <width>59</width>
-                 <height>17</height>
-                </rect>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Range X:</string>
-               </property>
-              </widget>
-              <widget class="QLabel" name="label_33">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>250</y>
-                 <width>282</width>
-                 <height>20</height>
-                </rect>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Range Y2:</string>
-               </property>
-              </widget>
-              <widget class="QLabel" name="label_28">
-               <property name="geometry">
-                <rect>
-                 <x>-1</x>
-                 <y>138</y>
-                 <width>56</width>
-                 <height>17</height>
-                </rect>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Range Y1:</string>
-               </property>
-              </widget>
+               <item>
+                <widget class="QLabel" name="label_31">
+                 <property name="text">
+                  <string>Min</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="Line_RangeY2_Res_Min"/>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_32">
+                 <property name="text">
+                  <string>Max</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="Line_RangeY2_Res_Max"/>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QLabel" name="label_33">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>340</y>
+                <width>282</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Range Y2:</string>
+              </property>
              </widget>
             </widget>
            </item>
@@ -2007,14 +1991,14 @@
                   <number>15</number>
                  </property>
                  <item>
-                  <widget class="QPushButton" name="Btn_AutoScale_Mon">
+                  <widget class="QPushButton" name="Btn_AutoScale">
                    <property name="text">
                     <string>AutoScale</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="Btn_ManualScale_Mon">
+                  <widget class="QPushButton" name="Btn_ManualScale">
                    <property name="text">
                     <string>ManualScale</string>
                    </property>
@@ -2024,100 +2008,91 @@
                </widget>
               </item>
               <item>
-               <widget class="QWidget" name="control_panel_Range_Mon" native="true">
-                <layout class="QVBoxLayout" name="verticalLayout_4">
-                 <property name="spacing">
-                  <number>20</number>
+               <widget class="QLabel" name="label_16">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Range X:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_10">
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
                  </property>
                  <item>
-                  <widget class="QLabel" name="label_16">
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>20</height>
-                    </size>
-                   </property>
+                  <widget class="QLabel" name="label_18">
                    <property name="text">
-                    <string>Range X:</string>
+                    <string>Min</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QWidget" name="widget" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_10">
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="label_18">
-                      <property name="text">
-                       <string>Min</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="Line_RangeX_Mon_Min"/>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_19">
-                      <property name="text">
-                       <string>Max</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="Line_RangeX_Mon_Max"/>
-                    </item>
-                   </layout>
-                  </widget>
+                  <widget class="QLineEdit" name="Line_RangeX_Mon_Min"/>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_17">
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>20</height>
-                    </size>
-                   </property>
+                  <widget class="QLabel" name="label_19">
                    <property name="text">
-                    <string>Range Y:</string>
+                    <string>Max</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QWidget" name="widget_6" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_13">
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="label_20">
-                      <property name="text">
-                       <string>Min</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="Line_RangeY_Mon_Min"/>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_21">
-                      <property name="text">
-                       <string>Max</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="Line_RangeY_Mon_Max"/>
-                    </item>
-                   </layout>
+                  <widget class="QLineEdit" name="Line_RangeX_Mon_Max"/>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_17">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Range Y:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget_6" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_13">
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_20">
+                   <property name="text">
+                    <string>Min</string>
+                   </property>
                   </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="Line_RangeY_Mon_Min"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_21">
+                   <property name="text">
+                    <string>Max</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="Line_RangeY_Mon_Max"/>
                  </item>
                 </layout>
                </widget>
