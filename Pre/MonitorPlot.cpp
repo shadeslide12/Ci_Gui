@@ -5,33 +5,49 @@
 
 MonitorPlot::MonitorPlot(QWidget *parent):
         monitorchart(new QChart),
+        inlet_pTotal(new QLineSeries(this)),
+        inlet_tTotal(new QLineSeries(this)),
+        inlet_vAxial(new QLineSeries(this)),
+        inlet_vTheta(new QLineSeries(this)),
+        inlet_pStatic(new QLineSeries(this)),
+        inlet_mDot(new QLineSeries(this)),
+        outlet_pTotal(new QLineSeries(this)),
+        outlet_tTotal(new QLineSeries(this)),
+        outlet_vAxial(new QLineSeries(this)),
+        outlet_vTheta(new QLineSeries(this)),
+        outlet_pStatic(new QLineSeries(this)),
+        outlet_mDot(new QLineSeries(this)),
+        perf_pRatio(new QLineSeries(this)),
+        perf_tRatio(new QLineSeries(this)),
+        perf_efficiency(new QLineSeries(this)),
+        perf_turning(new QLineSeries(this)),
+        perf_qInlet(new QLineSeries(this)),
+        perf_qOutlet(new QLineSeries(this)),
         axisX(new QValueAxis(this)),
         axisY(new QValueAxis(this))
 {
-    yMin=0 ; yMax=10;
-    xMin=0 ; xMax=10;
+    chartSeriesTable = {
+            inlet_pTotal, inlet_tTotal, inlet_vAxial, inlet_vTheta, inlet_pStatic, inlet_mDot,
+            outlet_pTotal, outlet_tTotal, outlet_vAxial, outlet_vTheta, outlet_pStatic, outlet_mDot,
+            perf_pRatio, perf_tRatio, perf_efficiency, perf_turning, perf_qInlet, perf_qOutlet
+    };
+
+    maxRangeY = std::numeric_limits<double>::lowest();
+    minRangeY = std::numeric_limits<double>::max();
+
     autoScale = 1;
     setupChart();
+    initSeriesMap();
+    initValueGetMap();
+    this->hideSeries();
+
 }
 
 void MonitorPlot::setupChart() {
     this->setChart(monitorchart);
-    QLineSeries* defaultSeries = new QLineSeries(this);
 
-    QFont titleFont("Arial",26,QFont::Bold);
-    QColor titleColor(Qt::darkGray);
+
     monitorchart->setTitle("Monitor");
-    monitorchart->setTitleFont(titleFont);
-    monitorchart->setTitleBrush(titleColor);
-
-    qDebug()<<"ok1";
-
-    QFont axisFont;
-    axisFont.setPointSize(12);
-    axisX->setLabelsFont(axisFont);
-    axisY->setLabelsFont(axisFont);
-    QColor yColor(Qt::red);
-    axisY->setTitleBrush(yColor);
 
     monitorchart->addAxis(axisX, Qt::AlignBottom);
     monitorchart->addAxis(axisY, Qt::AlignLeft);
@@ -39,80 +55,142 @@ void MonitorPlot::setupChart() {
     axisX->setTitleText("Iter");
     axisY->setTitleText("Value");
 
-    defaultSeries->attachAxis(axisX);
-    defaultSeries->attachAxis(axisY);
+    inlet_pTotal->setName("Inlet pTotal");
+    inlet_tTotal->setName("Inlet tTotal");
+    inlet_vAxial->setName("Inlet vAxial");
+    inlet_vTheta->setName("Inlet vTheta");
+    inlet_pStatic->setName("Inlet pStatic");
+    inlet_mDot->setName("Inlet mDot");
 
-    axisX->setRange(xMin,xMax);
-    axisY->setRange(yMin,yMax);
-    qDebug()<<"ok2";
+    outlet_pTotal->setName("Outlet pTotal");
+    outlet_tTotal->setName("Outlet tTotal");
+    outlet_vAxial->setName("Outlet vAxial");
+    outlet_vTheta->setName("Outlet vTheta");
+    outlet_pStatic->setName("Outlet pStatic");
+    outlet_mDot->setName("Outlet mDot");
 
-    monitorchart->addSeries(defaultSeries);
-}
+    perf_pRatio->setName("Perf pRatio");
+    perf_tRatio->setName("Perf tRatio");
+    perf_efficiency->setName("Efficiency");
+    perf_turning->setName("Turning");
+    perf_qInlet->setName("qInlet");
+    perf_qOutlet->setName("qOutlet");
 
-void MonitorPlot::updateChart(QList<int> &selectedColumns, QList<QListWidgetItem *> selectedItems,
-                              QVector<QVector<double>> &data, QVector<int> &iteration)  {
+    monitorchart->addSeries(inlet_pTotal);
+    monitorchart->addSeries(inlet_tTotal);
+    monitorchart->addSeries(inlet_vAxial);
+    monitorchart->addSeries(inlet_vTheta);
+    monitorchart->addSeries(inlet_pStatic);
+    monitorchart->addSeries(inlet_mDot);
+
+    monitorchart->addSeries(outlet_pTotal);
+    monitorchart->addSeries(outlet_tTotal);
+    monitorchart->addSeries(outlet_vAxial);
+    monitorchart->addSeries(outlet_vTheta);
+    monitorchart->addSeries(outlet_pStatic);
+    monitorchart->addSeries(outlet_mDot);
+
+    monitorchart->addSeries(perf_pRatio);
+    monitorchart->addSeries(perf_tRatio);
+    monitorchart->addSeries(perf_efficiency);
+    monitorchart->addSeries(perf_turning);
+    monitorchart->addSeries(perf_qInlet);
+    monitorchart->addSeries(perf_qOutlet);
 
 
-    for (int i = 0; i < selectedColumns.size(); ++i) {
-        QLineSeries *series = new QLineSeries();
-        series->setName(selectedItems[i]->text());
-
-        const QVector<double> &columnData = data[i];
-        for (int j = 0; j < columnData.size(); ++j) {
-            series->append(iteration[j], columnData[j]);
-        }
-
-        monitorchart->addSeries(series);
+    for(auto series : chartSeriesTable) {
         series->attachAxis(axisX);
         series->attachAxis(axisY);
     }
 
-    if(!iteration.isEmpty() && autoScale){
-        double cal_yMin = std::numeric_limits<double>::max();
-        double cal_yMax = std::numeric_limits<double>::lowest();
+    axisX->setRange(0,10);
+    axisY->setRange(0,10);
 
-        int maxIter = *std::max_element(iteration.begin(), iteration.end());
+    monitorchart->setAnimationOptions(QChart::SeriesAnimations);
+    this->setChartStyle();
+}
 
-        for(const auto& columnData: data){
-            double temp_yMin = *std::min_element(columnData.begin(), columnData.end());
-            double temp_yMax = *std::max_element(columnData.begin(), columnData.end());
+void MonitorPlot::updateChart(int iteration, const MonitorVariableTable &data) {
+    inlet_pTotal->append(iteration, data.inlet.pTotal.last());
+    inlet_tTotal->append(iteration, data.inlet.tTotal.last());
+    inlet_vAxial->append(iteration, data.inlet.vAxial.last());
+    inlet_vTheta->append(iteration, data.inlet.vTheta.last());
+    inlet_pStatic->append(iteration, data.inlet.pStatic.last());
+    inlet_mDot->append(iteration, data.inlet.mDot.last());
 
-            cal_yMin = std::min(cal_yMin,temp_yMin);
-            cal_yMax = std::max(cal_yMax,temp_yMax);
-        }
+    outlet_pTotal->append(iteration, data.outlet.pTotal.last());
+    outlet_tTotal->append(iteration, data.outlet.tTotal.last());
+    outlet_vAxial->append(iteration, data.outlet.vAxial.last());
+    outlet_vTheta->append(iteration, data.outlet.vTheta.last());
+    outlet_pStatic->append(iteration, data.outlet.pStatic.last());
+    outlet_mDot->append(iteration, data.outlet.mDot.last());
 
-        axisY->setRange(cal_yMin,cal_yMax);
-        axisX->setRange(0,maxIter);
+    perf_pRatio->append(iteration, data.perform.pRatio.last());
+    perf_tRatio->append(iteration, data.perform.tRatio.last());
+    perf_efficiency->append(iteration, data.perform.efficiency.last());
+    perf_turning->append(iteration, data.perform.turning.last());
+    perf_qInlet->append(iteration, data.perform.qInlet.last());
+    perf_qOutlet->append(iteration, data.perform.qOutlet.last());
+
+    if(!autoScale)
+        return;
+    if (iteration > axisX->max()) {
+        axisX->setRange(0, iteration + 1);
     }
+    updateRangeWithTimer(data);
+}
 
+void MonitorPlot::updateRangeWithTimer(const MonitorVariableTable &data) {
+    for(const auto& var : seriesMap.keys()){
+        if(seriesMap[var]-> isVisible()){
+            double value = valueGetMap[var](data);
+            minRangeY = std::min(minRangeY,value);
+            maxRangeY = std::max(maxRangeY,value);
+        }
+    }
+    axisY->setRange(minRangeY,maxRangeY);
+}
 
+void MonitorPlot::updateRangeOnVariableChange() {
+    maxRangeY = std::numeric_limits<double>::lowest();
+    minRangeY = std::numeric_limits<double>::max();
+    for(const auto& series : seriesMap.values()) {
+        if(series->isVisible() && (!series->points().isEmpty()) ) {
+            const auto& points =series->points();
+            for(const auto& point : points) {
+                maxRangeY = std::max(maxRangeY, point.y());
+                minRangeY = std::min(minRangeY, point.y());
+            }
+        }
+    }
+    axisY->setRange(minRangeY, maxRangeY);
 }
 
 void MonitorPlot::setRangeX_Max(const QString &text_xMax) {
     if(!autoScale) {
-        xMax = text_xMax.toDouble();
-        axisX->setRange(xMin, xMax);
+        maxRangeX = text_xMax.toDouble();
+        axisX->setRange(minRangeX, maxRangeX);
     }
 }
 
 void MonitorPlot::setRangeX_Min(const QString &text_xMin) {
     if(!autoScale) {
-        xMin = text_xMin.toDouble();
-        axisX->setRange(xMin, xMax);
+        minRangeX = text_xMin.toDouble();
+        axisX->setRange(minRangeX, maxRangeX);
     }
 }
 
 void MonitorPlot::setRangeY_Min(const QString &text_yMin) {
     if(!autoScale) {
-        yMin = text_yMin.toDouble();
-        axisY->setRange(yMin, yMax);
+        minRangeY = text_yMin.toDouble();
+        axisY->setRange(minRangeY, maxRangeY);
     }
 }
 
 void MonitorPlot::setRangeY_Max(const QString &text_yMax) {
     if(!autoScale) {
-        yMax = text_yMax.toDouble();
-        axisY->setRange(yMin, yMax);
+        maxRangeY = text_yMax.toDouble();
+        axisY->setRange(minRangeY, maxRangeY);
     }
 }
 
@@ -122,4 +200,80 @@ void MonitorPlot::setAutoScaleMode() {
 
 void MonitorPlot::setManualScaleMode() {
     autoScale = 0;
+}
+
+void MonitorPlot::setChartStyle() {
+    QFont titleFont("Arial",26,QFont::Bold);
+    QColor titleColor(Qt::darkGray);
+    monitorchart->setTitleFont(titleFont);
+    monitorchart->setTitleBrush(titleColor);
+
+    QFont axisFont;
+    axisFont.setPointSize(12);
+    axisX->setLabelsFont(axisFont);
+    axisY->setLabelsFont(axisFont);
+    QColor yColor(Qt::red);
+    axisY->setTitleBrush(yColor);
+}
+
+void MonitorPlot::hideSeries() {
+    for(auto series : seriesMap.values()) {
+        series->hide();
+    }
+}
+
+void MonitorPlot::updateSeriesVisibility(const QStringList &selectedVariables) {
+    this->hideSeries();
+
+    for(const auto& var : selectedVariables){
+        if(seriesMap.contains(var))
+            seriesMap[var]->show();
+    }
+}
+
+void MonitorPlot::initValueGetMap() {
+    valueGetMap["pTotal(inlet)"] = [](const MonitorVariableTable& data) { return data.inlet.pTotal.last(); };
+    valueGetMap["tTotal(inlet)"] = [](const MonitorVariableTable& data) { return data.inlet.tTotal.last(); };
+    valueGetMap["vAxial(inlet)"] = [](const MonitorVariableTable& data) { return data.inlet.vAxial.last(); };
+    valueGetMap["vTheta(inlet)"] = [](const MonitorVariableTable& data) { return data.inlet.vTheta.last(); };
+    valueGetMap["pStatic(inlet)"] = [](const MonitorVariableTable& data) { return data.inlet.pStatic.last(); };
+    valueGetMap["mDot(inlet)"] = [](const MonitorVariableTable& data) { return data.inlet.mDot.last(); };
+
+    valueGetMap["pTotal(outlet)"] = [](const MonitorVariableTable& data) { return data.outlet.pTotal.last(); };
+    valueGetMap["tTotal(outlet)"] = [](const MonitorVariableTable& data) { return data.outlet.tTotal.last(); };
+    valueGetMap["vAxial(outlet)"] = [](const MonitorVariableTable& data) { return data.outlet.vAxial.last(); };
+    valueGetMap["vTheta(outlet)"] = [](const MonitorVariableTable& data) { return data.outlet.vTheta.last(); };
+    valueGetMap["pStatic(outlet)"] = [](const MonitorVariableTable& data) { return data.outlet.pStatic.last(); };
+    valueGetMap["mDot(outlet)"] = [](const MonitorVariableTable& data) { return data.outlet.mDot.last(); };
+
+    valueGetMap["pRatio"] = [](const MonitorVariableTable& data) { return data.perform.pRatio.last(); };
+    valueGetMap["tRatio"] = [](const MonitorVariableTable& data) { return data.perform.tRatio.last(); };
+    valueGetMap["efficiency"] = [](const MonitorVariableTable& data) { return data.perform.efficiency.last(); };
+    valueGetMap["turning"] = [](const MonitorVariableTable& data) { return data.perform.turning.last(); };
+    valueGetMap["qInlet"] = [](const MonitorVariableTable& data) { return data.perform.qInlet.last(); };
+    valueGetMap["qOutlet"] = [](const MonitorVariableTable& data) { return data.perform.qOutlet.last(); };
+}
+
+
+void MonitorPlot::initSeriesMap() {
+    seriesMap = {
+            {"pTotal(inlet)", inlet_pTotal},
+            {"tTotal(inlet)", inlet_tTotal},
+            {"vAxial(inlet)", inlet_vAxial},
+            {"vTheta(inlet)", inlet_vTheta},
+            {"pStatic(inlet)", inlet_pStatic},
+            {"mDot(inlet)", inlet_mDot},
+            {"pTotal(outlet)", outlet_pTotal},
+            {"tTotal(outlet)", outlet_tTotal},
+            {"vAxial(outlet)", outlet_vAxial},
+            {"vTheta(outlet)", outlet_vTheta},
+            {"pStatic(outlet)", outlet_pStatic},
+            {"mDot(outlet)", outlet_mDot},
+            {"pRatio", perf_pRatio},
+            {"tRatio", perf_tRatio},
+            {"efficiency", perf_efficiency},
+            {"turning", perf_turning},
+            {"qInlet", perf_qInlet},
+            {"qOutlet", perf_qOutlet}
+    };
 }

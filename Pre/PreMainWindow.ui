@@ -80,7 +80,7 @@
               </font>
              </property>
              <property name="currentIndex">
-              <number>5</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="general">
               <widget class="QWidget" name="verticalLayoutWidget_3">
@@ -1600,7 +1600,7 @@
        <item>
         <widget class="QTabWidget" name="Show_MainWindow">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="Show_Model">
           <attribute name="title">
@@ -1682,8 +1682,8 @@
                <rect>
                 <x>9</x>
                 <y>35</y>
-                <width>204</width>
-                <height>43</height>
+                <width>271</width>
+                <height>51</height>
                </rect>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_17">
@@ -1872,7 +1872,7 @@
                 <rect>
                  <x>-1</x>
                  <y>138</y>
-                 <width>56</width>
+                 <width>61</width>
                  <height>17</height>
                 </rect>
                </property>
@@ -1886,6 +1886,63 @@
                 <string>Range Y1:</string>
                </property>
               </widget>
+             </widget>
+             <widget class="QWidget" name="panel_Theme" native="true">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>480</y>
+                <width>281</width>
+                <height>61</height>
+               </rect>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_19">
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_34">
+                 <property name="maximumSize">
+                  <size>
+                   <width>50</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Theme:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="CBox_Theme">
+                 <property name="minimumSize">
+                  <size>
+                   <width>40</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="Btn_SyncWindowTheme">
+                 <property name="maximumSize">
+                  <size>
+                   <width>50</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Sync</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </widget>
            </item>

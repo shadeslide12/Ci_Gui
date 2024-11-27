@@ -23,6 +23,7 @@
 #include "BCExtra.h"
 #include "SelectFile.h"
 #include "UtilitiesGUIPre.h"
+#include "DataStructure.h"
 
 #ifndef NO_VTK_WINDOW
 #include "vtkCGNSReader.h"
@@ -227,31 +228,42 @@ private:
     void ShowPerformanceCurve(bool isShow);
     void ShowPassageRepeatTree();
 
-//Residual Start Here
+//*Residual Start Here
 private:
     Residual_Plot* residualplot;
+    QFile residual_DataFile;
+    qint64 lastResFilePos;
 signals:
-    void s_UpdateResidual(const QVector<double>& iteration,const QVector<double>& convergence1,const QVector<double>& convergence2);
+    void s_UpdateResidual(const int& iteration,const double& convergence1,const double convergence2);
 private slots:
     void updateResidual();
 
-//Monitor Start Here
+//*Monitor Start Here
 
 private slots:
     void onSelectFile();
     void onVariableSelectionChanged();
 
-    //void onLineRangeX_MonChanged();
-    //void onLineRangeY_MonChanged();
-
 private:
     MonitorPlot* monitorplot;
     QString monitorFilePath;
     QVector<int> iteration;
+    MonitorVariableTable monitorVariableTable;
+    QFile inletFile;
+    QFile outletFile;
+    QFile perfFile;
+    QList<QString> displayVariableList;
+    QVector<qint64> monfilePositionTable;
 
-    void loadMonitorFile(const QString &filePath);
     QStringList parseVariables(const QString &headerLine);
-    QVector<QVector<double>> readData(const QList<int> &selectedColumns);
+    void updateMonitorData();
+
+//*Others Start Here
+private:
+    bool syncMainWindowTheme = 0 ;
+
+private slots:
+    void updateInterfaceUI();
 
 private:
 //    renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();

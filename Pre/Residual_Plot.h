@@ -15,13 +15,14 @@ public:
     explicit Residual_Plot(QWidget* parent= nullptr);
     ~Residual_Plot()=default;
 
-    void updateResidualPlot(const QVector<double>& iteration,const QVector<double>& convergence1,const QVector<double>& convergence2);
+    void updateResidualPlot(const int& iteration,const double& convergence1,const double& convergence2);
     void setRangeX_Max(const QString &text_xMax);
     void setRangeX_Min(const QString &text_xMin);
     void setRangeY1_Min(const QString &text_y1Min);
     void setRangeY1_Max(const QString &text_yMax);
     void setAutoScaleMode();
     void setManualScaleMode();
+    void setChartStyle();
 
     QChart* residualchart;
 private:
@@ -35,6 +36,12 @@ private:
     double y1Max;
     double xMin;
     double xMax;
+
+    int maxIter;
+    double maxCon1;
+    double minCon1;
+    double maxCon2;
+    double minCon2;
 
     bool autoScale;
     void setupResidualPlot();

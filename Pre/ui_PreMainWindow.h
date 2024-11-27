@@ -290,6 +290,11 @@ public:
     QLabel *label_29;
     QLabel *label_33;
     QLabel *label_28;
+    QWidget *panel_Theme;
+    QHBoxLayout *horizontalLayout_19;
+    QLabel *label_34;
+    QComboBox *CBox_Theme;
+    QPushButton *Btn_SyncWindowTheme;
     QWidget *Plot_Convergence;
     QVBoxLayout *LayoutforConverPlot;
     QWidget *Show_Monitor;
@@ -1374,7 +1379,7 @@ public:
         label_27->setFont(font2);
         widget_9 = new QWidget(Panel_Conver);
         widget_9->setObjectName(QString::fromUtf8("widget_9"));
-        widget_9->setGeometry(QRect(9, 35, 204, 43));
+        widget_9->setGeometry(QRect(9, 35, 271, 51));
         horizontalLayout_17 = new QHBoxLayout(widget_9);
         horizontalLayout_17->setSpacing(15);
         horizontalLayout_17->setObjectName(QString::fromUtf8("horizontalLayout_17"));
@@ -1479,8 +1484,33 @@ public:
         label_33->setMaximumSize(QSize(16777215, 20));
         label_28 = new QLabel(control_panel_Range_Res);
         label_28->setObjectName(QString::fromUtf8("label_28"));
-        label_28->setGeometry(QRect(-1, 138, 56, 17));
+        label_28->setGeometry(QRect(-1, 138, 61, 17));
         label_28->setMaximumSize(QSize(16777215, 20));
+        panel_Theme = new QWidget(Panel_Conver);
+        panel_Theme->setObjectName(QString::fromUtf8("panel_Theme"));
+        panel_Theme->setGeometry(QRect(10, 480, 281, 61));
+        panel_Theme->setMinimumSize(QSize(40, 0));
+        horizontalLayout_19 = new QHBoxLayout(panel_Theme);
+        horizontalLayout_19->setObjectName(QString::fromUtf8("horizontalLayout_19"));
+        horizontalLayout_19->setContentsMargins(-1, -1, 0, -1);
+        label_34 = new QLabel(panel_Theme);
+        label_34->setObjectName(QString::fromUtf8("label_34"));
+        label_34->setMaximumSize(QSize(50, 16777215));
+
+        horizontalLayout_19->addWidget(label_34);
+
+        CBox_Theme = new QComboBox(panel_Theme);
+        CBox_Theme->setObjectName(QString::fromUtf8("CBox_Theme"));
+        CBox_Theme->setMinimumSize(QSize(40, 0));
+
+        horizontalLayout_19->addWidget(CBox_Theme);
+
+        Btn_SyncWindowTheme = new QPushButton(panel_Theme);
+        Btn_SyncWindowTheme->setObjectName(QString::fromUtf8("Btn_SyncWindowTheme"));
+        Btn_SyncWindowTheme->setMaximumSize(QSize(50, 16777215));
+
+        horizontalLayout_19->addWidget(Btn_SyncWindowTheme);
+
 
         horizontalLayout_14->addWidget(Panel_Conver);
 
@@ -1733,8 +1763,8 @@ public:
 
         retranslateUi(PreMainWindow);
 
-        stackedWidget->setCurrentIndex(5);
-        Show_MainWindow->setCurrentIndex(2);
+        stackedWidget->setCurrentIndex(0);
+        Show_MainWindow->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(PreMainWindow);
@@ -1949,6 +1979,8 @@ public:
         label_29->setText(QCoreApplication::translate("PreMainWindow", "Range X:", nullptr));
         label_33->setText(QCoreApplication::translate("PreMainWindow", "Range Y2:", nullptr));
         label_28->setText(QCoreApplication::translate("PreMainWindow", "Range Y1:", nullptr));
+        label_34->setText(QCoreApplication::translate("PreMainWindow", "Theme:", nullptr));
+        Btn_SyncWindowTheme->setText(QCoreApplication::translate("PreMainWindow", "Sync", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Convergence), QCoreApplication::translate("PreMainWindow", "Convergence", nullptr));
         label_22->setText(QCoreApplication::translate("PreMainWindow", "Graph Options", nullptr));
         Btn_SelectMonitor->setText(QCoreApplication::translate("PreMainWindow", "Select MonitorFile", nullptr));

@@ -11,26 +11,17 @@ Residual_Plot::Residual_Plot(QWidget *parent) :
         axisY2(new QValueAxis(this))
 {
     autoScale = 1;
+    maxIter = std::numeric_limits<int>::lowest();
+    maxCon1 = std::numeric_limits<double>::lowest();
+    maxCon2 = std::numeric_limits<double>::lowest();
+    minCon1 = std::numeric_limits<double>::max();
+    minCon2 = std::numeric_limits<double>::max();
     setupResidualPlot();
 }
 
 
 void Residual_Plot::setupResidualPlot() {
     this->setChart(residualchart);
-    QFont titleFont("Arial",22,QFont::Bold);
-    QColor titleColor(Qt::darkCyan);
-    residualchart->setTitle("Residual Curves");
-    residualchart->setTitleFont(titleFont);
-    residualchart->setTitleBrush(titleColor);
-    QFont axisFont;
-    axisFont.setPointSize(16);
-    axisX->setLabelsFont(axisFont);
-    axisY1->setLabelsFont(axisFont);
-    axisY2->setLabelsFont(axisFont);
-    QColor y1Color(Qt::red);
-    QColor y2Color(Qt::blue);
-    axisY1->setTitleBrush(y1Color);
-    axisY2->setTitleBrush(y2Color);
 
     residualchart->addAxis(axisX,Qt::AlignBottom);
     residualchart->addAxis(axisY1,Qt::AlignLeft);
@@ -43,39 +34,33 @@ void Residual_Plot::setupResidualPlot() {
     series_con2->attachAxis(axisX);
     series_con2->attachAxis(axisY2);
 
-    axisX->setTitleText("Iteration");
-    axisY1->setTitleText("N-S");
-    axisY2->setTitleText("Turbulence");
 
     axisX->setRange(0,10);
-    axisY1->setRange(-8.2,-7.8);
+    axisY1->setRange(-9,-6);
     axisY2->setRange(-12,-10.8);
 
     axisX->setTickCount(8);
     axisY1->setTickCount(6);
     axisY2->setTickCount(6);
+    this->setChartStyle();
 }
 
-void Residual_Plot::updateResidualPlot(const QVector<double> &iteration, const QVector<double> &convergence1,
-                                       const QVector<double> &convergence2) {
+void Residual_Plot::updateResidualPlot(const int& iteration, const double& convergence1,
+                                       const double& convergence2) {
 
-    series_con1->clear();
-    series_con2->clear();
+    qDebug() << "Hello";
+    qDebug() << convergence1;
+    series_con1->append(iteration,convergence1);
+    series_con2->append(iteration,convergence2);
 
-    for(int i =0; i<iteration.size();++i){
-        series_con1->append(iteration[i],convergence1[i]);
-        series_con2->append(iteration[i],convergence2[i]);
+    if(autoScale){
+        maxIter = std::max(maxIter, iteration);
+        maxCon1 = std::max(maxCon1, convergence1);
+        maxCon2 = std::max(maxCon2, convergence2);
+        minCon1 = std::min(maxCon2, convergence1);
+        minCon2 = std::min(minCon2, convergence2);
 
-    }
-
-    if(!iteration.isEmpty() && autoScale){
-        int maxIter = *std::max_element(iteration.begin(), iteration.end());
-        double maxCon1 = *std::max_element(convergence1.begin(), convergence1.end());
-        double maxCon2 = *std::max_element(convergence2.begin(), convergence2.end());
-        double minCon1 = *std::min_element(convergence1.begin(), convergence1.end());
-        double minCon2 = *std::min_element(convergence2.begin(), convergence2.end());
-
-        axisX->setRange(0,maxIter);
+        axisX->setRange(0,maxIter+5);
         axisY1->setRange(minCon1,maxCon1);
         axisY2->setRange(minCon2,maxCon2);
     }
@@ -84,15 +69,15 @@ void Residual_Plot::updateResidualPlot(const QVector<double> &iteration, const Q
 }
 
 void Residual_Plot::setRangeX_Max(const QString &text_xMax) {
-    if(!autoScale) {
-        xMax = text_xMax.toDouble();
+    xMax = text_xMax.toDouble();
+    if(!autoScale && xMax > xMin ) {
         axisX->setRange(xMin, xMax);
     }
 }
 
 void Residual_Plot::setRangeX_Min(const QString &text_xMin) {
-    if(!autoScale) {
-        xMin = text_xMin.toDouble();
+    xMin = text_xMin.toDouble();
+    if(!autoScale && xMin >= 0) {
         axisX->setRange(xMin, xMax);
     }
 }
@@ -117,4 +102,33 @@ void Residual_Plot::setAutoScaleMode() {
 
 void Residual_Plot::setManualScaleMode() {
     autoScale = 0;
+}
+
+void Residual_Plot::setChartStyle() {
+
+    QFont titleFont("Arial", 22, QFont::Bold);
+    residualchart->setTitleFont(titleFont);
+    residualchart->setTitle("Residual Curves");
+    residualchart->setTitleBrush(Qt::darkCyan);
+
+    QFont axisTitleFont("Arial", 16, QFont::Bold);  // 为坐标轴标题单独设置字体
+    QFont axisLabelFont("Arial", 12);               // 为坐标轴标签单独设置字体
+
+    axisX->setTitleFont(axisTitleFont);
+    axisX->setLabelsFont(axisLabelFont);
+    axisX->setTitleText("Iteration");
+
+    axisY1->setTitleFont(axisTitleFont);
+    axisY1->setLabelsFont(axisLabelFont);
+    axisY1->setTitleText("N-S");
+    axisY1->setTitleBrush(Qt::red);
+
+    axisY2->setTitleFont(axisTitleFont);
+    axisY2->setLabelsFont(axisLabelFont);
+    axisY2->setTitleText("Turbulence");
+    axisY2->setTitleBrush(Qt::darkGray);
+
+    axisX->setGridLineVisible(0);
+
+    residualchart->update();
 }
