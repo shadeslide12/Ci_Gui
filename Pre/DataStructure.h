@@ -34,6 +34,8 @@ struct MonitorVariableTable{
     Mon_Variable_Inlet inlet;
     Mon_Variable_Outlet outlet;
     Mon_Variable_Peform perform;
+
+    void clearMonTable();
 };
 
 

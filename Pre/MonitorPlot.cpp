@@ -214,6 +214,7 @@ void MonitorPlot::setChartStyle() {
     axisY->setLabelsFont(axisFont);
     QColor yColor(Qt::red);
     axisY->setTitleBrush(yColor);
+    axisY->setLabelFormat("%d");
 }
 
 void MonitorPlot::hideSeries() {
@@ -276,4 +277,10 @@ void MonitorPlot::initSeriesMap() {
             {"qInlet", perf_qInlet},
             {"qOutlet", perf_qOutlet}
     };
+}
+
+void MonitorPlot::clearSeries() {
+    for(auto const& series : seriesMap )
+        series->clear();
+    monitorchart->update();
 }

@@ -48,8 +48,8 @@ void Residual_Plot::setupResidualPlot() {
 void Residual_Plot::updateResidualPlot(const int& iteration, const double& convergence1,
                                        const double& convergence2) {
 
-    qDebug() << "Hello";
-    qDebug() << convergence1;
+//    qDebug() << "Hello";
+//    qDebug() << convergence1;
     series_con1->append(iteration,convergence1);
     series_con2->append(iteration,convergence2);
 
@@ -111,12 +111,13 @@ void Residual_Plot::setChartStyle() {
     residualchart->setTitle("Residual Curves");
     residualchart->setTitleBrush(Qt::darkCyan);
 
-    QFont axisTitleFont("Arial", 16, QFont::Bold);  // 为坐标轴标题单独设置字体
-    QFont axisLabelFont("Arial", 12);               // 为坐标轴标签单独设置字体
+    QFont axisTitleFont("Arial", 16, QFont::Bold);
+    QFont axisLabelFont("Arial", 12);
 
     axisX->setTitleFont(axisTitleFont);
     axisX->setLabelsFont(axisLabelFont);
     axisX->setTitleText("Iteration");
+    axisX->setLabelFormat("%d");
 
     axisY1->setTitleFont(axisTitleFont);
     axisY1->setLabelsFont(axisLabelFont);
@@ -130,5 +131,11 @@ void Residual_Plot::setChartStyle() {
 
     axisX->setGridLineVisible(0);
 
+    residualchart->update();
+}
+
+void Residual_Plot::clearSeries() {
+    series_con1->clear();
+    series_con2->clear();
     residualchart->update();
 }

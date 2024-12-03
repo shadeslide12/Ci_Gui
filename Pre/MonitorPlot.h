@@ -30,6 +30,7 @@ public:
     void updateSeriesVisibility(const QStringList& selectedVariables);
     void updateRangeWithTimer(const MonitorVariableTable& data);
     void updateRangeOnVariableChange();
+    void clearSeries();
 
     void setAutoScaleMode();
     void setManualScaleMode();

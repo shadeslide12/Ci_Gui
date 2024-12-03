@@ -12,6 +12,7 @@ list(APPEND QT_PRE2_SRC
    ${CMAKE_CURRENT_SOURCE_DIR}/Residual_Plot.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/MonitorPlot.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/DataStructure.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/DataStructure.cpp
 #   ${CMAKE_CURRENT_SOURCE_DIR}/bcaddition.cpp
 #   ${CMAKE_CURRENT_SOURCE_DIR}/yamlreader.cpp
 )

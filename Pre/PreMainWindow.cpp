@@ -1461,23 +1461,35 @@ void PreMainWindow::on_output_steady_lineEdit_textChanged(const QString &arg1)
 }
 
 void PreMainWindow::on_start_simulation_button_clicked() {
+    //* Others Start Here
+    timer->setInterval(1500);
     timer->start();
+    residualplot->clearSeries();
+    monitorplot->clearSeries();
+    lastResFilePos = 0 ;
+    monfilePositionTable = {0,0,0};
+    monitorVariableTable.clearMonTable();
+
     cfg.SaveYAML(cfg.GUI_yaml);
     QString program = "";
+    program += "rm -rf mon_*.dat && ";
+    program += "rm -rf hist.dat && ";
     if (cfg.isPreProcessRun) {
         cfg.SyncStep2();
         program += std::string(global_solver_name+"-pre step2 && ").c_str();
         program += "cp " + QString::fromStdString(cfg.GUI_yaml) + " " + QString::fromStdString(global_pre_setup_yaml) + "&& ";
         program += std::string(global_solver_name+"-pre step3 && ").c_str();
     }
+    qDebug() << program;
     program += "cp " + QString::fromStdString(cfg.GUI_yaml) + " " + QString::fromStdString(global_pre_setup_yaml) + "&& ";
     program += QString::fromStdString(global_solver_name)+"-tools 3 1 && ";
-    program += "rm -rf mon_*.dat && ";
-    program += "rm -rf hist.dat && ";
+//    program += "rm -rf mon_*.dat && ";
+//    program += "rm -rf hist.dat && ";
     program += "cp " + QString::fromStdString(cfg.GUI_yaml) + " " + QString::fromStdString(global_pre_setup_yaml) + "&& ";
     //** some change for easy test
     program += "cp zjui.cfg input.dat && " ;
     program += "mpirun.mpich -np " + ui->spinCPU->text() + " " "./cipher-1.0.5";
+    qDebug() << program;
     QStringList arguments;
 
     cfg.isPreProcessRun=false;
@@ -1505,6 +1517,15 @@ void PreMainWindow::on_stop_simulation_button_clicked() {
 
   //*timer
   timer->stop();
+  if(residual_DataFile.isOpen())
+      residual_DataFile.close();
+  if(outletFile.isOpen())
+      inletFile.close();
+  if(inletFile.isOpen())
+      outletFile.close();
+  if(perfFile.isOpen())
+      perfFile.close();
+
 }
 
 void PreMainWindow::on_gas_type_combo_currentTextChanged(const QString &arg1)
@@ -1692,6 +1713,7 @@ void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStat
     QMessageBox::information(nullptr, "Finish Dialog", message);
     on_stop_simulation_button_clicked();
   }
+
 }
 
 void PreMainWindow::handleError(QProcess::ProcessError error) {
@@ -1726,11 +1748,13 @@ void PreMainWindow::on_continue_simulation_button_clicked()
   cfg.isAppend=true;
   cfg.SaveYAML(cfg.GUI_yaml);
   QString program = "";
-  //program += "cp " + QString::fromStdString(cfg.GUI_yaml) + " " + QString::fromStdString(global_pre_setup_yaml) + "&& ";
-  //program += QString::fromStdString(global_solver_name)+"-tools 3 1 && ";
+  program += "cp " + QString::fromStdString(cfg.GUI_yaml) + " " + QString::fromStdString(global_pre_setup_yaml) + "&& ";
+  program += QString::fromStdString(global_solver_name)+"-tools 3 1 && ";
+  //**some change for easy test
+  program += "cp zjui.cfg input.dat && " ;
   program += "mpirun -np " + ui->spinCPU->text() + " " + QString::fromStdString(global_solver_name)+"-solver";
   QStringList arguments;
-
+  qDebug() << program;
   process->start("/bin/bash", QStringList() << "-c" << program);
 
   ui->start_simulation_button->setEnabled(false);
@@ -2109,13 +2133,6 @@ void PreMainWindow::onSelectFile()
     }
 }
 
-QStringList PreMainWindow::parseVariables(const QString &headerLine)
-{
-    QStringList variables = headerLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-    variables.removeFirst(); // Remove "Iter"
-    return variables;
-}
-
 
 
 void PreMainWindow::onVariableSelectionChanged()
@@ -2135,29 +2152,30 @@ void PreMainWindow::onVariableSelectionChanged()
     monitorplot->updateSeriesVisibility(displayVariableList);
     monitorplot->updateRangeOnVariableChange();
     //updateMonitorData();
+
 }
 
 
 void PreMainWindow::updateMonitorData() {
+//    qDebug()<<"lastFilePosition"<<monfilePositionTable[0];
 //    if(ui->List_Variable->selectedItems().isEmpty())
 //        return;
 
-    qDebug()<<"lastFilePosition"<<monfilePositionTable[0];
     if(!inletFile.isOpen()) {
         if (!(inletFile.open(QIODevice::ReadOnly | QIODevice::Text))) {
-            qDebug() << "failed to read Files";
+            qDebug() << "fail to read inlet Files";
             return;
         }
     }
     if(!outletFile.isOpen()) {
         if (!(outletFile.open(QIODevice::ReadOnly | QIODevice::Text))) {
-            qDebug() << "failed to read Files";
+            qDebug() << "fail to read outlet Files";
             return;
         }
     }
     if(!perfFile.isOpen()) {
         if (!(perfFile.open(QIODevice::ReadOnly | QIODevice::Text))) {
-            qDebug() << "failed to read Files";
+            qDebug() << "fail to read perform Files";
             return;
         }
     }
@@ -2181,9 +2199,9 @@ void PreMainWindow::updateMonitorData() {
     QString lineOutlet = inOutlet.readLine();
     QString linePerf = inPerf.readLine();
     if(lineInlet.isEmpty() || lineOutlet.isEmpty() || linePerf.isEmpty()) {
-        qDebug() << lineInlet.isEmpty();
-        qDebug() << lineOutlet.isEmpty();
-        qDebug() << linePerf.isEmpty();
+        qDebug() << "lineInlet is empty";
+        qDebug() << "lineOutlet is empty";
+        qDebug() << "linePerform is empty";
         return;
     }
 

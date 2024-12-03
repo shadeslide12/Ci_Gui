@@ -232,7 +232,7 @@ private:
 private:
     Residual_Plot* residualplot;
     QFile residual_DataFile;
-    qint64 lastResFilePos;
+    qint64 lastResFilePos = 0;
 signals:
     void s_UpdateResidual(const int& iteration,const double& convergence1,const double convergence2);
 private slots:
@@ -255,7 +255,6 @@ private:
     QList<QString> displayVariableList;
     QVector<qint64> monfilePositionTable;
 
-    QStringList parseVariables(const QString &headerLine);
     void updateMonitorData();
 
 //*Others Start Here

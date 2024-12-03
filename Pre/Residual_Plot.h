@@ -23,6 +23,7 @@ public:
     void setAutoScaleMode();
     void setManualScaleMode();
     void setChartStyle();
+    void clearSeries();
 
     QChart* residualchart;
 private:
