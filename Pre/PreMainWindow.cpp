@@ -1464,6 +1464,14 @@ void PreMainWindow::on_start_simulation_button_clicked() {
     //* Others Start Here
     timer->setInterval(1500);
     timer->start();
+    if(residual_DataFile.isOpen())
+        residual_DataFile.close();
+    if(outletFile.isOpen())
+        outletFile.close();
+    if(inletFile.isOpen())
+        inletFile.close();
+    if(perfFile.isOpen())
+        perfFile.close();
     residualplot->clearSeries();
     monitorplot->clearSeries();
     lastResFilePos = 0 ;
@@ -1517,14 +1525,6 @@ void PreMainWindow::on_stop_simulation_button_clicked() {
 
   //*timer
   timer->stop();
-  if(residual_DataFile.isOpen())
-      residual_DataFile.close();
-  if(outletFile.isOpen())
-      inletFile.close();
-  if(inletFile.isOpen())
-      outletFile.close();
-  if(perfFile.isOpen())
-      perfFile.close();
 
 }
 
@@ -1708,7 +1708,9 @@ void PreMainWindow::onMonitorDeleteMonitor(int id) {
 
 void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStatus)
 {
-  QString message = "Finished";
+    this->setResultTableData();
+
+    QString message = "Finished";
   if (exitCode==0 && exitStatus==QProcess::NormalExit) {
     QMessageBox::information(nullptr, "Finish Dialog", message);
     on_stop_simulation_button_clicked();
@@ -1745,14 +1747,32 @@ void PreMainWindow::handleError(QProcess::ProcessError error) {
 
 void PreMainWindow::on_continue_simulation_button_clicked()
 {
+  if(residual_DataFile.isOpen())
+      residual_DataFile.close();
+  if(outletFile.isOpen())
+      outletFile.close();
+  if(inletFile.isOpen())
+      inletFile.close();
+  if(perfFile.isOpen())
+      perfFile.close();
+  residualplot->clearSeries();
+  monitorplot->clearSeries();
+  lastResFilePos = 0 ;
+  monfilePositionTable = {0,0,0};
+  monitorVariableTable.clearMonTable();
+
+
+
   cfg.isAppend=true;
   cfg.SaveYAML(cfg.GUI_yaml);
   QString program = "";
   program += "cp " + QString::fromStdString(cfg.GUI_yaml) + " " + QString::fromStdString(global_pre_setup_yaml) + "&& ";
   program += QString::fromStdString(global_solver_name)+"-tools 3 1 && ";
   //**some change for easy test
+  program += "rm -rf mon_*.dat && ";
+  program += "rm -rf hist.dat && ";
   program += "cp zjui.cfg input.dat && " ;
-  program += "mpirun -np " + ui->spinCPU->text() + " " + QString::fromStdString(global_solver_name)+"-solver";
+  program += "mpirun -np " + ui->spinCPU->text() + " " +"./cipher-1.0.5";
   QStringList arguments;
   qDebug() << program;
   process->start("/bin/bash", QStringList() << "-c" << program);
@@ -2160,7 +2180,6 @@ void PreMainWindow::updateMonitorData() {
 //    qDebug()<<"lastFilePosition"<<monfilePositionTable[0];
 //    if(ui->List_Variable->selectedItems().isEmpty())
 //        return;
-
     if(!inletFile.isOpen()) {
         if (!(inletFile.open(QIODevice::ReadOnly | QIODevice::Text))) {
             qDebug() << "fail to read inlet Files";
@@ -2273,4 +2292,17 @@ void PreMainWindow::updateInterfaceUI() {
     }
     monitorplot->setChartStyle();
     residualplot->setChartStyle();
+}
+
+void PreMainWindow::setResultTableData() {
+    if(monitorVariableTable.perform.pRatio.isEmpty())
+        return;
+    ui->Result_Table->setItem(indexResultTable,0,new QTableWidgetItem(QString::number(indexResultTable+1)) );
+    ui->Result_Table->setItem(indexResultTable,1,new QTableWidgetItem(ui->target_p_value->text() ) );
+    ui->Result_Table->setItem(indexResultTable,2,new QTableWidgetItem(QString::number(monitorVariableTable.outlet.mDot.last())) );
+    ui->Result_Table->setItem(indexResultTable,3,new QTableWidgetItem(QString::number(monitorVariableTable.perform.pRatio.last())) );
+    ui->Result_Table->setItem(indexResultTable,4,new QTableWidgetItem(QString::number(monitorVariableTable.perform.tRatio.last())) );
+    ui->Result_Table->setItem(indexResultTable,5,new QTableWidgetItem(QString::number(monitorVariableTable.perform.efficiency.last())) );
+
+    indexResultTable++;
 }

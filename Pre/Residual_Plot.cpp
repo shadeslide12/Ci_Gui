@@ -61,8 +61,10 @@ void Residual_Plot::updateResidualPlot(const int& iteration, const double& conve
         minCon2 = std::min(minCon2, convergence2);
 
         axisX->setRange(0,maxIter+5);
-        axisY1->setRange(minCon1,maxCon1);
-        axisY2->setRange(minCon2,maxCon2);
+        double margin1 = (maxCon1 - minCon1) * 0.05;
+        axisY1->setRange(minCon1-margin1,maxCon1+margin1);
+        double margin2 = (maxCon2 - minCon2) * 0.05;
+        axisY2->setRange(minCon2-margin2,maxCon2+margin2);
     }
 
     residualchart->update();
@@ -137,5 +139,14 @@ void Residual_Plot::setChartStyle() {
 void Residual_Plot::clearSeries() {
     series_con1->clear();
     series_con2->clear();
+
+    axisX->setRange(0,10);
+    axisY1->setRange(-9,-6);
+    axisY2->setRange(-12,-10.8);
+    maxCon1 = std::numeric_limits<double>::lowest();
+    maxCon2 = std::numeric_limits<double>::lowest();
+    minCon1 = std::numeric_limits<double>::max();
+    minCon2 = std::numeric_limits<double>::max();
+    maxIter = 10 ;
     residualchart->update();
 }

@@ -259,7 +259,10 @@ private:
 
 //*Others Start Here
 private:
+    void setResultTableData();
     bool syncMainWindowTheme = 0 ;
+
+    int indexResultTable = 0 ;
 
 private slots:
     void updateInterfaceUI();

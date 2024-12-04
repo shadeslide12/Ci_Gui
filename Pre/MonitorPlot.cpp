@@ -148,7 +148,8 @@ void MonitorPlot::updateRangeWithTimer(const MonitorVariableTable &data) {
             maxRangeY = std::max(maxRangeY,value);
         }
     }
-    axisY->setRange(minRangeY,maxRangeY);
+    double margin = (maxRangeY - minRangeY) * 0.05;
+    axisY->setRange(minRangeY-margin,maxRangeY+margin);
 }
 
 void MonitorPlot::updateRangeOnVariableChange() {
@@ -163,7 +164,8 @@ void MonitorPlot::updateRangeOnVariableChange() {
             }
         }
     }
-    axisY->setRange(minRangeY, maxRangeY);
+    double margin = (maxRangeY - minRangeY) * 0.05;
+    axisY->setRange(minRangeY-margin,maxRangeY+margin);
 }
 
 void MonitorPlot::setRangeX_Max(const QString &text_xMax) {
@@ -214,7 +216,7 @@ void MonitorPlot::setChartStyle() {
     axisY->setLabelsFont(axisFont);
     QColor yColor(Qt::red);
     axisY->setTitleBrush(yColor);
-    axisY->setLabelFormat("%d");
+    axisX->setLabelFormat("%d");
 }
 
 void MonitorPlot::hideSeries() {
@@ -282,5 +284,11 @@ void MonitorPlot::initSeriesMap() {
 void MonitorPlot::clearSeries() {
     for(auto const& series : seriesMap )
         series->clear();
+    axisX->setRange(0,10);
+    axisY->setRange(0,10);
+    maxRangeY = std::numeric_limits<double>::lowest();
+    minRangeY = std::numeric_limits<double>::max();
+    maxRangeX = 10;
     monitorchart->update();
 }
+
