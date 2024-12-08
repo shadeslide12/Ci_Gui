@@ -1600,7 +1600,7 @@
        <item>
         <widget class="QTabWidget" name="Show_MainWindow">
          <property name="currentIndex">
-          <number>0</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="Show_Model">
           <attribute name="title">
@@ -1648,302 +1648,280 @@
                <height>16777215</height>
               </size>
              </property>
-             <widget class="QLabel" name="label_27">
-              <property name="geometry">
-               <rect>
-                <x>9</x>
-                <y>9</y>
-                <width>131</width>
-                <height>19</height>
-               </rect>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>20</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-                <weight>75</weight>
-                <italic>false</italic>
-                <bold>true</bold>
-                <underline>false</underline>
-                <strikeout>false</strikeout>
-               </font>
-              </property>
-              <property name="text">
-               <string>Graph Options</string>
-              </property>
-             </widget>
-             <widget class="QWidget" name="widget_9" native="true">
-              <property name="geometry">
-               <rect>
-                <x>9</x>
-                <y>35</y>
-                <width>271</width>
-                <height>51</height>
-               </rect>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_17">
-               <property name="spacing">
-                <number>15</number>
-               </property>
-               <item>
-                <widget class="QPushButton" name="Btn_AutoScale_Res">
-                 <property name="text">
-                  <string>AutoScale</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="Btn_ManualScale_Res">
-                 <property name="text">
-                  <string>ManualScale</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="control_panel_Range_Res" native="true">
-              <property name="geometry">
-               <rect>
-                <x>10</x>
-                <y>90</y>
-                <width>281</width>
-                <height>351</height>
-               </rect>
-              </property>
-              <widget class="QWidget" name="Widget_Res_RangeY1_2" native="true">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>270</y>
-                 <width>282</width>
-                 <height>77</height>
-                </rect>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_18">
-                <property name="topMargin">
-                 <number>0</number>
+             <layout class="QVBoxLayout" name="verticalLayout_14">
+              <item>
+               <widget class="QLabel" name="label_27">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>20</height>
+                 </size>
                 </property>
-                <property name="bottomMargin">
-                 <number>0</number>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                  <weight>75</weight>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                  <underline>false</underline>
+                  <strikeout>false</strikeout>
+                 </font>
                 </property>
-                <item>
-                 <widget class="QLabel" name="label_31">
-                  <property name="text">
-                   <string>Min</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeY2_Res_Min"/>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_32">
-                  <property name="text">
-                   <string>Max</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeY2_Res_Max"/>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QWidget" name="Widget_Res_RangeY1" native="true">
-               <property name="geometry">
-                <rect>
-                 <x>-1</x>
-                 <y>158</y>
-                 <width>282</width>
-                 <height>77</height>
-                </rect>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_15">
-                <property name="topMargin">
-                 <number>0</number>
+                <property name="text">
+                 <string>Graph Options</string>
                 </property>
-                <property name="bottomMargin">
-                 <number>0</number>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget_9" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
-                <item>
-                 <widget class="QLabel" name="label_23">
-                  <property name="text">
-                   <string>Min</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeY1_Res_Min"/>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_24">
-                  <property name="text">
-                   <string>Max</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeY1_Res_Max"/>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QWidget" name="Widget_Res_RangeX" native="true">
-               <property name="geometry">
-                <rect>
-                 <x>-1</x>
-                 <y>48</y>
-                 <width>282</width>
-                 <height>78</height>
-                </rect>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_16">
-                <property name="topMargin">
-                 <number>0</number>
+                <layout class="QHBoxLayout" name="horizontalLayout_17">
+                 <property name="spacing">
+                  <number>15</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="Btn_AutoScale_Res">
+                   <property name="text">
+                    <string>AutoScale</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="Btn_ManualScale_Res">
+                   <property name="text">
+                    <string>ManualScale</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="control_panel_Range_Res" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
-                <property name="bottomMargin">
-                 <number>0</number>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>350</height>
+                 </size>
                 </property>
-                <item>
-                 <widget class="QLabel" name="label_25">
-                  <property name="text">
-                   <string>Min</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeX_Res_Min"/>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_26">
-                  <property name="text">
-                   <string>Max</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="Line_RangeX_Res_Max"/>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QLabel" name="label_29">
-               <property name="geometry">
-                <rect>
-                 <x>-1</x>
-                 <y>28</y>
-                 <width>59</width>
-                 <height>17</height>
-                </rect>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Range X:</string>
-               </property>
-              </widget>
-              <widget class="QLabel" name="label_33">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>250</y>
-                 <width>282</width>
-                 <height>20</height>
-                </rect>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Range Y2:</string>
-               </property>
-              </widget>
-              <widget class="QLabel" name="label_28">
-               <property name="geometry">
-                <rect>
-                 <x>-1</x>
-                 <y>138</y>
-                 <width>61</width>
-                 <height>17</height>
-                </rect>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Range Y1:</string>
-               </property>
-              </widget>
-             </widget>
-             <widget class="QWidget" name="panel_Theme" native="true">
-              <property name="geometry">
-               <rect>
-                <x>10</x>
-                <y>480</y>
-                <width>281</width>
-                <height>61</height>
-               </rect>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>40</width>
-                <height>0</height>
-               </size>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_19">
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label_34">
-                 <property name="maximumSize">
-                  <size>
-                   <width>50</width>
-                   <height>16777215</height>
-                  </size>
+                <layout class="QVBoxLayout" name="verticalLayout_13">
+                 <item>
+                  <widget class="QLabel" name="label_29">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Range X:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="Widget_Res_RangeX" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_16">
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_25">
+                      <property name="text">
+                       <string>Min</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeX_Res_Min"/>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_26">
+                      <property name="text">
+                       <string>Max</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeX_Res_Max"/>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_28">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Range Y1:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="Widget_Res_RangeY1" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_15">
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_23">
+                      <property name="text">
+                       <string>Min</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeY1_Res_Min"/>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_24">
+                      <property name="text">
+                       <string>Max</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeY1_Res_Max"/>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_33">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Range Y2:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="Widget_Res_RangeY1_2" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_18">
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_31">
+                      <property name="text">
+                       <string>Min</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeY2_Res_Min"/>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_32">
+                      <property name="text">
+                       <string>Max</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeY2_Res_Max"/>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item alignment="Qt::AlignTop">
+               <widget class="QWidget" name="panel_Theme" native="true">
+                <property name="minimumSize">
+                 <size>
+                  <width>40</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_19">
+                 <property name="rightMargin">
+                  <number>0</number>
                  </property>
-                 <property name="text">
-                  <string>Theme:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="CBox_Theme">
-                 <property name="minimumSize">
-                  <size>
-                   <width>40</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="Btn_SyncWindowTheme">
-                 <property name="maximumSize">
-                  <size>
-                   <width>50</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Sync</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
+                 <item>
+                  <widget class="QLabel" name="label_34">
+                   <property name="maximumSize">
+                    <size>
+                     <width>50</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Theme:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="CBox_Theme">
+                   <property name="minimumSize">
+                    <size>
+                     <width>40</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="Btn_SyncWindowTheme">
+                   <property name="maximumSize">
+                    <size>
+                     <width>50</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Sync</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
            <item>
@@ -2214,7 +2192,223 @@
           <attribute name="title">
            <string>Perform_Curve</string>
           </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_6">
+          <layout class="QHBoxLayout" name="horizontalLayout_24">
+           <item>
+            <widget class="QWidget" name="Panel_Monitor_2" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>300</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>300</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_12">
+              <item>
+               <widget class="QLabel" name="label_35">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                  <weight>75</weight>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                  <underline>false</underline>
+                  <strikeout>false</strikeout>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Graph Options</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget_12" native="true">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>100</height>
+                 </size>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_25">
+                 <property name="rightMargin">
+                  <number>20</number>
+                 </property>
+                 <item alignment="Qt::AlignLeft">
+                  <widget class="QLabel" name="label_36">
+                   <property name="text">
+                    <string>Select Variable :</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="CBtn_SelectPerfVariable"/>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="control_panel_Range_Mon_2" native="true">
+                <layout class="QVBoxLayout" name="verticalLayout_6">
+                 <property name="spacing">
+                  <number>20</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_37">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Range X:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="widget_8" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_21">
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_38">
+                      <property name="text">
+                       <string>Min</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeX_Perf_Min"/>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_39">
+                      <property name="text">
+                       <string>Max</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeX_Perf_Max"/>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_40">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Range Y:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="widget_10" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_22">
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_41">
+                      <property name="text">
+                       <string>Min</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeY_Mon_Min_2"/>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_42">
+                      <property name="text">
+                       <string>Max</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Line_RangeY_Perf_Max"/>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget_7" native="true">
+                <widget class="QPushButton" name="pushButton_6">
+                 <property name="geometry">
+                  <rect>
+                   <x>10</x>
+                   <y>30</y>
+                   <width>101</width>
+                   <height>31</height>
+                  </rect>
+                 </property>
+                 <property name="text">
+                  <string>Clear Data</string>
+                 </property>
+                </widget>
+                <widget class="QPushButton" name="pushButton_7">
+                 <property name="geometry">
+                  <rect>
+                   <x>160</x>
+                   <y>30</y>
+                   <width>101</width>
+                   <height>31</height>
+                  </rect>
+                 </property>
+                 <property name="text">
+                  <string>Export Picture</string>
+                 </property>
+                </widget>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget_11" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_23">
+                 <property name="spacing">
+                  <number>50</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
            <item>
             <widget class="QWidget" name="Plot_Performance" native="true">
              <layout class="QVBoxLayout" name="LayoutforPerform"/>
@@ -2288,7 +2482,7 @@
              </column>
              <column>
               <property name="text">
-               <string>Temperature</string>
+               <string>Temperature Ratio</string>
               </property>
              </column>
              <column>

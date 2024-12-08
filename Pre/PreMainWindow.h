@@ -193,8 +193,6 @@ private slots:
 private:
     Ui::PreMainWindow *ui;
     QProcess *process;
-    QChartView* performPlotView;
-    Perform_Plot* performplot;
 
     void Setup_UI();
 
@@ -256,6 +254,11 @@ private:
     QVector<qint64> monfilePositionTable;
 
     void updateMonitorData();
+//*Perf Start Here
+private:
+    void updatePerfData();
+    QChartView* performPlotView;
+    Perform_Plot* performplot;
 
 //*Others Start Here
 private:

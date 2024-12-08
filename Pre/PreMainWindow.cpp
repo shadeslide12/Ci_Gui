@@ -133,6 +133,10 @@ void PreMainWindow::Setup_UI()
   connect(ui->Btn_ManualScale_Mon,&QPushButton::clicked,this,[this](){monitorplot->setManualScaleMode();ui->control_panel_Range_Mon->setEnabled(1);});
   connect(ui->Btn_AutoScale_Mon, &QPushButton::clicked,this,[this](){monitorplot->setAutoScaleMode();ui->control_panel_Range_Mon->setEnabled(0);});
 
+  //*Perf Start Here
+  QStringList perfVariable = {"Pressure Ratio","Temperature Ratio","Efficiency"};
+  ui->CBtn_SelectPerfVariable->addItems(perfVariable);
+  connect(ui->CBtn_SelectPerfVariable,QOverload<int>::of(&QComboBox::currentIndexChanged),performplot,&Perform_Plot::updateVisibility);
   //*Others Start Here
   ui->CBox_Theme->addItem("Light", QChart::ChartThemeLight);
   ui->CBox_Theme->addItem("Blue Cerulean", QChart::ChartThemeBlueCerulean);
@@ -1709,7 +1713,7 @@ void PreMainWindow::onMonitorDeleteMonitor(int id) {
 void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStatus)
 {
     this->setResultTableData();
-
+    performplot->updateChart(monitorVariableTable);
     QString message = "Finished";
   if (exitCode==0 && exitStatus==QProcess::NormalExit) {
     QMessageBox::information(nullptr, "Finish Dialog", message);
@@ -2305,4 +2309,8 @@ void PreMainWindow::setResultTableData() {
     ui->Result_Table->setItem(indexResultTable,5,new QTableWidgetItem(QString::number(monitorVariableTable.perform.efficiency.last())) );
 
     indexResultTable++;
+}
+
+void PreMainWindow::updatePerfData() {
+
 }
