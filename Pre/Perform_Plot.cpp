@@ -76,16 +76,43 @@ void Perform_Plot::updateVisibility(int i) {
     }
 
     currentVisibleLine = i ;
-}
-
-void Perform_Plot::updateChart( MonitorVariableTable &monitorVariableTable) {
-    series_pratio->append(monitorVariableTable.outlet.mDot.last(),monitorVariableTable.perform.pRatio.last());
-    series_tratio->append(monitorVariableTable.outlet.mDot.last(),monitorVariableTable.perform.tRatio.last());
-    series_efficiency->append(monitorVariableTable.outlet.mDot.last(),monitorVariableTable.perform.efficiency.last());
-
     this->autoRange();
 }
 
+void Perform_Plot::updateChart(MonitorVariableTable &monitorVariableTable) {
+    double new_x = monitorVariableTable.outlet.mDot.last();
+
+    bool need_sort = false;
+    if (!series_pratio->points().isEmpty()) {
+        qreal last_x = series_pratio->at(series_pratio->count() - 1).x();
+        if (new_x < last_x) {
+            need_sort = true;
+        }
+    }
+
+    series_pratio->append(new_x, monitorVariableTable.perform.pRatio.last());
+    series_tratio->append(new_x, monitorVariableTable.perform.tRatio.last());
+    series_efficiency->append(new_x, monitorVariableTable.perform.efficiency.last());
+
+    if (need_sort) {
+        QVector<QPointF> points_pratio = series_pratio->pointsVector();
+        QVector<QPointF> points_tratio = series_tratio->pointsVector();
+        QVector<QPointF> points_efficiency = series_efficiency->pointsVector();
+
+        std::sort(points_pratio.begin(), points_pratio.end(),
+                  [](const QPointF &p1, const QPointF &p2) { return p1.x() < p2.x(); });
+        std::sort(points_tratio.begin(), points_tratio.end(),
+                  [](const QPointF &p1, const QPointF &p2) { return p1.x() < p2.x(); });
+        std::sort(points_efficiency.begin(), points_efficiency.end(),
+                  [](const QPointF &p1, const QPointF &p2) { return p1.x() < p2.x(); });
+
+        series_pratio->replace(points_pratio);
+        series_tratio->replace(points_tratio);
+        series_efficiency->replace(points_efficiency);
+    }
+
+    this->autoRange();
+}
 void Perform_Plot::autoRange() {
     min_RangeY = std::numeric_limits<double>::max();
     max_RangeY = std::numeric_limits<double>::lowest();

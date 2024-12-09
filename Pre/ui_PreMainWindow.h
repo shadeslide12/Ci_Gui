@@ -359,7 +359,8 @@ public:
     QLabel *label_42;
     QLineEdit *Line_RangeY_Perf_Max;
     QWidget *widget_7;
-    QHBoxLayout *horizontalLayout_20;
+    QPushButton *pushButton_6;
+    QPushButton *pushButton_7;
     QWidget *widget_11;
     QHBoxLayout *horizontalLayout_23;
     QWidget *Plot_Performance;
@@ -1861,9 +1862,12 @@ public:
 
         widget_7 = new QWidget(Panel_Monitor_2);
         widget_7->setObjectName(QString::fromUtf8("widget_7"));
-        horizontalLayout_20 = new QHBoxLayout(widget_7);
-        horizontalLayout_20->setSpacing(15);
-        horizontalLayout_20->setObjectName(QString::fromUtf8("horizontalLayout_20"));
+        pushButton_6 = new QPushButton(widget_7);
+        pushButton_6->setObjectName(QString::fromUtf8("pushButton_6"));
+        pushButton_6->setGeometry(QRect(10, 30, 101, 31));
+        pushButton_7 = new QPushButton(widget_7);
+        pushButton_7->setObjectName(QString::fromUtf8("pushButton_7"));
+        pushButton_7->setGeometry(QRect(160, 30, 101, 31));
 
         verticalLayout_12->addWidget(widget_7);
 
@@ -2196,6 +2200,8 @@ public:
         label_40->setText(QCoreApplication::translate("PreMainWindow", "Range Y:", nullptr));
         label_41->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
         label_42->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));
+        pushButton_6->setText(QCoreApplication::translate("PreMainWindow", "Clear Data", nullptr));
+        pushButton_7->setText(QCoreApplication::translate("PreMainWindow", "Export Picture", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Performance), QCoreApplication::translate("PreMainWindow", "Perform_Curve", nullptr));
         QTableWidgetItem *___qtablewidgetitem = Result_Table->horizontalHeaderItem(0);
         ___qtablewidgetitem->setText(QCoreApplication::translate("PreMainWindow", "Run Number", nullptr));
@@ -2206,7 +2212,7 @@ public:
         QTableWidgetItem *___qtablewidgetitem3 = Result_Table->horizontalHeaderItem(3);
         ___qtablewidgetitem3->setText(QCoreApplication::translate("PreMainWindow", "Pressure Ratio", nullptr));
         QTableWidgetItem *___qtablewidgetitem4 = Result_Table->horizontalHeaderItem(4);
-        ___qtablewidgetitem4->setText(QCoreApplication::translate("PreMainWindow", "Temperature", nullptr));
+        ___qtablewidgetitem4->setText(QCoreApplication::translate("PreMainWindow", "Temperature Ratio", nullptr));
         QTableWidgetItem *___qtablewidgetitem5 = Result_Table->horizontalHeaderItem(5);
         ___qtablewidgetitem5->setText(QCoreApplication::translate("PreMainWindow", "Efficiency", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Result), QCoreApplication::translate("PreMainWindow", "Result_Table", nullptr));
