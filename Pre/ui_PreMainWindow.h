@@ -58,6 +58,8 @@ public:
     QScrollArea *scrollArea;
     QWidget *scrollAreaWidgetContents_2;
     QVBoxLayout *verticalLayout_3;
+    QWidget *widget_4;
+    QVBoxLayout *verticalLayout_2;
     QStackedWidget *stackedWidget;
     QWidget *general;
     QWidget *verticalLayoutWidget_3;
@@ -195,8 +197,7 @@ public:
     QListWidget *FilmCooling_List;
     QPushButton *generate_film_boundary;
     QWidget *savetab;
-    QWidget *layoutWidget;
-    QVBoxLayout *verticalLayout_11;
+    QVBoxLayout *verticalLayout_7;
     QGridLayout *unstead_simulation_layout_2;
     QLabel *label_6;
     QHBoxLayout *horizontalLayout_5;
@@ -241,20 +242,19 @@ public:
     QLabel *monitor_label;
     QPushButton *pushButton;
     QTreeWidget *monitor_tree;
-    QWidget *AutoTest;
-    QVBoxLayout *verticalLayout_8;
-    QVBoxLayout *verticalLayout_7;
+    QWidget *widget_13;
+    QGridLayout *gridLayout;
+    QLabel *label_44;
     QLabel *label_14;
-    QHBoxLayout *horizontalLayout_7;
+    QLineEdit *LEdit_StartPressure_AutoRun;
     QLabel *label_15;
-    QLineEdit *lineEdit;
-    QPushButton *pushButton_2;
-    QHBoxLayout *horizontalLayout_8;
-    QPushButton *pushButton_3;
-    QPushButton *pushButton_4;
-    QPushButton *pushButton_5;
-    QWidget *widget_4;
-    QVBoxLayout *verticalLayout_2;
+    QLineEdit *LEdit_EndPressure_AutoRun;
+    QLabel *label_43;
+    QLineEdit *LEdit_NumPoints_AutoRun;
+    QPushButton *Btn_Start_AutoRun;
+    QPushButton *Btn_Skip_AutoRun;
+    QPushButton *Btn_End_AutoRun;
+    QSpacerItem *verticalSpacer_7;
     QTabWidget *Show_MainWindow;
     QWidget *Show_Model;
     QVBoxLayout *RunGraphLayout;
@@ -428,9 +428,21 @@ public:
         scrollAreaWidgetContents_2 = new QWidget();
         scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
         scrollAreaWidgetContents_2->setEnabled(true);
-        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 348, 987));
+        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 348, 993));
         verticalLayout_3 = new QVBoxLayout(scrollAreaWidgetContents_2);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
+        widget_4 = new QWidget(scrollAreaWidgetContents_2);
+        widget_4->setObjectName(QString::fromUtf8("widget_4"));
+        QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(widget_4->sizePolicy().hasHeightForWidth());
+        widget_4->setSizePolicy(sizePolicy1);
+        verticalLayout_2 = new QVBoxLayout(widget_4);
+        verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
+
+        verticalLayout_3->addWidget(widget_4);
+
         stackedWidget = new QStackedWidget(scrollAreaWidgetContents_2);
         stackedWidget->setObjectName(QString::fromUtf8("stackedWidget"));
         stackedWidget->setEnabled(true);
@@ -478,7 +490,7 @@ public:
 
         verticalLayoutWidget_2 = new QWidget(general);
         verticalLayoutWidget_2->setObjectName(QString::fromUtf8("verticalLayoutWidget_2"));
-        verticalLayoutWidget_2->setGeometry(QRect(10, 150, 301, 604));
+        verticalLayoutWidget_2->setGeometry(QRect(10, 150, 301, 571));
         Turbulence_area = new QVBoxLayout(verticalLayoutWidget_2);
         Turbulence_area->setObjectName(QString::fromUtf8("Turbulence_area"));
         Turbulence_area->setContentsMargins(0, 0, 0, 0);
@@ -786,7 +798,7 @@ public:
         solver->setObjectName(QString::fromUtf8("solver"));
         gridLayoutWidget_2 = new QWidget(solver);
         gridLayoutWidget_2->setObjectName(QString::fromUtf8("gridLayoutWidget_2"));
-        gridLayoutWidget_2->setGeometry(QRect(0, 60, 309, 342));
+        gridLayoutWidget_2->setGeometry(QRect(0, 60, 309, 334));
         GridLayoutFlow = new QGridLayout(gridLayoutWidget_2);
         GridLayoutFlow->setObjectName(QString::fromUtf8("GridLayoutFlow"));
         GridLayoutFlow->setContentsMargins(0, 0, 0, 0);
@@ -941,7 +953,7 @@ public:
 
         gridLayoutWidget = new QWidget(solver);
         gridLayoutWidget->setObjectName(QString::fromUtf8("gridLayoutWidget"));
-        gridLayoutWidget->setGeometry(QRect(0, 410, 311, 231));
+        gridLayoutWidget->setGeometry(QRect(0, 410, 311, 210));
         gridLayout_advanced = new QGridLayout(gridLayoutWidget);
         gridLayout_advanced->setObjectName(QString::fromUtf8("gridLayout_advanced"));
         gridLayout_advanced->setContentsMargins(0, 0, 0, 0);
@@ -1061,309 +1073,299 @@ public:
         stackedWidget->addWidget(filmCool);
         savetab = new QWidget();
         savetab->setObjectName(QString::fromUtf8("savetab"));
-        layoutWidget = new QWidget(savetab);
-        layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(10, 0, 311, 931));
-        verticalLayout_11 = new QVBoxLayout(layoutWidget);
-        verticalLayout_11->setObjectName(QString::fromUtf8("verticalLayout_11"));
-        verticalLayout_11->setContentsMargins(0, 0, 0, 0);
+        verticalLayout_7 = new QVBoxLayout(savetab);
+        verticalLayout_7->setObjectName(QString::fromUtf8("verticalLayout_7"));
         unstead_simulation_layout_2 = new QGridLayout();
         unstead_simulation_layout_2->setObjectName(QString::fromUtf8("unstead_simulation_layout_2"));
 
-        verticalLayout_11->addLayout(unstead_simulation_layout_2);
+        verticalLayout_7->addLayout(unstead_simulation_layout_2);
 
-        label_6 = new QLabel(layoutWidget);
+        label_6 = new QLabel(savetab);
         label_6->setObjectName(QString::fromUtf8("label_6"));
 
-        verticalLayout_11->addWidget(label_6);
+        verticalLayout_7->addWidget(label_6);
 
         horizontalLayout_5 = new QHBoxLayout();
         horizontalLayout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
-        label_9 = new QLabel(layoutWidget);
+        label_9 = new QLabel(savetab);
         label_9->setObjectName(QString::fromUtf8("label_9"));
 
         horizontalLayout_5->addWidget(label_9);
 
-        spinCPU = new QSpinBox(layoutWidget);
+        spinCPU = new QSpinBox(savetab);
         spinCPU->setObjectName(QString::fromUtf8("spinCPU"));
         spinCPU->setMaximum(9999);
 
         horizontalLayout_5->addWidget(spinCPU);
 
 
-        verticalLayout_11->addLayout(horizontalLayout_5);
+        verticalLayout_7->addLayout(horizontalLayout_5);
 
         horizontalLayout_6 = new QHBoxLayout();
         horizontalLayout_6->setObjectName(QString::fromUtf8("horizontalLayout_6"));
 
-        verticalLayout_11->addLayout(horizontalLayout_6);
+        verticalLayout_7->addLayout(horizontalLayout_6);
 
         unstead_simulation_layout_3 = new QGridLayout();
         unstead_simulation_layout_3->setObjectName(QString::fromUtf8("unstead_simulation_layout_3"));
-        start_simulation_button = new QPushButton(layoutWidget);
+        start_simulation_button = new QPushButton(savetab);
         start_simulation_button->setObjectName(QString::fromUtf8("start_simulation_button"));
 
         unstead_simulation_layout_3->addWidget(start_simulation_button, 2, 0, 1, 1);
 
-        continue_simulation_button = new QPushButton(layoutWidget);
+        continue_simulation_button = new QPushButton(savetab);
         continue_simulation_button->setObjectName(QString::fromUtf8("continue_simulation_button"));
 
         unstead_simulation_layout_3->addWidget(continue_simulation_button, 2, 1, 1, 1);
 
-        stop_simulation_button = new QPushButton(layoutWidget);
+        stop_simulation_button = new QPushButton(savetab);
         stop_simulation_button->setObjectName(QString::fromUtf8("stop_simulation_button"));
 
         unstead_simulation_layout_3->addWidget(stop_simulation_button, 2, 2, 1, 1);
 
 
-        verticalLayout_11->addLayout(unstead_simulation_layout_3);
+        verticalLayout_7->addLayout(unstead_simulation_layout_3);
 
-        checkBox_performance = new QCheckBox(layoutWidget);
+        checkBox_performance = new QCheckBox(savetab);
         checkBox_performance->setObjectName(QString::fromUtf8("checkBox_performance"));
 
-        verticalLayout_11->addWidget(checkBox_performance);
+        verticalLayout_7->addWidget(checkBox_performance);
 
         curve_grid_layout = new QGridLayout();
         curve_grid_layout->setObjectName(QString::fromUtf8("curve_grid_layout"));
-        current_p_label = new QLabel(layoutWidget);
+        current_p_label = new QLabel(savetab);
         current_p_label->setObjectName(QString::fromUtf8("current_p_label"));
 
         curve_grid_layout->addWidget(current_p_label, 1, 0, 1, 1);
 
-        target_p_value = new QLineEdit(layoutWidget);
+        target_p_value = new QLineEdit(savetab);
         target_p_value->setObjectName(QString::fromUtf8("target_p_value"));
 
         curve_grid_layout->addWidget(target_p_value, 2, 1, 1, 1);
 
-        current_p_value = new QLabel(layoutWidget);
+        current_p_value = new QLabel(savetab);
         current_p_value->setObjectName(QString::fromUtf8("current_p_value"));
 
         curve_grid_layout->addWidget(current_p_value, 1, 1, 1, 1);
 
-        target_p_label = new QLabel(layoutWidget);
+        target_p_label = new QLabel(savetab);
         target_p_label->setObjectName(QString::fromUtf8("target_p_label"));
 
         curve_grid_layout->addWidget(target_p_label, 2, 0, 1, 1);
 
-        save_p_button = new QPushButton(layoutWidget);
+        save_p_button = new QPushButton(savetab);
         save_p_button->setObjectName(QString::fromUtf8("save_p_button"));
 
         curve_grid_layout->addWidget(save_p_button, 3, 0, 1, 1);
 
-        load_p_button = new QPushButton(layoutWidget);
+        load_p_button = new QPushButton(savetab);
         load_p_button->setObjectName(QString::fromUtf8("load_p_button"));
 
         curve_grid_layout->addWidget(load_p_button, 3, 1, 1, 1);
 
 
-        verticalLayout_11->addLayout(curve_grid_layout);
+        verticalLayout_7->addLayout(curve_grid_layout);
 
-        unsteady_simulation_label = new QLabel(layoutWidget);
+        unsteady_simulation_label = new QLabel(savetab);
         unsteady_simulation_label->setObjectName(QString::fromUtf8("unsteady_simulation_label"));
 
-        verticalLayout_11->addWidget(unsteady_simulation_label);
+        verticalLayout_7->addWidget(unsteady_simulation_label);
 
         unstead_simulation_layout = new QGridLayout();
         unstead_simulation_layout->setObjectName(QString::fromUtf8("unstead_simulation_layout"));
-        step_per_cycle_lineEdit = new QLineEdit(layoutWidget);
+        step_per_cycle_lineEdit = new QLineEdit(savetab);
         step_per_cycle_lineEdit->setObjectName(QString::fromUtf8("step_per_cycle_lineEdit"));
 
         unstead_simulation_layout->addWidget(step_per_cycle_lineEdit, 4, 1, 1, 1);
 
-        period_lineEdit = new QLineEdit(layoutWidget);
+        period_lineEdit = new QLineEdit(savetab);
         period_lineEdit->setObjectName(QString::fromUtf8("period_lineEdit"));
 
         unstead_simulation_layout->addWidget(period_lineEdit, 2, 1, 1, 1);
 
-        output_unsteady_label = new QLabel(layoutWidget);
+        output_unsteady_label = new QLabel(savetab);
         output_unsteady_label->setObjectName(QString::fromUtf8("output_unsteady_label"));
 
         unstead_simulation_layout->addWidget(output_unsteady_label, 5, 0, 1, 1);
 
-        output_unsteady_lineEdit = new QLineEdit(layoutWidget);
+        output_unsteady_lineEdit = new QLineEdit(savetab);
         output_unsteady_lineEdit->setObjectName(QString::fromUtf8("output_unsteady_lineEdit"));
 
         unstead_simulation_layout->addWidget(output_unsteady_lineEdit, 5, 1, 1, 1);
 
-        period_label = new QLabel(layoutWidget);
+        period_label = new QLabel(savetab);
         period_label->setObjectName(QString::fromUtf8("period_label"));
 
         unstead_simulation_layout->addWidget(period_label, 2, 0, 1, 1);
 
-        label_les_dt = new QLabel(layoutWidget);
+        label_les_dt = new QLabel(savetab);
         label_les_dt->setObjectName(QString::fromUtf8("label_les_dt"));
 
         unstead_simulation_layout->addWidget(label_les_dt, 6, 0, 1, 1);
 
-        n_cycle_lineEdit = new QLineEdit(layoutWidget);
+        n_cycle_lineEdit = new QLineEdit(savetab);
         n_cycle_lineEdit->setObjectName(QString::fromUtf8("n_cycle_lineEdit"));
 
         unstead_simulation_layout->addWidget(n_cycle_lineEdit, 3, 1, 1, 1);
 
-        step_per_cycle_label = new QLabel(layoutWidget);
+        step_per_cycle_label = new QLabel(savetab);
         step_per_cycle_label->setObjectName(QString::fromUtf8("step_per_cycle_label"));
 
         unstead_simulation_layout->addWidget(step_per_cycle_label, 4, 0, 1, 1);
 
-        lineEdit_les_dt = new QLineEdit(layoutWidget);
+        lineEdit_les_dt = new QLineEdit(savetab);
         lineEdit_les_dt->setObjectName(QString::fromUtf8("lineEdit_les_dt"));
 
         unstead_simulation_layout->addWidget(lineEdit_les_dt, 6, 1, 1, 1);
 
-        n_cycle_label = new QLabel(layoutWidget);
+        n_cycle_label = new QLabel(savetab);
         n_cycle_label->setObjectName(QString::fromUtf8("n_cycle_label"));
 
         unstead_simulation_layout->addWidget(n_cycle_label, 3, 0, 1, 1);
 
-        period_unit_label = new QLabel(layoutWidget);
+        period_unit_label = new QLabel(savetab);
         period_unit_label->setObjectName(QString::fromUtf8("period_unit_label"));
 
         unstead_simulation_layout->addWidget(period_unit_label, 2, 2, 1, 1);
 
 
-        verticalLayout_11->addLayout(unstead_simulation_layout);
+        verticalLayout_7->addLayout(unstead_simulation_layout);
 
-        steady_iteration_label = new QLabel(layoutWidget);
+        steady_iteration_label = new QLabel(savetab);
         steady_iteration_label->setObjectName(QString::fromUtf8("steady_iteration_label"));
 
-        verticalLayout_11->addWidget(steady_iteration_label);
+        verticalLayout_7->addWidget(steady_iteration_label);
 
-        unsteady_inner_label = new QLabel(layoutWidget);
+        unsteady_inner_label = new QLabel(savetab);
         unsteady_inner_label->setObjectName(QString::fromUtf8("unsteady_inner_label"));
 
-        verticalLayout_11->addWidget(unsteady_inner_label);
+        verticalLayout_7->addWidget(unsteady_inner_label);
 
         steady_simulation_layout = new QGridLayout();
         steady_simulation_layout->setObjectName(QString::fromUtf8("steady_simulation_layout"));
-        CFL_lineEdit = new QLineEdit(layoutWidget);
+        CFL_lineEdit = new QLineEdit(savetab);
         CFL_lineEdit->setObjectName(QString::fromUtf8("CFL_lineEdit"));
 
         steady_simulation_layout->addWidget(CFL_lineEdit, 3, 1, 1, 1);
 
-        iteration_step_lineEdit = new QLineEdit(layoutWidget);
+        iteration_step_lineEdit = new QLineEdit(savetab);
         iteration_step_lineEdit->setObjectName(QString::fromUtf8("iteration_step_lineEdit"));
 
         steady_simulation_layout->addWidget(iteration_step_lineEdit, 2, 1, 1, 1);
 
-        iteration_step_label = new QLabel(layoutWidget);
+        iteration_step_label = new QLabel(savetab);
         iteration_step_label->setObjectName(QString::fromUtf8("iteration_step_label"));
 
         steady_simulation_layout->addWidget(iteration_step_label, 2, 0, 1, 1);
 
-        CFL_label = new QLabel(layoutWidget);
+        CFL_label = new QLabel(savetab);
         CFL_label->setObjectName(QString::fromUtf8("CFL_label"));
 
         steady_simulation_layout->addWidget(CFL_label, 3, 0, 1, 1);
 
-        output_steady_lineEdit = new QLineEdit(layoutWidget);
+        output_steady_lineEdit = new QLineEdit(savetab);
         output_steady_lineEdit->setObjectName(QString::fromUtf8("output_steady_lineEdit"));
 
         steady_simulation_layout->addWidget(output_steady_lineEdit, 4, 1, 1, 1);
 
-        output_steady_label = new QLabel(layoutWidget);
+        output_steady_label = new QLabel(savetab);
         output_steady_label->setObjectName(QString::fromUtf8("output_steady_label"));
 
         steady_simulation_layout->addWidget(output_steady_label, 4, 0, 1, 1);
 
 
-        verticalLayout_11->addLayout(steady_simulation_layout);
+        verticalLayout_7->addLayout(steady_simulation_layout);
 
         steady_simulation_layout_2 = new QGridLayout();
         steady_simulation_layout_2->setObjectName(QString::fromUtf8("steady_simulation_layout_2"));
-        monitor_label = new QLabel(layoutWidget);
+        monitor_label = new QLabel(savetab);
         monitor_label->setObjectName(QString::fromUtf8("monitor_label"));
 
         steady_simulation_layout_2->addWidget(monitor_label, 2, 0, 1, 1);
 
-        pushButton = new QPushButton(layoutWidget);
+        pushButton = new QPushButton(savetab);
         pushButton->setObjectName(QString::fromUtf8("pushButton"));
 
         steady_simulation_layout_2->addWidget(pushButton, 2, 1, 1, 1);
 
 
-        verticalLayout_11->addLayout(steady_simulation_layout_2);
+        verticalLayout_7->addLayout(steady_simulation_layout_2);
 
-        monitor_tree = new QTreeWidget(layoutWidget);
+        monitor_tree = new QTreeWidget(savetab);
         monitor_tree->setObjectName(QString::fromUtf8("monitor_tree"));
-        monitor_tree->setMaximumSize(QSize(16777215, 200));
 
-        verticalLayout_11->addWidget(monitor_tree);
+        verticalLayout_7->addWidget(monitor_tree);
 
-        AutoTest = new QWidget(layoutWidget);
-        AutoTest->setObjectName(QString::fromUtf8("AutoTest"));
-        verticalLayout_8 = new QVBoxLayout(AutoTest);
-        verticalLayout_8->setSpacing(6);
-        verticalLayout_8->setObjectName(QString::fromUtf8("verticalLayout_8"));
-        verticalLayout_7 = new QVBoxLayout();
-        verticalLayout_7->setSpacing(10);
-        verticalLayout_7->setObjectName(QString::fromUtf8("verticalLayout_7"));
-        label_14 = new QLabel(AutoTest);
+        widget_13 = new QWidget(savetab);
+        widget_13->setObjectName(QString::fromUtf8("widget_13"));
+        gridLayout = new QGridLayout(widget_13);
+        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+        label_44 = new QLabel(widget_13);
+        label_44->setObjectName(QString::fromUtf8("label_44"));
+        QFont font2;
+        font2.setFamily(QString::fromUtf8(".AppleSystemUIFont"));
+        font2.setPointSize(10);
+        font2.setBold(true);
+        font2.setWeight(75);
+        label_44->setFont(font2);
+
+        gridLayout->addWidget(label_44, 0, 0, 1, 1);
+
+        label_14 = new QLabel(widget_13);
         label_14->setObjectName(QString::fromUtf8("label_14"));
-        label_14->setMaximumSize(QSize(16777215, 20));
 
-        verticalLayout_7->addWidget(label_14);
+        gridLayout->addWidget(label_14, 1, 0, 1, 1);
 
-        horizontalLayout_7 = new QHBoxLayout();
-        horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
-        label_15 = new QLabel(AutoTest);
+        LEdit_StartPressure_AutoRun = new QLineEdit(widget_13);
+        LEdit_StartPressure_AutoRun->setObjectName(QString::fromUtf8("LEdit_StartPressure_AutoRun"));
+
+        gridLayout->addWidget(LEdit_StartPressure_AutoRun, 1, 2, 1, 2);
+
+        label_15 = new QLabel(widget_13);
         label_15->setObjectName(QString::fromUtf8("label_15"));
 
-        horizontalLayout_7->addWidget(label_15);
+        gridLayout->addWidget(label_15, 2, 0, 1, 1);
 
-        lineEdit = new QLineEdit(AutoTest);
-        lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
+        LEdit_EndPressure_AutoRun = new QLineEdit(widget_13);
+        LEdit_EndPressure_AutoRun->setObjectName(QString::fromUtf8("LEdit_EndPressure_AutoRun"));
 
-        horizontalLayout_7->addWidget(lineEdit);
+        gridLayout->addWidget(LEdit_EndPressure_AutoRun, 2, 2, 1, 2);
 
-        pushButton_2 = new QPushButton(AutoTest);
-        pushButton_2->setObjectName(QString::fromUtf8("pushButton_2"));
+        label_43 = new QLabel(widget_13);
+        label_43->setObjectName(QString::fromUtf8("label_43"));
 
-        horizontalLayout_7->addWidget(pushButton_2);
+        gridLayout->addWidget(label_43, 3, 0, 1, 2);
 
+        LEdit_NumPoints_AutoRun = new QLineEdit(widget_13);
+        LEdit_NumPoints_AutoRun->setObjectName(QString::fromUtf8("LEdit_NumPoints_AutoRun"));
 
-        verticalLayout_7->addLayout(horizontalLayout_7);
+        gridLayout->addWidget(LEdit_NumPoints_AutoRun, 3, 2, 1, 2);
 
-        horizontalLayout_8 = new QHBoxLayout();
-        horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
-        pushButton_3 = new QPushButton(AutoTest);
-        pushButton_3->setObjectName(QString::fromUtf8("pushButton_3"));
+        Btn_Start_AutoRun = new QPushButton(widget_13);
+        Btn_Start_AutoRun->setObjectName(QString::fromUtf8("Btn_Start_AutoRun"));
 
-        horizontalLayout_8->addWidget(pushButton_3);
+        gridLayout->addWidget(Btn_Start_AutoRun, 4, 0, 1, 1);
 
-        pushButton_4 = new QPushButton(AutoTest);
-        pushButton_4->setObjectName(QString::fromUtf8("pushButton_4"));
+        Btn_Skip_AutoRun = new QPushButton(widget_13);
+        Btn_Skip_AutoRun->setObjectName(QString::fromUtf8("Btn_Skip_AutoRun"));
 
-        horizontalLayout_8->addWidget(pushButton_4);
+        gridLayout->addWidget(Btn_Skip_AutoRun, 4, 1, 1, 2);
 
-        pushButton_5 = new QPushButton(AutoTest);
-        pushButton_5->setObjectName(QString::fromUtf8("pushButton_5"));
+        Btn_End_AutoRun = new QPushButton(widget_13);
+        Btn_End_AutoRun->setObjectName(QString::fromUtf8("Btn_End_AutoRun"));
 
-        horizontalLayout_8->addWidget(pushButton_5);
-
-
-        verticalLayout_7->addLayout(horizontalLayout_8);
+        gridLayout->addWidget(Btn_End_AutoRun, 4, 3, 1, 1);
 
 
-        verticalLayout_8->addLayout(verticalLayout_7);
+        verticalLayout_7->addWidget(widget_13);
 
+        verticalSpacer_7 = new QSpacerItem(20, 16, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        verticalLayout_11->addWidget(AutoTest);
+        verticalLayout_7->addItem(verticalSpacer_7);
 
         stackedWidget->addWidget(savetab);
 
         verticalLayout_3->addWidget(stackedWidget);
-
-        widget_4 = new QWidget(scrollAreaWidgetContents_2);
-        widget_4->setObjectName(QString::fromUtf8("widget_4"));
-        QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        sizePolicy1.setHorizontalStretch(0);
-        sizePolicy1.setVerticalStretch(0);
-        sizePolicy1.setHeightForWidth(widget_4->sizePolicy().hasHeightForWidth());
-        widget_4->setSizePolicy(sizePolicy1);
-        verticalLayout_2 = new QVBoxLayout(widget_4);
-        verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
-
-        verticalLayout_3->addWidget(widget_4);
 
         scrollArea->setWidget(scrollAreaWidgetContents_2);
 
@@ -1401,14 +1403,14 @@ public:
         label_27 = new QLabel(Panel_Conver);
         label_27->setObjectName(QString::fromUtf8("label_27"));
         label_27->setMaximumSize(QSize(16777215, 20));
-        QFont font2;
-        font2.setPointSize(12);
-        font2.setBold(true);
-        font2.setItalic(false);
-        font2.setUnderline(false);
-        font2.setWeight(75);
-        font2.setStrikeOut(false);
-        label_27->setFont(font2);
+        QFont font3;
+        font3.setPointSize(12);
+        font3.setBold(true);
+        font3.setItalic(false);
+        font3.setUnderline(false);
+        font3.setWeight(75);
+        font3.setStrikeOut(false);
+        label_27->setFont(font3);
 
         verticalLayout_14->addWidget(label_27);
 
@@ -1602,7 +1604,7 @@ public:
         label_22 = new QLabel(Panel_Monitor);
         label_22->setObjectName(QString::fromUtf8("label_22"));
         label_22->setMaximumSize(QSize(16777215, 20));
-        label_22->setFont(font2);
+        label_22->setFont(font3);
 
         verticalLayout_10->addWidget(label_22);
 
@@ -1761,7 +1763,7 @@ public:
         label_35 = new QLabel(Panel_Monitor_2);
         label_35->setObjectName(QString::fromUtf8("label_35"));
         label_35->setMaximumSize(QSize(16777215, 20));
-        label_35->setFont(font2);
+        label_35->setFont(font3);
 
         verticalLayout_12->addWidget(label_35);
 
@@ -1936,16 +1938,16 @@ public:
         PreMainWindow->addToolBar(Qt::TopToolBarArea, toolBar);
         menubar = new QMenuBar(PreMainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 1920, 28));
-        QFont font3;
-        font3.setPointSize(12);
-        menubar->setFont(font3);
+        menubar->setGeometry(QRect(0, 0, 1920, 24));
+        QFont font4;
+        font4.setPointSize(12);
+        menubar->setFont(font4);
         menuFile = new QMenu(menubar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
-        menuFile->setFont(font3);
+        menuFile->setFont(font4);
         menuTools = new QMenu(menubar);
         menuTools->setObjectName(QString::fromUtf8("menuTools"));
-        menuTools->setFont(font3);
+        menuTools->setFont(font4);
         PreMainWindow->setMenuBar(menubar);
 
         toolBar->addAction(actionGeneral);
@@ -1961,8 +1963,8 @@ public:
 
         retranslateUi(PreMainWindow);
 
-        stackedWidget->setCurrentIndex(0);
-        Show_MainWindow->setCurrentIndex(3);
+        stackedWidget->setCurrentIndex(5);
+        Show_MainWindow->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(PreMainWindow);
@@ -2158,12 +2160,14 @@ public:
         ___qtreewidgetitem3->setText(2, QCoreApplication::translate("PreMainWindow", "match face", nullptr));
         ___qtreewidgetitem3->setText(1, QCoreApplication::translate("PreMainWindow", "face ", nullptr));
         ___qtreewidgetitem3->setText(0, QCoreApplication::translate("PreMainWindow", "type", nullptr));
-        label_14->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p><span style=\" font-weight:696;\">AutoTest</span></p></body></html>", nullptr));
-        label_15->setText(QCoreApplication::translate("PreMainWindow", "Pressure", nullptr));
-        pushButton_2->setText(QCoreApplication::translate("PreMainWindow", "Add", nullptr));
-        pushButton_3->setText(QCoreApplication::translate("PreMainWindow", "Start", nullptr));
-        pushButton_4->setText(QCoreApplication::translate("PreMainWindow", "Skip", nullptr));
-        pushButton_5->setText(QCoreApplication::translate("PreMainWindow", "End", nullptr));
+        label_44->setText(QCoreApplication::translate("PreMainWindow", "Auto Run", nullptr));
+        label_14->setText(QCoreApplication::translate("PreMainWindow", "Start Pressure:", nullptr));
+        label_15->setText(QCoreApplication::translate("PreMainWindow", "End Pressure:", nullptr));
+        label_43->setText(QCoreApplication::translate("PreMainWindow", "Number of Points:", nullptr));
+        LEdit_NumPoints_AutoRun->setText(QString());
+        Btn_Start_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "Start", nullptr));
+        Btn_Skip_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "Skip", nullptr));
+        Btn_End_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "End", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Model), QCoreApplication::translate("PreMainWindow", "Model", nullptr));
         label_27->setText(QCoreApplication::translate("PreMainWindow", "Graph Options", nullptr));
         Btn_AutoScale_Res->setText(QCoreApplication::translate("PreMainWindow", "AutoScale", nullptr));

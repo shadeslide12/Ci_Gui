@@ -1,5 +1,6 @@
 #include "PreMainWindow.h"
 #include "ui_PreMainWindow.h"
+#include <QMessageBox>
 #include <QDebug>
 
 PreMainWindow::PreMainWindow(QWidget *parent)
@@ -1715,9 +1716,17 @@ void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStat
     this->setResultTableData();
     performplot->updateChart(monitorVariableTable);
     QString message = "Finished";
+
+    //* some change here for auto Running
   if (exitCode==0 && exitStatus==QProcess::NormalExit) {
-    QMessageBox::information(nullptr, "Finish Dialog", message);
+      if(!autoRunning)
+        QMessageBox::information(nullptr, "Finish Dialog", message);
     on_stop_simulation_button_clicked();
+  }
+
+  if(autoRunning){
+    currentIndex_AutoRunPressure++;
+    this->autoSingleRun();
   }
 
 }
@@ -1764,8 +1773,6 @@ void PreMainWindow::on_continue_simulation_button_clicked()
   lastResFilePos = 0 ;
   monfilePositionTable = {0,0,0};
   monitorVariableTable.clearMonTable();
-
-
 
   cfg.isAppend=true;
   cfg.SaveYAML(cfg.GUI_yaml);
@@ -2302,7 +2309,7 @@ void PreMainWindow::setResultTableData() {
     if(monitorVariableTable.perform.pRatio.isEmpty())
         return;
     ui->Result_Table->setItem(indexResultTable,0,new QTableWidgetItem(QString::number(indexResultTable+1)) );
-    ui->Result_Table->setItem(indexResultTable,1,new QTableWidgetItem(ui->target_p_value->text() ) );
+    ui->Result_Table->setItem(indexResultTable,1,new QTableWidgetItem(QString::number(cfg.p_curve.target_p) ) );
     ui->Result_Table->setItem(indexResultTable,2,new QTableWidgetItem(QString::number(monitorVariableTable.outlet.mDot.last())) );
     ui->Result_Table->setItem(indexResultTable,3,new QTableWidgetItem(QString::number(monitorVariableTable.perform.pRatio.last())) );
     ui->Result_Table->setItem(indexResultTable,4,new QTableWidgetItem(QString::number(monitorVariableTable.perform.tRatio.last())) );
@@ -2311,6 +2318,82 @@ void PreMainWindow::setResultTableData() {
     indexResultTable++;
 }
 
-void PreMainWindow::updatePerfData() {
+void PreMainWindow::on_Btn_Start_AutoRun_clicked() {
+    qDebug() << "you pressed the Start Button" ;
+
+    currentIndex_AutoRunPressure = 0 ;
+    if(ui->LEdit_StartPressure_AutoRun->text().isEmpty() ||ui->LEdit_EndPressure_AutoRun->text().isEmpty()
+       ||ui->LEdit_NumPoints_AutoRun->text().isEmpty())
+    {
+        QMessageBox::warning(this,"warning","enter the valid values");
+        return;
+    }
+    if(!generatePressurePoints() )
+        return;
+    autoRunning = 1;
+    this->autoSingleRun();
+}
+
+void PreMainWindow::on_Btn_Skip_AutoRun_clicked() {
+    qDebug() << "you pressed the Skip Button" ;
+    this->on_stop_simulation_button_clicked();
+}
+
+void PreMainWindow::on_Btn_End_AutoRun_clicked() {
+    qDebug() << "you pressed the End Button" ;
+    autoRunning = 0 ;
+    this->on_stop_simulation_button_clicked();
+}
+
+bool PreMainWindow::generatePressurePoints() {
+    pressureList_AutoRun.clear();
+    double start_Pressure = ui->LEdit_StartPressure_AutoRun->text().toDouble();
+    double end_Pressure = ui->LEdit_EndPressure_AutoRun->text().toDouble();
+    int num_Points = ui->LEdit_NumPoints_AutoRun->text().toInt();
+
+    if(start_Pressure > end_Pressure) {
+        QMessageBox::warning(this,"warning","Invalid Input");
+        return false;
+    }
+    double step = (end_Pressure - start_Pressure) / (num_Points - 1);
+    for(int i = 0 ; i < num_Points ; i++){
+        pressureList_AutoRun.append(start_Pressure+i*step);
+    }
+
+    return true;
+}
+
+void PreMainWindow::autoSingleRun() {
+    qDebug() << "cipher is auto running" ;
+    if(currentIndex_AutoRunPressure >= pressureList_AutoRun.size()){
+        QMessageBox::information(this,"information","All calculation is finished");
+        autoRunning = 0;
+        return;
+    }
+
+    int currentPressure = pressureList_AutoRun[currentIndex_AutoRunPressure];
+    cfg.p_curve.target_p = currentPressure;
+
+    if(currentIndex_AutoRunPressure == 0)
+        this->on_start_simulation_button_clicked();
+    else{
+        this->on_continue_simulation_button_clicked();
+    }
 
 }
+
+//void PreMainWindow::saveCurrentOutputFile() {
+//
+//    QString pressureStr = QString::number(cfg.p_curve.target_p);
+//    QString subFolderPath = "./pressure_" + pressureStr;
+//
+//    QDir().mkpath(subFolderPath);
+//
+//    QString command = QString("cp mon_* hist.dat GUI.yaml %1").arg(subFolderPath);
+//
+//    QProcess* copyProcess = new QProcess(this);
+//    connect(copyProcess, &QProcess::finished, copyProcess, &QProcess::deleteLater);
+//    copyProcess->start("/bin/bash", QStringList() << "-c" << command);
+//
+//    copyProcess->waitForFinished();
+//}

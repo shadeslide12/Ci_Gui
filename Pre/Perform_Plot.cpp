@@ -36,6 +36,10 @@ void Perform_Plot::setupPerformPlot()  {
     addSeries(series_tratio);
     addSeries(series_efficiency);
 
+    series_pratio->setName("Pressure Ratio");
+    series_tratio->setName("Temperature Ratio");
+    series_efficiency->setName("Efficiency");
+
     series_pratio->attachAxis(axisX);
     series_pratio->attachAxis(axisY);
     series_tratio->attachAxis(axisX);

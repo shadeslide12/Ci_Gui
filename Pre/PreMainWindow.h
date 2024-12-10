@@ -260,6 +260,20 @@ private:
     QChartView* performPlotView;
     Perform_Plot* performplot;
 
+//*AutoRun Start Here
+private:
+    QList<double> pressureList_AutoRun;
+    int currentIndex_AutoRunPressure = 0;
+    bool autoRunning = 0;
+
+    bool generatePressurePoints();
+    void autoSingleRun();
+    void saveCurrentOutputFile();
+private slots:
+    void on_Btn_Start_AutoRun_clicked();
+    void on_Btn_Skip_AutoRun_clicked();
+    void on_Btn_End_AutoRun_clicked();
+
 //*Others Start Here
 private:
     void setResultTableData();
