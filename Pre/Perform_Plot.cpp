@@ -44,7 +44,7 @@ void Perform_Plot::setupPerformPlot()  {
     series_pratio->attachAxis(axisY);
     series_tratio->attachAxis(axisX);
     series_tratio->attachAxis(axisY);
-    series_efficiency->attachAxis(axisY);
+    series_efficiency->attachAxis(axisX);
     series_efficiency->attachAxis(axisY);
 
     axisX->setTitleText("Mass Flow Rate");

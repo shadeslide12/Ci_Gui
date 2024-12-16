@@ -1,6 +1,7 @@
 #include "PreMainWindow.h"
 #include "ui_PreMainWindow.h"
 #include <QMessageBox>
+#include <QDateTime>
 #include <QDebug>
 
 PreMainWindow::PreMainWindow(QWidget *parent)
@@ -27,6 +28,25 @@ PreMainWindow::PreMainWindow(QWidget *parent)
   connect(timer,&QTimer::timeout,this,&PreMainWindow::updateResidual);
   connect(timer,&QTimer::timeout,this,&PreMainWindow::updateMonitorData);
   connect(this, &PreMainWindow::s_UpdateResidual, residualplot, &Residual_Plot::updateResidualPlot);
+  //*Others Start Here
+  ui->Result_Table->verticalHeader()->setVisible(false);
+  ui->Result_Table->horizontalHeader()->setStretchLastSection(true);
+  ui->Result_Table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  ui->Result_Table->setSelectionBehavior(QAbstractItemView::SelectRows);
+  ui->Result_Table->setSelectionMode(QAbstractItemView::SingleSelection);
+//  ui->Result_Table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+  ui->Result_Table->verticalHeader()->setDefaultSectionSize(40);
+  //*Qss Loading
+  QFile file(":/qss/linux.qss");
+  if(file.open(QFile::ReadOnly)) {
+        QString styleSheet = QLatin1String(file.readAll());
+        qDebug() << "Loading stylesheet:" << styleSheet;
+        this->setStyleSheet(styleSheet);
+        file.close();
+  } else {
+        qDebug() << "Failed to open stylesheet:" << file.errorString();
+  }
 
   ui->load_steady_flow->setVisible(false);
   ui->run_pre_process->setVisible(false);
@@ -118,7 +138,7 @@ void PreMainWindow::Setup_UI()
   perfFile.setFileName("./mon_perf.dat");
 
   ui->Lay_MonitorPlot->addWidget(monitorplot);
-  ui->control_panel_Range_Mon->setEnabled(0);
+
   connect(ui->Btn_SelectMonitor, &QPushButton::clicked, this, &PreMainWindow::onSelectFile);
   connect(ui->List_Variable, &QListWidget::itemSelectionChanged,
         this, &PreMainWindow::onVariableSelectionChanged);
@@ -137,6 +157,7 @@ void PreMainWindow::Setup_UI()
   //*Perf Start Here
   QStringList perfVariable = {"Pressure Ratio","Temperature Ratio","Efficiency"};
   ui->CBtn_SelectPerfVariable->addItems(perfVariable);
+  this->performplot->updateVisibility(0);
   connect(ui->CBtn_SelectPerfVariable,QOverload<int>::of(&QComboBox::currentIndexChanged),performplot,&Perform_Plot::updateVisibility);
   //*Others Start Here
   ui->CBox_Theme->addItem("Light", QChart::ChartThemeLight);
@@ -1726,6 +1747,7 @@ void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStat
 
   if(autoRunning){
     currentIndex_AutoRunPressure++;
+    this->saveCurrentOutputFile();
     this->autoSingleRun();
   }
 
@@ -2382,18 +2404,18 @@ void PreMainWindow::autoSingleRun() {
 
 }
 
-//void PreMainWindow::saveCurrentOutputFile() {
-//
-//    QString pressureStr = QString::number(cfg.p_curve.target_p);
-//    QString subFolderPath = "./pressure_" + pressureStr;
-//
-//    QDir().mkpath(subFolderPath);
-//
-//    QString command = QString("cp mon_* hist.dat GUI.yaml %1").arg(subFolderPath);
-//
-//    QProcess* copyProcess = new QProcess(this);
-//    connect(copyProcess, &QProcess::finished, copyProcess, &QProcess::deleteLater);
-//    copyProcess->start("/bin/bash", QStringList() << "-c" << command);
-//
-//    copyProcess->waitForFinished();
-//}
+void PreMainWindow::saveCurrentOutputFile() {
+
+    QString pressureStr = QString::number(cfg.p_curve.target_p);
+    QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
+
+    QString subFolderPath = "./pressure_" + pressureStr+ "_"+timestamp;
+
+    QDir().mkpath(subFolderPath);
+
+    QString command = QString("cp mon_* *grid.hdf *flow.hdf hist.dat GUI.yaml %1").arg(subFolderPath);
+    qDebug() << "now is saving outputFiles";
+    QProcess* copyProcess = new QProcess(this);
+    connect(copyProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), copyProcess, &QProcess::deleteLater);
+    copyProcess->start("/bin/bash", QStringList() << "-c" << command);
+}
