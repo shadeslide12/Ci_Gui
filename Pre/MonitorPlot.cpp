@@ -4,6 +4,7 @@
 #include <QDebug>
 
 MonitorPlot::MonitorPlot(QWidget *parent):
+        CustomChartView(new QChart,parent),
         monitorchart(new QChart),
         inlet_pTotal(new QLineSeries(this)),
         inlet_tTotal(new QLineSeries(this)),

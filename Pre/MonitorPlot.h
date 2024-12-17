@@ -8,12 +8,14 @@
 #include <QLineSeries>
 #include <QValueAxis>
 #include <functional>
+
+#include "CustomChartView.h"
 #include "DataStructure.h"
 QT_CHARTS_USE_NAMESPACE
 
 using ValueGetter = std::function<double(const MonitorVariableTable& data)>;
 
-class MonitorPlot : public QChartView{
+class MonitorPlot : public CustomChartView{
 Q_OBJECT
 
 public:

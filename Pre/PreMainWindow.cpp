@@ -2,6 +2,7 @@
 #include "ui_PreMainWindow.h"
 #include <QMessageBox>
 #include <QDateTime>
+#include <QProgressBar>
 #include <QDebug>
 
 PreMainWindow::PreMainWindow(QWidget *parent)
@@ -27,6 +28,7 @@ PreMainWindow::PreMainWindow(QWidget *parent)
   //*Residual Plot Start Here
   connect(timer,&QTimer::timeout,this,&PreMainWindow::updateResidual);
   connect(timer,&QTimer::timeout,this,&PreMainWindow::updateMonitorData);
+  connect(timer,&QTimer::timeout,this,&PreMainWindow::updateSimulation);
   connect(this, &PreMainWindow::s_UpdateResidual, residualplot, &Residual_Plot::updateResidualPlot);
   //*Others Start Here
   ui->Result_Table->verticalHeader()->setVisible(false);
@@ -37,7 +39,15 @@ PreMainWindow::PreMainWindow(QWidget *parent)
 //  ui->Result_Table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
   ui->Result_Table->verticalHeader()->setDefaultSectionSize(40);
-  //*Qss Loading
+//*Temp Start
+  QLabel* tempLabel = new QLabel("Status: running (now calculating pressure: 100000)",this);
+  QWidget* tempwidget = new QWidget(this);
+  progressBar = new QProgressBar(this);
+  progressBar->setValue(0);
+  ui->statusbar->addWidget(tempLabel);
+  ui->statusbar->insertWidget(1,tempwidget,1);
+  ui->statusbar->insertWidget(2, progressBar, 1);
+//*Qss Loading
   QFile file(":/qss/linux.qss");
   if(file.open(QFile::ReadOnly)) {
         QString styleSheet = QLatin1String(file.readAll());
@@ -160,6 +170,7 @@ void PreMainWindow::Setup_UI()
   this->performplot->updateVisibility(0);
   connect(ui->CBtn_SelectPerfVariable,QOverload<int>::of(&QComboBox::currentIndexChanged),performplot,&Perform_Plot::updateVisibility);
   //*Others Start Here
+  connect(ui->CBtn_History,QOverload<int>::of(&QComboBox::currentIndexChanged),this,&PreMainWindow::on_CBtnHisotyIndexChanged);
   ui->CBox_Theme->addItem("Light", QChart::ChartThemeLight);
   ui->CBox_Theme->addItem("Blue Cerulean", QChart::ChartThemeBlueCerulean);
   ui->CBox_Theme->addItem("Dark", QChart::ChartThemeDark);
@@ -1735,6 +1746,7 @@ void PreMainWindow::onMonitorDeleteMonitor(int id) {
 void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStatus)
 {
     this->setResultTableData();
+    this->updateHistoryCombox();
     performplot->updateChart(monitorVariableTable);
     QString message = "Finished";
 
@@ -2325,6 +2337,31 @@ void PreMainWindow::updateInterfaceUI() {
     }
     monitorplot->setChartStyle();
     residualplot->setChartStyle();
+}
+
+void PreMainWindow::updateHistoryCombox() {
+    QString historyName = QString("Pressure: %1").arg(cfg.p_curve.target_p);
+    residualplot->updateDataHistory(historyName);
+    ui->CBtn_History->clear();
+    ui->CBtn_History->addItem("Current");
+    ui->CBtn_History->addItems(residualplot->getHistoryName());
+}
+
+void PreMainWindow::on_CBtnHisotyIndexChanged(int index) {
+    QString currentItemText = ui->CBtn_History->itemText(index);
+    if(currentItemText == "Current")
+        return;
+    else
+        residualplot->loadHisotyData(currentItemText);
+}
+
+void PreMainWindow::updateSimulation(){
+    if(iteration.isEmpty())
+        return;
+    int currentProgress = (iteration.last()*100 / cfg.solver_iteration );
+    qDebug() << currentProgress;
+    qDebug( ) <<  cfg.solver_iteration;
+    progressBar->setValue(currentProgress);
 }
 
 void PreMainWindow::setResultTableData() {

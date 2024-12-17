@@ -1598,7 +1598,7 @@
        <item>
         <widget class="QTabWidget" name="Show_MainWindow">
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="Show_Model">
           <attribute name="title">
@@ -1646,7 +1646,7 @@
                <height>16777215</height>
               </size>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_14">
+             <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
                <widget class="QLabel" name="label_27">
                 <property name="maximumSize">
@@ -1853,27 +1853,64 @@
                </widget>
               </item>
               <item>
-               <spacer name="verticalSpacer_6">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Fixed</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
+               <widget class="QWidget" name="widget_14" native="true">
+                <property name="maximumSize">
                  <size>
-                  <width>20</width>
-                  <height>40</height>
+                  <width>16777215</width>
+                  <height>80</height>
                  </size>
                 </property>
-               </spacer>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <widget class="QLabel" name="label_45">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>History:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="Widget_History" native="true">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_7">
+                    <item>
+                     <widget class="QComboBox" name="CBtn_History"/>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="Btn_ClearHistory">
+                      <property name="text">
+                       <string>Clear</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
               </item>
-              <item alignment="Qt::AlignTop">
+              <item>
                <widget class="QWidget" name="panel_Theme" native="true">
                 <property name="minimumSize">
                  <size>
                   <width>40</width>
                   <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>50</height>
                  </size>
                 </property>
                 <layout class="QHBoxLayout" name="horizontalLayout_19">
@@ -1918,6 +1955,22 @@
                  </item>
                 </layout>
                </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>
@@ -2025,7 +2078,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>500</height>
+                  <height>435</height>
                  </size>
                 </property>
                 <property name="selectionMode">

@@ -15,6 +15,8 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QChartView>
+#include <QProgressBar>
+
 #include "Residual_Plot.h"
 #include "Perform_Plot.h"
 #include "MonitorPlot.h"
@@ -278,9 +280,12 @@ private slots:
 private:
     void setResultTableData();
     bool syncMainWindowTheme = 0 ;
-
+    QProgressBar* progressBar;
     int indexResultTable = 0 ;
-
+    void updateSimulation();
+    void updateHistory();
+    void updateHistoryCombox();
+    void on_CBtnHisotyIndexChanged(int index);
 private slots:
     void updateInterfaceUI();
 

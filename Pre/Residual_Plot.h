@@ -6,9 +6,16 @@
 #include <QLineSeries>
 #include <QValueAxis>
 #include <QVector>
+#include "CustomChartView.h"
 QT_CHARTS_USE_NAMESPACE
 
-class Residual_Plot:public QChartView{
+struct ResidualData{
+    QVector<QPointF> con1_data;
+    QVector<QPointF> con2_data;
+};
+
+
+class Residual_Plot:public CustomChartView{
 Q_OBJECT
 
 public:
@@ -24,6 +31,10 @@ public:
     void setManualScaleMode();
     void setChartStyle();
     void clearSeries();
+    void updateDataHistory(const QString& name);
+    void loadHisotyData(const QString& name);
+    QStringList getHistoryName() const;
+    void clearHistory();
 
     QChart* residualchart;
 private:
@@ -44,6 +55,7 @@ private:
     double maxCon2;
     double minCon2;
 
+    QMap<QString,ResidualData> residualHistory;
     bool autoScale;
     void setupResidualPlot();
 };

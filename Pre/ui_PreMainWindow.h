@@ -263,7 +263,7 @@ public:
     QWidget *Show_Convergence;
     QHBoxLayout *horizontalLayout_14;
     QWidget *Panel_Conver;
-    QVBoxLayout *verticalLayout_14;
+    QVBoxLayout *verticalLayout_11;
     QLabel *label_27;
     QWidget *widget_9;
     QHBoxLayout *horizontalLayout_17;
@@ -292,12 +292,19 @@ public:
     QLineEdit *Line_RangeY2_Res_Min;
     QLabel *label_32;
     QLineEdit *Line_RangeY2_Res_Max;
-    QSpacerItem *verticalSpacer_6;
+    QWidget *widget_14;
+    QVBoxLayout *verticalLayout_8;
+    QLabel *label_45;
+    QWidget *Widget_History;
+    QHBoxLayout *horizontalLayout_7;
+    QComboBox *CBtn_History;
+    QPushButton *Btn_ClearHistory;
     QWidget *panel_Theme;
     QHBoxLayout *horizontalLayout_19;
     QLabel *label_34;
     QComboBox *CBox_Theme;
     QPushButton *Btn_SyncWindowTheme;
+    QSpacerItem *verticalSpacer_6;
     QWidget *Plot_Convergence;
     QVBoxLayout *LayoutforConverPlot;
     QWidget *Show_Monitor;
@@ -1398,8 +1405,8 @@ public:
         Panel_Conver->setObjectName(QString::fromUtf8("Panel_Conver"));
         Panel_Conver->setMinimumSize(QSize(300, 0));
         Panel_Conver->setMaximumSize(QSize(300, 16777215));
-        verticalLayout_14 = new QVBoxLayout(Panel_Conver);
-        verticalLayout_14->setObjectName(QString::fromUtf8("verticalLayout_14"));
+        verticalLayout_11 = new QVBoxLayout(Panel_Conver);
+        verticalLayout_11->setObjectName(QString::fromUtf8("verticalLayout_11"));
         label_27 = new QLabel(Panel_Conver);
         label_27->setObjectName(QString::fromUtf8("label_27"));
         label_27->setMaximumSize(QSize(16777215, 20));
@@ -1412,7 +1419,7 @@ public:
         font3.setStrikeOut(false);
         label_27->setFont(font3);
 
-        verticalLayout_14->addWidget(label_27);
+        verticalLayout_11->addWidget(label_27);
 
         widget_9 = new QWidget(Panel_Conver);
         widget_9->setObjectName(QString::fromUtf8("widget_9"));
@@ -1435,7 +1442,7 @@ public:
         horizontalLayout_17->addWidget(Btn_ManualScale_Res);
 
 
-        verticalLayout_14->addWidget(widget_9);
+        verticalLayout_11->addWidget(widget_9);
 
         control_panel_Range_Res = new QWidget(Panel_Conver);
         control_panel_Range_Res->setObjectName(QString::fromUtf8("control_panel_Range_Res"));
@@ -1547,15 +1554,44 @@ public:
         verticalLayout_13->addWidget(Widget_Res_RangeY1_2);
 
 
-        verticalLayout_14->addWidget(control_panel_Range_Res);
+        verticalLayout_11->addWidget(control_panel_Range_Res);
 
-        verticalSpacer_6 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Fixed);
+        widget_14 = new QWidget(Panel_Conver);
+        widget_14->setObjectName(QString::fromUtf8("widget_14"));
+        widget_14->setMaximumSize(QSize(16777215, 80));
+        verticalLayout_8 = new QVBoxLayout(widget_14);
+        verticalLayout_8->setObjectName(QString::fromUtf8("verticalLayout_8"));
+        label_45 = new QLabel(widget_14);
+        label_45->setObjectName(QString::fromUtf8("label_45"));
+        label_45->setMaximumSize(QSize(16777215, 20));
 
-        verticalLayout_14->addItem(verticalSpacer_6);
+        verticalLayout_8->addWidget(label_45);
+
+        Widget_History = new QWidget(widget_14);
+        Widget_History->setObjectName(QString::fromUtf8("Widget_History"));
+        Widget_History->setMaximumSize(QSize(16777215, 50));
+        horizontalLayout_7 = new QHBoxLayout(Widget_History);
+        horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
+        CBtn_History = new QComboBox(Widget_History);
+        CBtn_History->setObjectName(QString::fromUtf8("CBtn_History"));
+
+        horizontalLayout_7->addWidget(CBtn_History);
+
+        Btn_ClearHistory = new QPushButton(Widget_History);
+        Btn_ClearHistory->setObjectName(QString::fromUtf8("Btn_ClearHistory"));
+
+        horizontalLayout_7->addWidget(Btn_ClearHistory);
+
+
+        verticalLayout_8->addWidget(Widget_History);
+
+
+        verticalLayout_11->addWidget(widget_14);
 
         panel_Theme = new QWidget(Panel_Conver);
         panel_Theme->setObjectName(QString::fromUtf8("panel_Theme"));
         panel_Theme->setMinimumSize(QSize(40, 0));
+        panel_Theme->setMaximumSize(QSize(16777215, 50));
         horizontalLayout_19 = new QHBoxLayout(panel_Theme);
         horizontalLayout_19->setObjectName(QString::fromUtf8("horizontalLayout_19"));
         horizontalLayout_19->setContentsMargins(-1, -1, 0, -1);
@@ -1578,7 +1614,11 @@ public:
         horizontalLayout_19->addWidget(Btn_SyncWindowTheme);
 
 
-        verticalLayout_14->addWidget(panel_Theme, 0, Qt::AlignTop);
+        verticalLayout_11->addWidget(panel_Theme);
+
+        verticalSpacer_6 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        verticalLayout_11->addItem(verticalSpacer_6);
 
 
         horizontalLayout_14->addWidget(Panel_Conver);
@@ -1631,7 +1671,7 @@ public:
         sizePolicy3.setVerticalStretch(0);
         sizePolicy3.setHeightForWidth(List_Variable->sizePolicy().hasHeightForWidth());
         List_Variable->setSizePolicy(sizePolicy3);
-        List_Variable->setMinimumSize(QSize(0, 500));
+        List_Variable->setMinimumSize(QSize(0, 450));
         List_Variable->setSelectionMode(QAbstractItemView::MultiSelection);
 
         verticalLayout_10->addWidget(List_Variable);
@@ -1964,7 +2004,7 @@ public:
         retranslateUi(PreMainWindow);
 
         stackedWidget->setCurrentIndex(5);
-        Show_MainWindow->setCurrentIndex(0);
+        Show_MainWindow->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(PreMainWindow);
@@ -2181,6 +2221,8 @@ public:
         label_33->setText(QCoreApplication::translate("PreMainWindow", "Range Y2:", nullptr));
         label_31->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
         label_32->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));
+        label_45->setText(QCoreApplication::translate("PreMainWindow", "History:", nullptr));
+        Btn_ClearHistory->setText(QCoreApplication::translate("PreMainWindow", "Clear", nullptr));
         label_34->setText(QCoreApplication::translate("PreMainWindow", "Theme:", nullptr));
         Btn_SyncWindowTheme->setText(QCoreApplication::translate("PreMainWindow", "Sync", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Convergence), QCoreApplication::translate("PreMainWindow", "Convergence", nullptr));

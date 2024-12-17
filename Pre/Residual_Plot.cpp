@@ -3,6 +3,7 @@
 QT_CHARTS_USE_NAMESPACE
 
 Residual_Plot::Residual_Plot(QWidget *parent) :
+        CustomChartView(new QChart,parent),
         residualchart(new QChart),
         series_con1(new QLineSeries(this)),
         series_con2(new QLineSeries(this)),
@@ -48,8 +49,7 @@ void Residual_Plot::setupResidualPlot() {
 void Residual_Plot::updateResidualPlot(const int& iteration, const double& convergence1,
                                        const double& convergence2) {
 
-//    qDebug() << "Hello";
-//    qDebug() << convergence1;
+
     series_con1->append(iteration,convergence1);
     series_con2->append(iteration,convergence2);
 
@@ -150,3 +150,49 @@ void Residual_Plot::clearSeries() {
     maxIter = 10 ;
     residualchart->update();
 }
+
+void Residual_Plot::updateDataHistory(const QString& name) {
+    ResidualData data ;
+    data.con1_data =series_con1->points().toVector();
+    data.con2_data =series_con2->points().toVector();
+    residualHistory[name] = data;
+}
+
+void Residual_Plot::clearHistory() {
+    residualHistory.clear();
+}
+
+QStringList Residual_Plot::getHistoryName() const {
+    return residualHistory.keys();
+}
+
+void Residual_Plot::loadHisotyData(const QString &name) {
+    if(!residualHistory.contains(name) )
+        return;
+
+    const auto& data = residualHistory[name];
+    series_con1->clear();
+    series_con2->clear();
+    double min_con1_y1 = std::numeric_limits<double>::max();
+    double min_con2_y2 = std::numeric_limits<double>::max();
+    double max_con1_y1 = std::numeric_limits<double>::lowest();
+    double max_con2_y2 = std::numeric_limits<double>::lowest();
+    double min_series_x = 0 ;
+    double max_series_x = 1 ;
+    for(const auto& point : data.con1_data) {
+        series_con1->append(point);
+        min_con1_y1 = std::min(min_con1_y1,point.y());
+        max_con1_y1 = std::max(max_con1_y1,point.y());
+        max_series_x = std::max(max_series_x,point.x());
+    }
+    for(auto const& point : data.con2_data) {
+        series_con2->append(point);
+        min_con2_y2 = std::min(min_con2_y2,point.y());
+        max_con2_y2 = std::max(max_con2_y2,point.y());
+    }
+    axisX->setRange(min_series_x,max_series_x);
+    axisY1->setRange(min_con1_y1,max_con1_y1);
+    axisY2->setRange(min_con2_y2,max_con2_y2);
+}
+
+
