@@ -47,14 +47,8 @@ MonitorPlot::MonitorPlot(QWidget *parent):
 void MonitorPlot::setupChart() {
     this->setChart(monitorchart);
 
-
-    monitorchart->setTitle("Monitor");
-
     monitorchart->addAxis(axisX, Qt::AlignBottom);
     monitorchart->addAxis(axisY, Qt::AlignLeft);
-
-    axisX->setTitleText("Iter");
-    axisY->setTitleText("Value");
 
     inlet_pTotal->setName("Inlet pTotal");
     inlet_tTotal->setName("Inlet tTotal");
@@ -111,7 +105,7 @@ void MonitorPlot::setupChart() {
     this->setChartStyle();
 }
 
-void MonitorPlot::updateChart(int iteration, const MonitorVariableTable &data) {
+void MonitorPlot::updateMonitorChart(int iteration, const MonitorVariableTable &data) {
     inlet_pTotal->append(iteration, data.inlet.pTotal.last());
     inlet_tTotal->append(iteration, data.inlet.tTotal.last());
     inlet_vAxial->append(iteration, data.inlet.vAxial.last());
@@ -206,18 +200,25 @@ void MonitorPlot::setManualScaleMode() {
 }
 
 void MonitorPlot::setChartStyle() {
-    QFont titleFont("Arial",26,QFont::Bold);
-    QColor titleColor(Qt::darkGray);
+    QFont titleFont("Arial",16,QFont::Bold);
+    monitorchart->setTitle("Monitor");
     monitorchart->setTitleFont(titleFont);
-    monitorchart->setTitleBrush(titleColor);
 
-    QFont axisFont;
-    axisFont.setPointSize(12);
-    axisX->setLabelsFont(axisFont);
-    axisY->setLabelsFont(axisFont);
-    QColor yColor(Qt::red);
-    axisY->setTitleBrush(yColor);
+    QFont axisTitleFont("Arial", 12, QFont::Bold);
+    QFont axisLabelFont("Arial", 12);
+    axisX->setTitleText("Iteration");
+    axisX->setTitleFont(axisTitleFont);
+    axisX->setLabelsFont(axisLabelFont);
     axisX->setLabelFormat("%d");
+
+    axisY->setTitleText("Value");
+    axisY->setTitleFont(axisTitleFont);
+    axisY->setLabelsFont(axisLabelFont);
+    axisY->setTitleBrush(Qt::red);
+
+    axisX->setTickCount(11);
+    axisX->setMinorTickCount(4);
+    axisY->setTickCount(8);
 }
 
 void MonitorPlot::hideSeries() {

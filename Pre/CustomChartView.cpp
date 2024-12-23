@@ -13,7 +13,7 @@ CustomChartView::CustomChartView(QChart *chart, QWidget *parent)
     setRubberBand(QChartView::RectangleRubberBand);
     setDragMode(QGraphicsView::NoDrag);
     m_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-
+    this->setRenderHint(QPainter::Antialiasing);
     setInitialAxisRanges();
 }
 
@@ -40,7 +40,7 @@ void CustomChartView::mousePressEvent(QMouseEvent *event)
     QChartView::mousePressEvent(event);
 }
 
-void CustomChartView::mouseMoveEvent(QMouseEvent *event)
+void CustomChartView::mouseMoveEvent(QMouseEvent* event)
 {
     if (m_isMidMousePressed) {
         QPoint delta = event->pos() - m_lastMousePos;
@@ -53,7 +53,7 @@ void CustomChartView::mouseMoveEvent(QMouseEvent *event)
     QChartView::mouseMoveEvent(event);
 }
 
-void CustomChartView::mouseReleaseEvent(QMouseEvent *event)
+void CustomChartView::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::MiddleButton) {
         m_isMidMousePressed = false;
@@ -73,7 +73,7 @@ void CustomChartView::mouseReleaseEvent(QMouseEvent *event)
     QChartView::mouseReleaseEvent(event);
 }
 
-void CustomChartView::wheelEvent(QWheelEvent *event)
+void CustomChartView::wheelEvent(QWheelEvent* event)
 {
     if (event->angleDelta().y() > 0) {
         chart()->zoom(1.1);
@@ -87,40 +87,79 @@ void CustomChartView::resetToDataRange()
 {
     if (!chart()) return;
 
-    const auto series = chart()->series();
-    if (series.isEmpty()) return;
+    const auto allSeries = chart()->series();
+    if (allSeries.isEmpty()) return;
 
-    auto firstSeries = qobject_cast<QLineSeries*>(series.first());
-    if (!firstSeries) return;
+    bool firstVisibleFound = false;
+    qreal minX = 0, maxX = 0, minY = 0, maxY = 0;
 
-    const auto points = firstSeries->points();
-    if (points.isEmpty()) return;
+    for (const auto& series : allSeries) {
+        auto lineSeries = qobject_cast<QLineSeries*>(series);
+        if (!lineSeries || !lineSeries->isVisible()) continue;
 
-    qreal minX = points.first().x();
-    qreal maxX = points.first().x();
-    qreal minY = points.first().y();
-    qreal maxY = points.first().y();
+        const auto points = lineSeries->points();
+        if (points.isEmpty()) continue;
 
-    for (const auto& point : points) {
-        minX = qMin(minX, point.x());
-        maxX = qMax(maxX, point.x());
-        minY = qMin(minY, point.y());
-        maxY = qMax(maxY, point.y());
+        if (!firstVisibleFound) {
+            minX = points.first().x();
+            maxX = points.first().x();
+            minY = points.first().y();
+            maxY = points.first().y();
+            firstVisibleFound = true;
+        }
+
+        for (const auto& point : points) {
+            minX = qMin(minX, point.x());
+            maxX = qMax(maxX, point.x());
+            minY = qMin(minY, point.y());
+            maxY = qMax(maxY, point.y());
+        }
     }
 
-    auto axisX = qobject_cast<QValueAxis*>(chart()->axes(Qt::Horizontal).first());
-    auto axisY = qobject_cast<QValueAxis*>(chart()->axes(Qt::Vertical).first());
+    if (!firstVisibleFound) return;
 
-    if (axisX && axisY) {
-        qreal xMargin = (maxX - minX) * 0.05;
-        qreal yMargin = (maxY - minY) * 0.05;
+    const auto xAxes = chart()->axes(Qt::Horizontal);
+    const auto yAxes = chart()->axes(Qt::Vertical);
 
-        axisX->setRange(minX - xMargin, maxX + xMargin);
-        axisY->setRange(minY - yMargin, maxY + yMargin);
+    qreal xMargin = (maxX - minX) * 0.05;
+    qreal yMargin = (maxY - minY) * 0.05;
+
+    for (auto axis : xAxes) {
+        if (auto valueAxis = qobject_cast<QValueAxis*>(axis)) {
+            valueAxis->setRange(minX - xMargin, maxX + xMargin);
+        }
+    }
+
+    for (auto axis : yAxes) {
+        auto valueAxis = qobject_cast<QValueAxis*>(axis);
+        if (!valueAxis) continue;
+
+        qreal axisMinY = std::numeric_limits<qreal>::max();
+        qreal axisMaxY = std::numeric_limits<qreal>::lowest();
+        bool hasVisibleSeries = false;
+
+        for (const auto& series : allSeries) {
+            auto lineSeries = qobject_cast<QLineSeries*>(series);
+            if (!lineSeries || !lineSeries->isVisible()) continue;
+
+            const auto attachedAxes = lineSeries->attachedAxes();
+            if (!attachedAxes.contains(valueAxis)) continue;
+
+            hasVisibleSeries = true;
+            for (const auto& point : lineSeries->points()) {
+                axisMinY = qMin(axisMinY, point.y());
+                axisMaxY = qMax(axisMaxY, point.y());
+            }
+        }
+
+        if (hasVisibleSeries) {
+            qreal yMargin = (axisMaxY - axisMinY) * 0.05;
+            valueAxis->setRange(axisMinY - yMargin, axisMaxY + yMargin);
+        }
     }
 }
 
-void CustomChartView::keyPressEvent(QKeyEvent *event)
+void CustomChartView::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_Space) {
         resetToDataRange();

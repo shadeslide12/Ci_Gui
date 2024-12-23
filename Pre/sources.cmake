@@ -15,6 +15,8 @@ list(APPEND QT_PRE2_SRC
    ${CMAKE_CURRENT_SOURCE_DIR}/DataStructure.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/CustomChartView.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/CustomChartView.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/plotManager.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/simulationDataManager.cpp
 #   ${CMAKE_CURRENT_SOURCE_DIR}/bcaddition.cpp
 #   ${CMAKE_CURRENT_SOURCE_DIR}/yamlreader.cpp
 )

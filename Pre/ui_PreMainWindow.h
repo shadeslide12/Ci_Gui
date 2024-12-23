@@ -246,14 +246,14 @@ public:
     QGridLayout *gridLayout;
     QLabel *label_44;
     QLabel *label_14;
+    QLineEdit *LEdit_EndPressure_AutoRun;
+    QPushButton *Btn_Skip_AutoRun;
+    QPushButton *Btn_End_AutoRun;
     QLineEdit *LEdit_StartPressure_AutoRun;
     QLabel *label_15;
-    QLineEdit *LEdit_EndPressure_AutoRun;
     QLabel *label_43;
     QLineEdit *LEdit_NumPoints_AutoRun;
     QPushButton *Btn_Start_AutoRun;
-    QPushButton *Btn_Skip_AutoRun;
-    QPushButton *Btn_End_AutoRun;
     QSpacerItem *verticalSpacer_7;
     QTabWidget *Show_MainWindow;
     QWidget *Show_Model;
@@ -362,12 +362,12 @@ public:
     QWidget *widget_10;
     QHBoxLayout *horizontalLayout_22;
     QLabel *label_41;
-    QLineEdit *Line_RangeY_Mon_Min_2;
+    QLineEdit *Line_RangeY_Perf_Min;
     QLabel *label_42;
     QLineEdit *Line_RangeY_Perf_Max;
     QWidget *widget_7;
-    QPushButton *pushButton_6;
-    QPushButton *pushButton_7;
+    QPushButton *Btn_ClearPerformData;
+    QPushButton *Btn_ExportPerformPic;
     QWidget *widget_11;
     QHBoxLayout *horizontalLayout_23;
     QWidget *Plot_Performance;
@@ -1323,6 +1323,21 @@ public:
 
         gridLayout->addWidget(label_14, 1, 0, 1, 1);
 
+        LEdit_EndPressure_AutoRun = new QLineEdit(widget_13);
+        LEdit_EndPressure_AutoRun->setObjectName(QString::fromUtf8("LEdit_EndPressure_AutoRun"));
+
+        gridLayout->addWidget(LEdit_EndPressure_AutoRun, 2, 2, 1, 2);
+
+        Btn_Skip_AutoRun = new QPushButton(widget_13);
+        Btn_Skip_AutoRun->setObjectName(QString::fromUtf8("Btn_Skip_AutoRun"));
+
+        gridLayout->addWidget(Btn_Skip_AutoRun, 4, 1, 1, 2);
+
+        Btn_End_AutoRun = new QPushButton(widget_13);
+        Btn_End_AutoRun->setObjectName(QString::fromUtf8("Btn_End_AutoRun"));
+
+        gridLayout->addWidget(Btn_End_AutoRun, 4, 3, 1, 1);
+
         LEdit_StartPressure_AutoRun = new QLineEdit(widget_13);
         LEdit_StartPressure_AutoRun->setObjectName(QString::fromUtf8("LEdit_StartPressure_AutoRun"));
 
@@ -1332,11 +1347,6 @@ public:
         label_15->setObjectName(QString::fromUtf8("label_15"));
 
         gridLayout->addWidget(label_15, 2, 0, 1, 1);
-
-        LEdit_EndPressure_AutoRun = new QLineEdit(widget_13);
-        LEdit_EndPressure_AutoRun->setObjectName(QString::fromUtf8("LEdit_EndPressure_AutoRun"));
-
-        gridLayout->addWidget(LEdit_EndPressure_AutoRun, 2, 2, 1, 2);
 
         label_43 = new QLabel(widget_13);
         label_43->setObjectName(QString::fromUtf8("label_43"));
@@ -1352,16 +1362,6 @@ public:
         Btn_Start_AutoRun->setObjectName(QString::fromUtf8("Btn_Start_AutoRun"));
 
         gridLayout->addWidget(Btn_Start_AutoRun, 4, 0, 1, 1);
-
-        Btn_Skip_AutoRun = new QPushButton(widget_13);
-        Btn_Skip_AutoRun->setObjectName(QString::fromUtf8("Btn_Skip_AutoRun"));
-
-        gridLayout->addWidget(Btn_Skip_AutoRun, 4, 1, 1, 2);
-
-        Btn_End_AutoRun = new QPushButton(widget_13);
-        Btn_End_AutoRun->setObjectName(QString::fromUtf8("Btn_End_AutoRun"));
-
-        gridLayout->addWidget(Btn_End_AutoRun, 4, 3, 1, 1);
 
 
         verticalLayout_7->addWidget(widget_13);
@@ -1400,7 +1400,9 @@ public:
         Show_Convergence = new QWidget();
         Show_Convergence->setObjectName(QString::fromUtf8("Show_Convergence"));
         horizontalLayout_14 = new QHBoxLayout(Show_Convergence);
+        horizontalLayout_14->setSpacing(6);
         horizontalLayout_14->setObjectName(QString::fromUtf8("horizontalLayout_14"));
+        horizontalLayout_14->setContentsMargins(9, 9, 9, 9);
         Panel_Conver = new QWidget(Show_Convergence);
         Panel_Conver->setObjectName(QString::fromUtf8("Panel_Conver"));
         Panel_Conver->setMinimumSize(QSize(300, 0));
@@ -1626,7 +1628,10 @@ public:
         Plot_Convergence = new QWidget(Show_Convergence);
         Plot_Convergence->setObjectName(QString::fromUtf8("Plot_Convergence"));
         LayoutforConverPlot = new QVBoxLayout(Plot_Convergence);
+        LayoutforConverPlot->setSpacing(0);
         LayoutforConverPlot->setObjectName(QString::fromUtf8("LayoutforConverPlot"));
+        LayoutforConverPlot->setSizeConstraint(QLayout::SetMaximumSize);
+        LayoutforConverPlot->setContentsMargins(0, 0, 0, 0);
 
         horizontalLayout_14->addWidget(Plot_Convergence);
 
@@ -1671,7 +1676,7 @@ public:
         sizePolicy3.setVerticalStretch(0);
         sizePolicy3.setHeightForWidth(List_Variable->sizePolicy().hasHeightForWidth());
         List_Variable->setSizePolicy(sizePolicy3);
-        List_Variable->setMinimumSize(QSize(0, 450));
+        List_Variable->setMinimumSize(QSize(0, 435));
         List_Variable->setSelectionMode(QAbstractItemView::MultiSelection);
 
         verticalLayout_10->addWidget(List_Variable);
@@ -1881,10 +1886,10 @@ public:
 
         horizontalLayout_22->addWidget(label_41);
 
-        Line_RangeY_Mon_Min_2 = new QLineEdit(widget_10);
-        Line_RangeY_Mon_Min_2->setObjectName(QString::fromUtf8("Line_RangeY_Mon_Min_2"));
+        Line_RangeY_Perf_Min = new QLineEdit(widget_10);
+        Line_RangeY_Perf_Min->setObjectName(QString::fromUtf8("Line_RangeY_Perf_Min"));
 
-        horizontalLayout_22->addWidget(Line_RangeY_Mon_Min_2);
+        horizontalLayout_22->addWidget(Line_RangeY_Perf_Min);
 
         label_42 = new QLabel(widget_10);
         label_42->setObjectName(QString::fromUtf8("label_42"));
@@ -1904,12 +1909,12 @@ public:
 
         widget_7 = new QWidget(Panel_Monitor_2);
         widget_7->setObjectName(QString::fromUtf8("widget_7"));
-        pushButton_6 = new QPushButton(widget_7);
-        pushButton_6->setObjectName(QString::fromUtf8("pushButton_6"));
-        pushButton_6->setGeometry(QRect(10, 30, 101, 31));
-        pushButton_7 = new QPushButton(widget_7);
-        pushButton_7->setObjectName(QString::fromUtf8("pushButton_7"));
-        pushButton_7->setGeometry(QRect(160, 30, 101, 31));
+        Btn_ClearPerformData = new QPushButton(widget_7);
+        Btn_ClearPerformData->setObjectName(QString::fromUtf8("Btn_ClearPerformData"));
+        Btn_ClearPerformData->setGeometry(QRect(10, 30, 101, 31));
+        Btn_ExportPerformPic = new QPushButton(widget_7);
+        Btn_ExportPerformPic->setObjectName(QString::fromUtf8("Btn_ExportPerformPic"));
+        Btn_ExportPerformPic->setGeometry(QRect(160, 30, 101, 31));
 
         verticalLayout_12->addWidget(widget_7);
 
@@ -2004,7 +2009,7 @@ public:
         retranslateUi(PreMainWindow);
 
         stackedWidget->setCurrentIndex(5);
-        Show_MainWindow->setCurrentIndex(2);
+        Show_MainWindow->setCurrentIndex(3);
 
 
         QMetaObject::connectSlotsByName(PreMainWindow);
@@ -2202,12 +2207,12 @@ public:
         ___qtreewidgetitem3->setText(0, QCoreApplication::translate("PreMainWindow", "type", nullptr));
         label_44->setText(QCoreApplication::translate("PreMainWindow", "Auto Run", nullptr));
         label_14->setText(QCoreApplication::translate("PreMainWindow", "Start Pressure:", nullptr));
+        Btn_Skip_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "Skip", nullptr));
+        Btn_End_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "End", nullptr));
         label_15->setText(QCoreApplication::translate("PreMainWindow", "End Pressure:", nullptr));
         label_43->setText(QCoreApplication::translate("PreMainWindow", "Number of Points:", nullptr));
         LEdit_NumPoints_AutoRun->setText(QString());
         Btn_Start_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "Start", nullptr));
-        Btn_Skip_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "Skip", nullptr));
-        Btn_End_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "End", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Model), QCoreApplication::translate("PreMainWindow", "Model", nullptr));
         label_27->setText(QCoreApplication::translate("PreMainWindow", "Graph Options", nullptr));
         Btn_AutoScale_Res->setText(QCoreApplication::translate("PreMainWindow", "AutoScale", nullptr));
@@ -2221,7 +2226,7 @@ public:
         label_33->setText(QCoreApplication::translate("PreMainWindow", "Range Y2:", nullptr));
         label_31->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
         label_32->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));
-        label_45->setText(QCoreApplication::translate("PreMainWindow", "History:", nullptr));
+        label_45->setText(QCoreApplication::translate("PreMainWindow", "AutoRun History:", nullptr));
         Btn_ClearHistory->setText(QCoreApplication::translate("PreMainWindow", "Clear", nullptr));
         label_34->setText(QCoreApplication::translate("PreMainWindow", "Theme:", nullptr));
         Btn_SyncWindowTheme->setText(QCoreApplication::translate("PreMainWindow", "Sync", nullptr));
@@ -2246,8 +2251,8 @@ public:
         label_40->setText(QCoreApplication::translate("PreMainWindow", "Range Y:", nullptr));
         label_41->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
         label_42->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));
-        pushButton_6->setText(QCoreApplication::translate("PreMainWindow", "Clear Data", nullptr));
-        pushButton_7->setText(QCoreApplication::translate("PreMainWindow", "Export Picture", nullptr));
+        Btn_ClearPerformData->setText(QCoreApplication::translate("PreMainWindow", "Clear Data", nullptr));
+        Btn_ExportPerformPic->setText(QCoreApplication::translate("PreMainWindow", "Export Picture", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Performance), QCoreApplication::translate("PreMainWindow", "Perform_Curve", nullptr));
         QTableWidgetItem *___qtablewidgetitem = Result_Table->horizontalHeaderItem(0);
         ___qtablewidgetitem->setText(QCoreApplication::translate("PreMainWindow", "Run Number", nullptr));

@@ -1523,6 +1523,23 @@
                     </property>
                    </widget>
                   </item>
+                  <item row="2" column="2" colspan="2">
+                   <widget class="QLineEdit" name="LEdit_EndPressure_AutoRun"/>
+                  </item>
+                  <item row="4" column="1" colspan="2">
+                   <widget class="QPushButton" name="Btn_Skip_AutoRun">
+                    <property name="text">
+                     <string>Skip</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="3">
+                   <widget class="QPushButton" name="Btn_End_AutoRun">
+                    <property name="text">
+                     <string>End</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="1" column="2" colspan="2">
                    <widget class="QLineEdit" name="LEdit_StartPressure_AutoRun"/>
                   </item>
@@ -1532,9 +1549,6 @@
                      <string>End Pressure:</string>
                     </property>
                    </widget>
-                  </item>
-                  <item row="2" column="2" colspan="2">
-                   <widget class="QLineEdit" name="LEdit_EndPressure_AutoRun"/>
                   </item>
                   <item row="3" column="0" colspan="2">
                    <widget class="QLabel" name="label_43">
@@ -1554,20 +1568,6 @@
                    <widget class="QPushButton" name="Btn_Start_AutoRun">
                     <property name="text">
                      <string>Start</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="1" colspan="2">
-                   <widget class="QPushButton" name="Btn_Skip_AutoRun">
-                    <property name="text">
-                     <string>Skip</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="3">
-                   <widget class="QPushButton" name="Btn_End_AutoRun">
-                    <property name="text">
-                     <string>End</string>
                     </property>
                    </widget>
                   </item>
@@ -1598,7 +1598,7 @@
        <item>
         <widget class="QTabWidget" name="Show_MainWindow">
          <property name="currentIndex">
-          <number>2</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="Show_Model">
           <attribute name="title">
@@ -1632,6 +1632,21 @@
            <string>Convergence</string>
           </attribute>
           <layout class="QHBoxLayout" name="horizontalLayout_14">
+           <property name="spacing">
+            <number>6</number>
+           </property>
+           <property name="leftMargin">
+            <number>9</number>
+           </property>
+           <property name="topMargin">
+            <number>9</number>
+           </property>
+           <property name="rightMargin">
+            <number>9</number>
+           </property>
+           <property name="bottomMargin">
+            <number>9</number>
+           </property>
            <item>
             <widget class="QWidget" name="Panel_Conver" native="true">
              <property name="minimumSize">
@@ -1870,7 +1885,7 @@
                     </size>
                    </property>
                    <property name="text">
-                    <string>History:</string>
+                    <string>AutoRun History:</string>
                    </property>
                   </widget>
                  </item>
@@ -1977,7 +1992,26 @@
            </item>
            <item>
             <widget class="QWidget" name="Plot_Convergence" native="true">
-             <layout class="QVBoxLayout" name="LayoutforConverPlot"/>
+             <layout class="QVBoxLayout" name="LayoutforConverPlot">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMaximumSize</enum>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+             </layout>
             </widget>
            </item>
           </layout>
@@ -2388,7 +2422,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="Line_RangeY_Mon_Min_2"/>
+                     <widget class="QLineEdit" name="Line_RangeY_Perf_Min"/>
                     </item>
                     <item>
                      <widget class="QLabel" name="label_42">
@@ -2408,7 +2442,7 @@
               </item>
               <item>
                <widget class="QWidget" name="widget_7" native="true">
-                <widget class="QPushButton" name="pushButton_6">
+                <widget class="QPushButton" name="Btn_ClearPerformData">
                  <property name="geometry">
                   <rect>
                    <x>10</x>
@@ -2421,7 +2455,7 @@
                   <string>Clear Data</string>
                  </property>
                 </widget>
-                <widget class="QPushButton" name="pushButton_7">
+                <widget class="QPushButton" name="Btn_ExportPerformPic">
                  <property name="geometry">
                   <rect>
                    <x>160</x>

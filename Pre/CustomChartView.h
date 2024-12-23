@@ -17,17 +17,17 @@ public:
     void resetToDataRange();
 
 protected:
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
 private:
     bool m_isMidMousePressed = false;
     QPoint m_lastMousePos;
     bool m_isLeftMousePressed = false;
-    QRubberBand *m_rubberBand = nullptr;
+    QRubberBand* m_rubberBand = nullptr;
     QPoint m_rubberBandOrigin;
 
     QRectF m_initialPlotArea;

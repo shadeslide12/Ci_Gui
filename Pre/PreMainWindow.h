@@ -20,6 +20,8 @@
 #include "Residual_Plot.h"
 #include "Perform_Plot.h"
 #include "MonitorPlot.h"
+#include "plotManager.h"
+#include "simulationDataManager.h"
 
 #include "PreProcessSettings.h"
 #include "BCExtra.h"
@@ -228,49 +230,10 @@ private:
     void ShowPerformanceCurve(bool isShow);
     void ShowPassageRepeatTree();
 
-//*Residual Start Here
-private:
-    Residual_Plot* residualplot;
-    QFile residual_DataFile;
-    qint64 lastResFilePos = 0;
-signals:
-    void s_UpdateResidual(const int& iteration,const double& convergence1,const double convergence2);
-private slots:
-    void updateResidual();
-
-//*Monitor Start Here
-
-private slots:
-    void onSelectFile();
-    void onVariableSelectionChanged();
-
-private:
-    MonitorPlot* monitorplot;
-    QString monitorFilePath;
-    QVector<int> iteration;
-    MonitorVariableTable monitorVariableTable;
-    QFile inletFile;
-    QFile outletFile;
-    QFile perfFile;
-    QList<QString> displayVariableList;
-    QVector<qint64> monfilePositionTable;
-
-    void updateMonitorData();
-//*Perf Start Here
-private:
-    void updatePerfData();
-    QChartView* performPlotView;
-    Perform_Plot* performplot;
-
 //*AutoRun Start Here
 private:
-    QList<double> pressureList_AutoRun;
-    int currentIndex_AutoRunPressure = 0;
-    bool autoRunning = 0;
-
-    bool generatePressurePoints();
     void autoSingleRun();
-    void saveCurrentOutputFile();
+
 private slots:
     void on_Btn_Start_AutoRun_clicked();
     void on_Btn_Skip_AutoRun_clicked();
@@ -279,15 +242,41 @@ private slots:
 //*Others Start Here
 private:
     void setResultTableData();
+    void updateProgressBar();
+    void updateHistoryCombox();
+    void on_CBtnHisotyIndexChanged(int index);
+    void updateRunningStatusMessage(QString runningStatus);
+    void showTimeMessge(QLabel* label,const QString message,int mesc);
+
     bool syncMainWindowTheme = 0 ;
     QProgressBar* progressBar;
     int indexResultTable = 0 ;
-    void updateSimulation();
-    void updateHistory();
-    void updateHistoryCombox();
-    void on_CBtnHisotyIndexChanged(int index);
+    QLabel* statusLabel;
+
 private slots:
     void updateInterfaceUI();
+    void on_Btn_ClearHistory_clicked();
+    void on_Btn_ClearPerformData_clicked();
+
+//* Manager
+private:
+    PlotManager* plotManager;
+    SimulationDataManager* simulationDataManager;
+    Perform_Plot* performPlot;
+    Residual_Plot* residualplot;
+    MonitorPlot* monitorplot;
+
+//* Plot Slot
+private slots:
+    void on_Btn_ExportPerformPic_clicked();
+
+    void onSelectFile();
+    void onVariableSelectionChanged();
+
+//* Deal With Ui Elements
+private:
+    void setup_Connection();
+    void setup_UiElements();
 
 private:
 //    renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
