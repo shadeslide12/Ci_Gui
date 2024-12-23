@@ -259,8 +259,7 @@ private:
 //*Perf Start Here
 private:
     void updatePerfData();
-    QChartView* performPlotView;
-    Perform_Plot* performplot;
+    Perform_Plot* performPlotView;
 
 //*AutoRun Start Here
 private:
@@ -278,17 +277,23 @@ private slots:
 
 //*Others Start Here
 private:
+    void setButtonAvailable(int buttonStatus);
     void setResultTableData();
-    bool syncMainWindowTheme = 0 ;
-    QProgressBar* progressBar;
-    int indexResultTable = 0 ;
-    void updateSimulation();
+    void updateSimulationStatus();
     void updateHistory();
     void updateHistoryCombox();
     void on_CBtnHisotyIndexChanged(int index);
+    void updateRunningStatusMessage(QString runningStatus);
+    void showTimeMessge(QLabel* label,const QString message,int mesc);
+
+    bool syncMainWindowTheme = 0 ;
+    QProgressBar* progressBar;
+    int indexResultTable = 0 ;
+    QLabel* statusLabel;
 private slots:
     void updateInterfaceUI();
-
+    void on_Btn_ClearHistory_clicked();
+    void on_Btn_ClearPerformData_clicked();
 private:
 //    renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 //    renderer = vtkSmartPointer<vtkRenderer>::New();

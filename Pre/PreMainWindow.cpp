@@ -11,8 +11,7 @@ PreMainWindow::PreMainWindow(QWidget *parent)
     , process(new QProcess(this))
     ,timer (new QTimer(this))
     ,residualplot(new Residual_Plot)
-    ,performPlotView(new QChartView(this))
-    ,performplot(new Perform_Plot)
+    ,performPlotView(new Perform_Plot(this))
     ,monitorplot(new MonitorPlot(this))
 {
 
@@ -28,7 +27,7 @@ PreMainWindow::PreMainWindow(QWidget *parent)
   //*Residual Plot Start Here
   connect(timer,&QTimer::timeout,this,&PreMainWindow::updateResidual);
   connect(timer,&QTimer::timeout,this,&PreMainWindow::updateMonitorData);
-  connect(timer,&QTimer::timeout,this,&PreMainWindow::updateSimulation);
+  connect(timer,&QTimer::timeout,this, &PreMainWindow::updateSimulationStatus);
   connect(this, &PreMainWindow::s_UpdateResidual, residualplot, &Residual_Plot::updateResidualPlot);
   //*Others Start Here
   ui->Result_Table->verticalHeader()->setVisible(false);
@@ -40,18 +39,17 @@ PreMainWindow::PreMainWindow(QWidget *parent)
 
   ui->Result_Table->verticalHeader()->setDefaultSectionSize(40);
 //*Temp Start
-  QLabel* tempLabel = new QLabel("Status: running (now calculating pressure: 100000)",this);
+  statusLabel = new QLabel("Status: ",this);
   QWidget* tempwidget = new QWidget(this);
   progressBar = new QProgressBar(this);
   progressBar->setValue(0);
-  ui->statusbar->addWidget(tempLabel);
-  ui->statusbar->insertWidget(1,tempwidget,1);
-  ui->statusbar->insertWidget(2, progressBar, 1);
+  ui->statusbar->addWidget(statusLabel);
+  ui->statusbar->insertPermanentWidget(1,tempwidget,1);
+  ui->statusbar->insertPermanentWidget(2, progressBar, 1);
 //*Qss Loading
   QFile file(":/qss/linux.qss");
   if(file.open(QFile::ReadOnly)) {
         QString styleSheet = QLatin1String(file.readAll());
-        qDebug() << "Loading stylesheet:" << styleSheet;
         this->setStyleSheet(styleSheet);
         file.close();
   } else {
@@ -124,7 +122,6 @@ void PreMainWindow::Setup_UI()
   Assign_Value();
   setIcons();
   ui->LayoutforPerform->addWidget(performPlotView);
-  performPlotView->setChart(performplot);
   //*Residual Start Here
   residual_DataFile.setFileName("./hist.dat");
 
@@ -141,6 +138,10 @@ void PreMainWindow::Setup_UI()
     residualplot->setRangeY1_Min(text);});
   connect(ui->Line_RangeY1_Res_Max,&QLineEdit::textChanged,this,[this](const QString& text){
     residualplot->setRangeY1_Max(text);});
+  connect(ui->Line_RangeY2_Res_Min,&QLineEdit::textChanged,this,[this](const QString& text){
+      residualplot->setRangeY2_Min(text);});
+  connect(ui->Line_RangeY2_Res_Max,&QLineEdit::textChanged,this,[this](const QString& text){
+      residualplot->setRangeY2_Max(text);});
   //*Monitor Start Here
   monfilePositionTable = {0,0,0};
   inletFile.setFileName("./mon_inlet.dat");
@@ -148,7 +149,7 @@ void PreMainWindow::Setup_UI()
   perfFile.setFileName("./mon_perf.dat");
 
   ui->Lay_MonitorPlot->addWidget(monitorplot);
-
+  ui->control_panel_Range_Mon->setEnabled(false);
   connect(ui->Btn_SelectMonitor, &QPushButton::clicked, this, &PreMainWindow::onSelectFile);
   connect(ui->List_Variable, &QListWidget::itemSelectionChanged,
         this, &PreMainWindow::onVariableSelectionChanged);
@@ -167,8 +168,16 @@ void PreMainWindow::Setup_UI()
   //*Perf Start Here
   QStringList perfVariable = {"Pressure Ratio","Temperature Ratio","Efficiency"};
   ui->CBtn_SelectPerfVariable->addItems(perfVariable);
-  this->performplot->updateVisibility(0);
-  connect(ui->CBtn_SelectPerfVariable,QOverload<int>::of(&QComboBox::currentIndexChanged),performplot,&Perform_Plot::updateVisibility);
+  this->performPlotView->updateVisibility(0);
+  connect(ui->Line_RangeX_Perf_Min,&QLineEdit::textChanged,this,[this](const QString& text){
+    performPlotView->setRangeX_Min(text);});
+  connect(ui->Line_RangeX_Perf_Max,&QLineEdit::textChanged,this,[this](const QString& text){
+    performPlotView->setRangeX_Max(text);});
+  connect(ui->Line_RangeY_Perf_Min,&QLineEdit::textChanged,this,[this](const QString& text){
+    performPlotView->setRangeY_Min(text);});
+  connect(ui->Line_RangeY_Perf_Max,&QLineEdit::textChanged,this,[this](const QString& text){
+    performPlotView->setRangeY_Max(text);});
+  connect(ui->CBtn_SelectPerfVariable,QOverload<int>::of(&QComboBox::currentIndexChanged),performPlotView,&Perform_Plot::updateVisibility);
   //*Others Start Here
   connect(ui->CBtn_History,QOverload<int>::of(&QComboBox::currentIndexChanged),this,&PreMainWindow::on_CBtnHisotyIndexChanged);
   ui->CBox_Theme->addItem("Light", QChart::ChartThemeLight);
@@ -178,8 +187,12 @@ void PreMainWindow::Setup_UI()
   ui->CBox_Theme->addItem("High Contrast", QChart::ChartThemeHighContrast);
   ui->CBox_Theme->addItem("Blue Icy", QChart::ChartThemeBlueIcy);
   ui->CBox_Theme->addItem("Qt", QChart::ChartThemeQt);
+  ui->Btn_SyncWindowTheme->setVisible(false);
   connect(ui->CBox_Theme,QOverload<int>::of(&QComboBox::currentIndexChanged),this,&PreMainWindow::updateInterfaceUI);
-  connect(ui->Btn_SyncWindowTheme,&QPushButton::clicked,this,[this](){syncMainWindowTheme=1;});
+  connect(ui->Btn_SyncWindowTheme,&QPushButton::clicked,this,[this](){
+      if(!syncMainWindowTheme){ui->Btn_SyncWindowTheme->setText("UnSync");syncMainWindowTheme=1;}
+      else{ui->Btn_SyncWindowTheme->setText("Sync");syncMainWindowTheme=0;};
+  });
 }
 
 void PreMainWindow::setIcons()
@@ -1499,7 +1512,7 @@ void PreMainWindow::on_output_steady_lineEdit_textChanged(const QString &arg1)
 
 void PreMainWindow::on_start_simulation_button_clicked() {
     //* Others Start Here
-    timer->setInterval(1500);
+    timer->setInterval(1000);
     timer->start();
     if(residual_DataFile.isOpen())
         residual_DataFile.close();
@@ -1544,6 +1557,10 @@ void PreMainWindow::on_start_simulation_button_clicked() {
 
     process->start("/bin/bash", QStringList() << "-c" << program);
 
+//* updateProgressBarStatus
+    iteration.clear();
+    progressBar->setValue(0);
+
 //  ui->start_simulation_button->setEnabled(false);
     ui->continue_simulation_button->setEnabled(false);
     ui->run_pre_process->setEnabled(false);
@@ -1562,7 +1579,7 @@ void PreMainWindow::on_stop_simulation_button_clicked() {
 
   //*timer
   timer->stop();
-
+//  this->updateSimulationStatus();
 }
 
 void PreMainWindow::on_gas_type_combo_currentTextChanged(const QString &arg1)
@@ -1745,13 +1762,16 @@ void PreMainWindow::onMonitorDeleteMonitor(int id) {
 
 void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStatus)
 {
+    qDebug() << "Enter showFinishDialog";
+    qDebug() << "exitCode:" << exitCode;
+    qDebug() << "exitStatus:" << exitStatus;
     this->setResultTableData();
-    this->updateHistoryCombox();
-    performplot->updateChart(monitorVariableTable);
+    performPlotView->updateChart(monitorVariableTable);
     QString message = "Finished";
-
+    statusLabel->setText("Status:");
     //* some change here for auto Running
   if (exitCode==0 && exitStatus==QProcess::NormalExit) {
+      qDebug() << "Inside if condition";
       if(!autoRunning)
         QMessageBox::information(nullptr, "Finish Dialog", message);
     on_stop_simulation_button_clicked();
@@ -1759,6 +1779,8 @@ void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStat
 
   if(autoRunning){
     currentIndex_AutoRunPressure++;
+    this->updateHistoryCombox();
+    this->updateSimulationStatus();
     this->saveCurrentOutputFile();
     this->autoSingleRun();
   }
@@ -1827,6 +1849,8 @@ void PreMainWindow::on_continue_simulation_button_clicked()
   ui->run_pre_process->setEnabled(false);
   EnablePerformanceCurve(false);
 
+  iteration.clear();
+  progressBar->setValue(0);
   //* timer
   timer->start();
 }
@@ -2343,25 +2367,41 @@ void PreMainWindow::updateHistoryCombox() {
     QString historyName = QString("Pressure: %1").arg(cfg.p_curve.target_p);
     residualplot->updateDataHistory(historyName);
     ui->CBtn_History->clear();
-    ui->CBtn_History->addItem("Current");
+    ui->CBtn_History->addItem(" ");
     ui->CBtn_History->addItems(residualplot->getHistoryName());
 }
 
 void PreMainWindow::on_CBtnHisotyIndexChanged(int index) {
     QString currentItemText = ui->CBtn_History->itemText(index);
-    if(currentItemText == "Current")
+    if(currentItemText == " ")
         return;
     else
         residualplot->loadHisotyData(currentItemText);
 }
 
-void PreMainWindow::updateSimulation(){
+void PreMainWindow::on_Btn_ClearHistory_clicked() {
+    residualplot->clearHistory();
+    ui->CBtn_History->clear();
+}
+
+void PreMainWindow::updateSimulationStatus() {
     if(iteration.isEmpty())
         return;
     int currentProgress = (iteration.last()*100 / cfg.solver_iteration );
-    qDebug() << currentProgress;
-    qDebug( ) <<  cfg.solver_iteration;
+
     progressBar->setValue(currentProgress);
+
+}
+
+void PreMainWindow::updateRunningStatusMessage(QString runningStatus) {
+    QString statusMsg = " ";
+    if(runningStatus == "autoRunning") {
+        statusMsg = QString("Status: Running(Calculating Pressure Point:%1 Pa  %2/%3)")
+                .arg(pressureList_AutoRun[currentIndex_AutoRunPressure])
+                .arg(currentIndex_AutoRunPressure + 1)
+                .arg(pressureList_AutoRun.size());
+    }
+    statusLabel->setText(statusMsg);
 }
 
 void PreMainWindow::setResultTableData() {
@@ -2377,9 +2417,13 @@ void PreMainWindow::setResultTableData() {
     indexResultTable++;
 }
 
+void PreMainWindow::on_Btn_ClearPerformData_clicked() {
+    ui->Result_Table->clear();
+    performPlotView->clearChartData();
+}
+
 void PreMainWindow::on_Btn_Start_AutoRun_clicked() {
     qDebug() << "you pressed the Start Button" ;
-
     currentIndex_AutoRunPressure = 0 ;
     if(ui->LEdit_StartPressure_AutoRun->text().isEmpty() ||ui->LEdit_EndPressure_AutoRun->text().isEmpty()
        ||ui->LEdit_NumPoints_AutoRun->text().isEmpty())
@@ -2390,7 +2434,12 @@ void PreMainWindow::on_Btn_Start_AutoRun_clicked() {
     if(!generatePressurePoints() )
         return;
     autoRunning = 1;
+    this->on_Btn_ClearHistory_clicked();
     this->autoSingleRun();
+    ui->start_simulation_button->setEnabled(false);
+    ui->continue_simulation_button->setEnabled(false);
+    ui->stop_simulation_button->setEnabled(false);
+    ui->Btn_Start_AutoRun->setEnabled(false);
 }
 
 void PreMainWindow::on_Btn_Skip_AutoRun_clicked() {
@@ -2402,6 +2451,11 @@ void PreMainWindow::on_Btn_End_AutoRun_clicked() {
     qDebug() << "you pressed the End Button" ;
     autoRunning = 0 ;
     this->on_stop_simulation_button_clicked();
+    ui->start_simulation_button->setEnabled(true);
+    ui->continue_simulation_button->setEnabled(true);
+    ui->stop_simulation_button->setEnabled(true);
+    ui->Btn_Start_AutoRun->setEnabled(true);
+    ui->Btn_End_AutoRun->setEnabled(true);
 }
 
 bool PreMainWindow::generatePressurePoints() {
@@ -2427,9 +2481,13 @@ void PreMainWindow::autoSingleRun() {
     if(currentIndex_AutoRunPressure >= pressureList_AutoRun.size()){
         QMessageBox::information(this,"information","All calculation is finished");
         autoRunning = 0;
+        ui->start_simulation_button->setEnabled(true);
+        ui->continue_simulation_button->setEnabled(true);
+        ui->stop_simulation_button->setEnabled(true);
+        ui->Btn_Start_AutoRun->setEnabled(true);
         return;
     }
-
+    this->updateRunningStatusMessage(QString("autoRunning"));
     int currentPressure = pressureList_AutoRun[currentIndex_AutoRunPressure];
     cfg.p_curve.target_p = currentPressure;
 
@@ -2456,3 +2514,9 @@ void PreMainWindow::saveCurrentOutputFile() {
     connect(copyProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), copyProcess, &QProcess::deleteLater);
     copyProcess->start("/bin/bash", QStringList() << "-c" << command);
 }
+
+void PreMainWindow::showTimeMessge(QLabel* label, const QString message, int mesc) {
+    label->setText(message);
+    QTimer::singleShot(mesc,label,[label]{label->clear();});
+}
+

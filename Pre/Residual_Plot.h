@@ -6,6 +6,7 @@
 #include <QLineSeries>
 #include <QValueAxis>
 #include <QVector>
+#include <QComboBox>
 #include "CustomChartView.h"
 QT_CHARTS_USE_NAMESPACE
 
@@ -26,7 +27,9 @@ public:
     void setRangeX_Max(const QString &text_xMax);
     void setRangeX_Min(const QString &text_xMin);
     void setRangeY1_Min(const QString &text_y1Min);
-    void setRangeY1_Max(const QString &text_yMax);
+    void setRangeY1_Max(const QString &text_y1Max);
+    void setRangeY2_Min(const QString &text_y2Min);
+    void setRangeY2_Max(const QString &text_y2Max);
     void setAutoScaleMode();
     void setManualScaleMode();
     void setChartStyle();
@@ -46,6 +49,8 @@ private:
 
     double y1Min;
     double y1Max;
+    double y2Min;
+    double y2Max;
     double xMin;
     double xMax;
 

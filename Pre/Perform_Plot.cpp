@@ -1,40 +1,43 @@
 #include "Perform_Plot.h"
-
+#include <QDebug>
 
 
 QT_CHARTS_USE_NAMESPACE
 
 Perform_Plot::Perform_Plot(QWidget *parent) :
-        QChart(),series_pratio(new QLineSeries(this)),
+        CustomChartView(new QChart,parent),
+        performChart(new QChart),
+        series_pratio(new QLineSeries(this)),
         series_tratio(new QLineSeries(this)),
         series_efficiency(new QLineSeries(this)),
         axisX(new QValueAxis(this)),
         axisY(new QValueAxis(this))
 {
+    this->setChart(performChart);
     setupPerformPlot();
     allSeries = {series_pratio, series_tratio, series_efficiency};
 }
 
 
 void Perform_Plot::setupPerformPlot()  {
-    QFont titleFont("Arial",22,QFont::Bold);
-    QColor titleColor(Qt::darkCyan);
-    setTitle("Performance Curves");
-    setTitleFont(titleFont);
-    setTitleBrush(titleColor);
+    QFont titleFont("Arial",16,QFont::Bold);
+    performChart->setTitle("Performance Curves");
+    performChart->setTitleFont(titleFont);
 
-    QFont axisFont;
-    axisFont.setPointSize(16);
-    axisX->setLabelsFont(axisFont);
-    axisY->setLabelsFont(axisFont);
+    QFont axisTitleFont("Arial", 12, QFont::Bold);
+    QFont axisLabelFont("Arial", 12);
+    axisX->setLabelsFont(axisLabelFont);
+    axisY->setLabelsFont(axisLabelFont);
+    axisX->setTitleFont(axisTitleFont);
+    axisY->setTitleFont(axisTitleFont);
     QColor yColor(Qt::red);
     axisY->setTitleBrush(yColor);
 
-    addAxis(axisX,Qt::AlignBottom);
-    addAxis(axisY,Qt::AlignLeft);
-    addSeries(series_pratio);
-    addSeries(series_tratio);
-    addSeries(series_efficiency);
+    performChart->addAxis(axisX,Qt::AlignBottom);
+    performChart->addAxis(axisY,Qt::AlignLeft);
+    performChart->addSeries(series_pratio);
+    performChart->addSeries(series_tratio);
+    performChart->addSeries(series_efficiency);
 
     series_pratio->setName("Pressure Ratio");
     series_tratio->setName("Temperature Ratio");
@@ -46,13 +49,15 @@ void Perform_Plot::setupPerformPlot()  {
     series_tratio->attachAxis(axisY);
     series_efficiency->attachAxis(axisX);
     series_efficiency->attachAxis(axisY);
+//    series_pratio->setPointsVisible(true);
 
     axisX->setTitleText("Mass Flow Rate");
     axisY->setTitleText("Value");
 
     axisX->setRange(0,10);
-    axisX->setTickCount(8);
-    axisY->setTickCount(6);
+    axisX->setTickCount(11);
+    axisX->setMinorTickCount(4);
+    axisY->setTickCount(8);
 }
 
 void Perform_Plot::updateVisibility(int i) {
@@ -151,4 +156,31 @@ void Perform_Plot::autoRange() {
 
     axisX->setRange(min_RangeX,max_RangeX);
 
+}
+
+void Perform_Plot::clearChartData() {
+    series_pratio->clear();
+    series_efficiency->clear();
+    series_tratio->clear();
+}
+
+
+void Perform_Plot::setRangeX_Max(const QString &text_xMax) {
+    max_RangeX = text_xMax.toDouble();
+    axisX->setRange(min_RangeX, max_RangeX);
+}
+
+void Perform_Plot::setRangeX_Min(const QString &text_xMin) {
+    min_RangeX = text_xMin.toDouble();
+    axisX->setRange(min_RangeX, max_RangeX);
+}
+
+void Perform_Plot::setRangeY_Min(const QString &text_yMin) {
+    min_RangeY = text_yMin.toDouble();
+    axisY->setRange(min_RangeY, max_RangeY);
+}
+
+void Perform_Plot::setRangeY_Max(const QString &text_yMax) {
+    max_RangeY = text_yMax.toDouble();
+    axisY->setRange(min_RangeY, max_RangeY);
 }
