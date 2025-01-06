@@ -261,6 +261,9 @@ private:
     void updatePerfData();
     Perform_Plot* performPlotView;
 
+private slots:
+    void on_Btn_ExportPerformPic_clicked();
+
 //*AutoRun Start Here
 private:
     QList<double> pressureList_AutoRun;

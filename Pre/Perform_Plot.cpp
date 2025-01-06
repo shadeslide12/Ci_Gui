@@ -89,6 +89,8 @@ void Perform_Plot::updateVisibility(int i) {
 }
 
 void Perform_Plot::updateChart(MonitorVariableTable &monitorVariableTable) {
+    if(monitorVariableTable.perform.pRatio.isEmpty())
+        return;
     double new_x = monitorVariableTable.outlet.mDot.last();
 
     bool need_sort = false;
