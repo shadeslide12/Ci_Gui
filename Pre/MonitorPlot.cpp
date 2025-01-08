@@ -105,7 +105,7 @@ void MonitorPlot::setupChart() {
     this->setChartStyle();
 }
 
-void MonitorPlot::updateChart(int iteration, const MonitorVariableTable &data) {
+void MonitorPlot::updateMonitorChart(int iteration, const MonitorVariableTable &data) {
     inlet_pTotal->append(iteration, data.inlet.pTotal.last());
     inlet_tTotal->append(iteration, data.inlet.tTotal.last());
     inlet_vAxial->append(iteration, data.inlet.vAxial.last());

@@ -1598,7 +1598,7 @@
        <item>
         <widget class="QTabWidget" name="Show_MainWindow">
          <property name="currentIndex">
-          <number>4</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="Show_Model">
           <attribute name="title">
@@ -2455,7 +2455,7 @@
                   <string>Clear Data</string>
                  </property>
                 </widget>
-                <widget class="QPushButton" name="pushButton_7">
+                <widget class="QPushButton" name="Btn_ExportPerformPic">
                  <property name="geometry">
                   <rect>
                    <x>160</x>

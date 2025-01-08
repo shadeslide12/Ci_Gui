@@ -27,7 +27,7 @@ public:
     void setRangeY_Min(const QString &text_yMin);
     void setRangeY_Max(const QString &text_yMax);
 
-    void updateChart(int iteration, const MonitorVariableTable& data);
+    void updateMonitorChart(int iteration, const MonitorVariableTable& data);
     void hideSeries();
     void updateSeriesVisibility(const QStringList& selectedVariables);
     void updateRangeWithTimer(const MonitorVariableTable& data);
@@ -39,6 +39,7 @@ public:
     void setChartStyle();
 
     QChart* monitorchart;
+    QList<QString> displayVariableList;
 
 private:
     QMap<QString, QLineSeries*> seriesMap;

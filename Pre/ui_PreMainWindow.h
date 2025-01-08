@@ -367,7 +367,7 @@ public:
     QLineEdit *Line_RangeY_Perf_Max;
     QWidget *widget_7;
     QPushButton *Btn_ClearPerformData;
-    QPushButton *pushButton_7;
+    QPushButton *Btn_ExportPerformPic;
     QWidget *widget_11;
     QHBoxLayout *horizontalLayout_23;
     QWidget *Plot_Performance;
@@ -1912,9 +1912,9 @@ public:
         Btn_ClearPerformData = new QPushButton(widget_7);
         Btn_ClearPerformData->setObjectName(QString::fromUtf8("Btn_ClearPerformData"));
         Btn_ClearPerformData->setGeometry(QRect(10, 30, 101, 31));
-        pushButton_7 = new QPushButton(widget_7);
-        pushButton_7->setObjectName(QString::fromUtf8("pushButton_7"));
-        pushButton_7->setGeometry(QRect(160, 30, 101, 31));
+        Btn_ExportPerformPic = new QPushButton(widget_7);
+        Btn_ExportPerformPic->setObjectName(QString::fromUtf8("Btn_ExportPerformPic"));
+        Btn_ExportPerformPic->setGeometry(QRect(160, 30, 101, 31));
 
         verticalLayout_12->addWidget(widget_7);
 
@@ -2009,7 +2009,7 @@ public:
         retranslateUi(PreMainWindow);
 
         stackedWidget->setCurrentIndex(5);
-        Show_MainWindow->setCurrentIndex(4);
+        Show_MainWindow->setCurrentIndex(3);
 
 
         QMetaObject::connectSlotsByName(PreMainWindow);
@@ -2252,7 +2252,7 @@ public:
         label_41->setText(QCoreApplication::translate("PreMainWindow", "Min", nullptr));
         label_42->setText(QCoreApplication::translate("PreMainWindow", "Max", nullptr));
         Btn_ClearPerformData->setText(QCoreApplication::translate("PreMainWindow", "Clear Data", nullptr));
-        pushButton_7->setText(QCoreApplication::translate("PreMainWindow", "Export Picture", nullptr));
+        Btn_ExportPerformPic->setText(QCoreApplication::translate("PreMainWindow", "Export Picture", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Performance), QCoreApplication::translate("PreMainWindow", "Perform_Curve", nullptr));
         QTableWidgetItem *___qtablewidgetitem = Result_Table->horizontalHeaderItem(0);
         ___qtablewidgetitem->setText(QCoreApplication::translate("PreMainWindow", "Run Number", nullptr));
