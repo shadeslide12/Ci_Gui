@@ -18,7 +18,7 @@ class PlotManager : public QObject {
 Q_OBJECT
 
 public:
-    explicit PlotManager(QObject *parent = nullptr);
+    explicit PlotManager(QObject* parent = nullptr);
     ~PlotManager();
 
     // Plot initialization

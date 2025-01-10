@@ -4,7 +4,7 @@
 
 #include "simulationDataManager.h"
 
-SimulationDataManager::SimulationDataManager(QObject *parent)
+SimulationDataManager::SimulationDataManager(QObject* parent)
     : QObject(parent)
 {
     initializePositions();
@@ -25,7 +25,7 @@ void SimulationDataManager::initializePositions() {
 }
 
 void SimulationDataManager::setFilePaths(const QString& inletPath, const QString& outletPath,
-                                       const QString& perfPath, const QString& residualPath) {
+                                         const QString& perfPath, const QString& residualPath) {
 
     inletFile.setFileName(inletPath);
     outletFile.setFileName(outletPath);
@@ -36,33 +36,31 @@ void SimulationDataManager::setFilePaths(const QString& inletPath, const QString
 }
 
 void SimulationDataManager::openFiles() {
-
-    if(!inletFile.isOpen()) {
+    if (!inletFile.isOpen()) {
         if (!(inletFile.open(QIODevice::ReadOnly | QIODevice::Text))) {
             qDebug() << "fail to read inlet Files";
             return;
         }
     }
-    if(!outletFile.isOpen()) {
+    if (!outletFile.isOpen()) {
         if (!(outletFile.open(QIODevice::ReadOnly | QIODevice::Text))) {
             qDebug() << "fail to read outlet Files";
             return;
         }
     }
-    if(!perfFile.isOpen()) {
+    if (!perfFile.isOpen()) {
         if (!(perfFile.open(QIODevice::ReadOnly | QIODevice::Text))) {
             qDebug() << "fail to read perform Files";
             return;
         }
     }
 
-    if(!residualDataFile.isOpen() ){
-        if(!(residualDataFile.open(QIODevice::ReadOnly | QIODevice::Text) )){
+    if (!residualDataFile.isOpen()) {
+        if (!(residualDataFile.open(QIODevice::ReadOnly | QIODevice::Text))) {
             qDebug() << "fail to read hist File";
             return;
         }
     }
-
 }
 
 void SimulationDataManager::closeFiles() {
@@ -106,7 +104,6 @@ void SimulationDataManager::updateResidual() {
 }
 
 void SimulationDataManager::updateMonitorData() {
-    qDebug() << "Hey";
     if(!inletFile.isOpen()) {
         if (!(inletFile.open(QIODevice::ReadOnly | QIODevice::Text))) {
             qDebug() << "fail to read inlet Files";
@@ -163,7 +160,6 @@ void SimulationDataManager::updateMonitorData() {
         monitorVariableTable.inlet.mDot.append(valuesInlet[6].toDouble());
     }
 
-    // Process outlet data
     QStringList valuesOutlet = lineOutlet.split(" ", Qt::SkipEmptyParts);
     if (!valuesOutlet.isEmpty()) {
         monitorVariableTable.outlet.pTotal.append(valuesOutlet[1].toDouble());
@@ -174,7 +170,6 @@ void SimulationDataManager::updateMonitorData() {
         monitorVariableTable.outlet.mDot.append(valuesOutlet[6].toDouble());
     }
 
-    // Process performance data
     QStringList valuesPerf = linePerf.split(" ", Qt::SkipEmptyParts);
     if (!valuesPerf.isEmpty()) {
         monitorVariableTable.perform.pRatio.append(valuesPerf[1].toDouble());
@@ -185,7 +180,6 @@ void SimulationDataManager::updateMonitorData() {
         monitorVariableTable.perform.qOutlet.append(valuesPerf[6].toDouble());
     }
 
-    // Update file positions
     monfilePositionTable[0] = inInlet.pos();
     monfilePositionTable[1] = inOutlet.pos();
     monfilePositionTable[2] = inPerf.pos();
@@ -198,3 +192,33 @@ void SimulationDataManager::clearData() {
     monitorVariableTable.clearMonTable();
     initializePositions();
 }
+
+bool SimulationDataManager::generatePressurePoints(double start_Pressure, double end_Pressure, int num_Points) {
+    pressureList_AutoRun.clear();
+
+    if(start_Pressure > end_Pressure) {
+        return false;
+    }
+    double step = (end_Pressure - start_Pressure) / (num_Points - 1);
+    for(int i = 0 ; i < num_Points ; i++){
+        pressureList_AutoRun.append(start_Pressure+i*step);
+    }
+
+    return true;
+}
+
+void SimulationDataManager::saveCurrentOutputFile(double currentPressure) {
+    QString pressureStr = QString::number(currentPressure);
+    QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
+
+    QString subFolderPath = "./pressure_" + pressureStr+ "_"+timestamp;
+
+    QDir().mkpath(subFolderPath);
+
+    QString command = QString("cp mon_* *grid.hdf *flow.hdf hist.dat GUI.yaml %1").arg(subFolderPath);
+    qDebug() << "now is saving outputFiles";
+    QProcess* copyProcess = new QProcess(this);
+    connect(copyProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), copyProcess, &QProcess::deleteLater);
+    copyProcess->start("/bin/bash", QStringList() << "-c" << command);
+}
+

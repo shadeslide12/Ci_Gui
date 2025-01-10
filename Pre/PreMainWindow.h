@@ -232,13 +232,8 @@ private:
 
 //*AutoRun Start Here
 private:
-    QList<double> pressureList_AutoRun;
-    int currentIndex_AutoRunPressure = 0;
-    bool autoRunning = 0;
-
-    bool generatePressurePoints();
     void autoSingleRun();
-    void saveCurrentOutputFile();
+
 private slots:
     void on_Btn_Start_AutoRun_clicked();
     void on_Btn_Skip_AutoRun_clicked();
@@ -246,10 +241,8 @@ private slots:
 
 //*Others Start Here
 private:
-    void setButtonAvailable(int buttonStatus);
     void setResultTableData();
     void updateSimulationStatus();
-    void updateHistory();
     void updateHistoryCombox();
     void on_CBtnHisotyIndexChanged(int index);
     void updateRunningStatusMessage(QString runningStatus);
@@ -259,6 +252,7 @@ private:
     QProgressBar* progressBar;
     int indexResultTable = 0 ;
     QLabel* statusLabel;
+
 private slots:
     void updateInterfaceUI();
     void on_Btn_ClearHistory_clicked();
@@ -281,7 +275,6 @@ private slots:
 
 //* Deal With Ui Elements
 private:
-
     void setup_Connection();
     void setup_UiElements();
 
