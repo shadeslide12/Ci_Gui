@@ -36,7 +36,7 @@ public:
     //AutoRun Data
     QList<double> pressureList_AutoRun;
     int currentIndex_AutoRunPressure = 0;
-    bool autoRunning = 0;
+    bool isAutoRunning = 0;
 
     bool generatePressurePoints(double start_Pressure, double end_Pressure, int num_Points);
 

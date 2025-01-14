@@ -1456,6 +1456,8 @@ void PreMainWindow::on_start_simulation_button_clicked() {
 //* [New] updateProgressBarStatus
     progressBar->setValue(0);
 
+    if(!simulationDataManager->isAutoRunning)
+        this->updateRunningStatusMessage(QString("SingleRunning"));
 //  ui->start_simulation_button->setEnabled(false);
     ui->continue_simulation_button->setEnabled(false);
     ui->run_pre_process->setEnabled(false);
@@ -1467,7 +1469,6 @@ void PreMainWindow::on_stop_simulation_button_clicked() {
   qDebug()<< "progress stopped";
 //* [New]timer
   timer->stop();
-//this->updateSimulationStatus();
   process->terminate();
 
   ui->start_simulation_button->setEnabled(true);
@@ -1660,25 +1661,22 @@ void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStat
     qDebug() << "exitCode:" << exitCode;
     qDebug() << "exitStatus:" << exitStatus;
     timer->stop();
-    //* [New]synchro ProgressBar
-//    this->updateMonitorData();
-//    this->updateSimulationStatus();
 
     this->setResultTableData();
     performPlot->updateChart(simulationDataManager->getMonitorData());
-    QString message = "Finished";
-    statusLabel->setText("Status:");
-    //* [New] some change here for auto Running
+    statusLabel->setText("Status: waiting");
+
+//* [New] some change here for auto Running
   if (exitCode==0 && exitStatus==QProcess::NormalExit) {
       qDebug() << "Inside if condition";
       qDebug() << "progress arrived at 100";
       progressBar->setValue(100);
-      if(!simulationDataManager->autoRunning)
-        QMessageBox::information(nullptr, "Finish Dialog", message);
+      if(!simulationDataManager->isAutoRunning)
+        QMessageBox::information(nullptr, "Finish Dialog", "Finished");
       on_stop_simulation_button_clicked();
   }
 
-  if(simulationDataManager->autoRunning){
+  if(simulationDataManager->isAutoRunning){
     simulationDataManager->currentIndex_AutoRunPressure++;
     this->updateHistoryCombox();
     simulationDataManager->saveCurrentOutputFile(cfg.p_curve.target_p);
@@ -1742,6 +1740,8 @@ void PreMainWindow::on_continue_simulation_button_clicked()
   EnablePerformanceCurve(false);
 
   progressBar->setValue(0);
+  if(!simulationDataManager->isAutoRunning)
+      this->updateRunningStatusMessage(QString("SingleRunning"));
   //* [New] timer
   timer->start();
 }
@@ -2165,10 +2165,11 @@ void PreMainWindow::on_Btn_ClearHistory_clicked() {
     this->on_Btn_ClearPerformData_clicked();
 }
 
-void PreMainWindow::updateSimulationStatus() {
-    if(simulationDataManager->getIterations().isEmpty())
+void PreMainWindow::updateProgressBar() {
+    auto& iteration = simulationDataManager->getIterations();
+    if(iteration.isEmpty())
         return;
-    int currentProgress = (simulationDataManager->getIterations().last()*100 / cfg.solver_iteration );
+    int currentProgress = (iteration.last()*100 / cfg.solver_iteration );
 
     progressBar->setValue(currentProgress);
 
@@ -2176,12 +2177,19 @@ void PreMainWindow::updateSimulationStatus() {
 
 void PreMainWindow::updateRunningStatusMessage(QString runningStatus) {
     QString statusMsg = " ";
-    if(runningStatus == "autoRunning") {
+    if(runningStatus == "AutoRunning") {
+        double currentPressure = simulationDataManager->pressureList_AutoRun[simulationDataManager->currentIndex_AutoRunPressure];
         statusMsg = QString("Status: Running(Calculating Pressure Point:%1 Pa  %2/%3)")
-                .arg(simulationDataManager->pressureList_AutoRun[simulationDataManager->currentIndex_AutoRunPressure])
+                .arg(currentPressure)
                 .arg(simulationDataManager->currentIndex_AutoRunPressure + 1)
                 .arg(simulationDataManager->pressureList_AutoRun.size());
     }
+    if(runningStatus == "SingleRunning"){
+        double currentPressure = cfg.p_curve.target_p;
+        statusMsg = QString("Status: Running(Calculating Pressure:%1 Pa)")
+                .arg(currentPressure);
+    }
+
     statusLabel->setText(statusMsg);
 }
 
@@ -2199,7 +2207,15 @@ void PreMainWindow::setResultTableData() {
 }
 
 void PreMainWindow::on_Btn_ClearPerformData_clicked() {
+    //* saving table Header
+    QStringList headers;
+    for(int i = 0; i < ui->Result_Table->columnCount(); i++) {
+        headers << ui->Result_Table->horizontalHeaderItem(i)->text();
+    }
+
     ui->Result_Table->clear();
+    ui->Result_Table->setHorizontalHeaderLabels(headers);
+
     performPlot->clearChartData();
     indexResultTable = 0 ;
 }
@@ -2223,13 +2239,15 @@ void PreMainWindow::on_Btn_Start_AutoRun_clicked() {
         return;
     }
 
-    simulationDataManager->autoRunning = 1;
+    simulationDataManager->isAutoRunning = 1;
     this->on_Btn_ClearHistory_clicked();
     this->autoSingleRun();
     ui->start_simulation_button->setEnabled(false);
     ui->continue_simulation_button->setEnabled(false);
     ui->stop_simulation_button->setEnabled(false);
     ui->Btn_Start_AutoRun->setEnabled(false);
+    ui->Btn_Skip_AutoRun->setEnabled(true);
+    ui->Btn_End_AutoRun->setEnabled(true);
 }
 
 void PreMainWindow::on_Btn_Skip_AutoRun_clicked() {
@@ -2239,7 +2257,7 @@ void PreMainWindow::on_Btn_Skip_AutoRun_clicked() {
 
 void PreMainWindow::on_Btn_End_AutoRun_clicked() {
     qDebug() << "you pressed the End Button" ;
-    simulationDataManager->autoRunning = 0 ;
+    simulationDataManager->isAutoRunning = 0 ;
     this->on_stop_simulation_button_clicked();
     ui->start_simulation_button->setEnabled(true);
     ui->continue_simulation_button->setEnabled(true);
@@ -2250,20 +2268,25 @@ void PreMainWindow::on_Btn_End_AutoRun_clicked() {
 
 void PreMainWindow::autoSingleRun() {
     qDebug() << "cipher is auto running" ;
-    if(simulationDataManager->currentIndex_AutoRunPressure >= simulationDataManager->pressureList_AutoRun.size()){
+    int currentIndex_AutoRunPressure = simulationDataManager->currentIndex_AutoRunPressure;
+    QList<double>& pressureList_AutoRun = simulationDataManager->pressureList_AutoRun;
+
+    if(currentIndex_AutoRunPressure >= pressureList_AutoRun.size()){
         QMessageBox::information(this,"information","All calculation is finished");
-        simulationDataManager->autoRunning = 0;
+        simulationDataManager->isAutoRunning = 0;
         ui->start_simulation_button->setEnabled(true);
         ui->continue_simulation_button->setEnabled(true);
         ui->stop_simulation_button->setEnabled(true);
         ui->Btn_Start_AutoRun->setEnabled(true);
+        ui->Btn_Skip_AutoRun->setEnabled(false);
+        ui->Btn_End_AutoRun->setEnabled(false);
         return;
     }
-    this->updateRunningStatusMessage(QString("autoRunning"));
-    int currentPressure = simulationDataManager->pressureList_AutoRun[simulationDataManager->currentIndex_AutoRunPressure];
+    this->updateRunningStatusMessage(QString("AutoRunning"));
+    int currentPressure = static_cast<int> (pressureList_AutoRun[currentIndex_AutoRunPressure]);
     cfg.p_curve.target_p = currentPressure;
 
-    if(simulationDataManager->currentIndex_AutoRunPressure == 0)
+    if(currentIndex_AutoRunPressure == 0)
         this->on_start_simulation_button_clicked();
     else{
         this->on_continue_simulation_button_clicked();
@@ -2298,6 +2321,8 @@ void PreMainWindow::setup_UiElements() {
     ui->LayoutforConverPlot->addWidget(residualplot);
     ui->Lay_MonitorPlot->addWidget(monitorplot);
 
+    ui->Show_MainWindow->setCurrentIndex(0);
+
 //* [New]ResultTable Style Start Here
     ui->Result_Table->verticalHeader()->setVisible(false);
     ui->Result_Table->horizontalHeader()->setStretchLastSection(true);
@@ -2307,8 +2332,8 @@ void PreMainWindow::setup_UiElements() {
 //  ui->Result_Table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     ui->Result_Table->verticalHeader()->setDefaultSectionSize(40);
-//* [New]Temp Start
-    statusLabel = new QLabel("Status: ",this);
+//* [New]StatusBar Start
+    statusLabel = new QLabel("Status: waiting",this);
     QWidget* tempwidget = new QWidget(this);
     progressBar = new QProgressBar(this);
     progressBar->setFixedWidth(800);
@@ -2339,6 +2364,10 @@ void PreMainWindow::setup_UiElements() {
     ui->CBtn_SelectPerfVariable->addItems(perfVariable);
     this->performPlot->updateVisibility(0);
 
+    //* [New]Button Status Initialize
+    ui->Btn_Skip_AutoRun->setEnabled(false);
+    ui->Btn_End_AutoRun->setEnabled(false);
+
     ui->CBox_Theme->addItem("Light", QChart::ChartThemeLight);
     ui->CBox_Theme->addItem("Blue Cerulean", QChart::ChartThemeBlueCerulean);
     ui->CBox_Theme->addItem("Dark", QChart::ChartThemeDark);
@@ -2359,7 +2388,7 @@ void PreMainWindow::setup_UiElements() {
 void PreMainWindow::setup_Connection() {
     connect(timer, &QTimer::timeout, simulationDataManager, &SimulationDataManager::updateResidual);
     connect(timer, &QTimer::timeout, simulationDataManager, &SimulationDataManager::updateMonitorData);
-    connect(timer,&QTimer::timeout,this, &PreMainWindow::updateSimulationStatus);
+    connect(timer,&QTimer::timeout,this, &PreMainWindow::updateProgressBar);
 
     connect(simulationDataManager, &SimulationDataManager::residualDataUpdated,
             residualplot, &Residual_Plot::updateResidualPlot);

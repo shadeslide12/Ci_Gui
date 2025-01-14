@@ -242,7 +242,7 @@ private slots:
 //*Others Start Here
 private:
     void setResultTableData();
-    void updateSimulationStatus();
+    void updateProgressBar();
     void updateHistoryCombox();
     void on_CBtnHisotyIndexChanged(int index);
     void updateRunningStatusMessage(QString runningStatus);
