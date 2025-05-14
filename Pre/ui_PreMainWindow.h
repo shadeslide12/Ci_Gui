@@ -386,7 +386,7 @@ public:
         if (PreMainWindow->objectName().isEmpty())
             PreMainWindow->setObjectName(QString::fromUtf8("PreMainWindow"));
         PreMainWindow->setEnabled(true);
-        PreMainWindow->resize(1920, 1109);
+        PreMainWindow->resize(1666, 951);
         QFont font;
         font.setPointSize(10);
         PreMainWindow->setFont(font);
@@ -435,7 +435,7 @@ public:
         scrollAreaWidgetContents_2 = new QWidget();
         scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
         scrollAreaWidgetContents_2->setEnabled(true);
-        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 348, 993));
+        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 334, 902));
         verticalLayout_3 = new QVBoxLayout(scrollAreaWidgetContents_2);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
         widget_4 = new QWidget(scrollAreaWidgetContents_2);
@@ -960,7 +960,7 @@ public:
 
         gridLayoutWidget = new QWidget(solver);
         gridLayoutWidget->setObjectName(QString::fromUtf8("gridLayoutWidget"));
-        gridLayoutWidget->setGeometry(QRect(0, 410, 311, 210));
+        gridLayoutWidget->setGeometry(QRect(0, 410, 311, 217));
         gridLayout_advanced = new QGridLayout(gridLayoutWidget);
         gridLayout_advanced->setObjectName(QString::fromUtf8("gridLayout_advanced"));
         gridLayout_advanced->setContentsMargins(0, 0, 0, 0);
@@ -1983,7 +1983,7 @@ public:
         PreMainWindow->addToolBar(Qt::TopToolBarArea, toolBar);
         menubar = new QMenuBar(PreMainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 1920, 24));
+        menubar->setGeometry(QRect(0, 0, 1666, 28));
         QFont font4;
         font4.setPointSize(12);
         menubar->setFont(font4);
