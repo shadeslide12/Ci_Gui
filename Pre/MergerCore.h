@@ -9,7 +9,7 @@ class MergerCore
 {
 public:
     MergerCore(PreProcessSettings *cfg_in);
-    ~MergerCore();
+    ~MergerCore() = default;
   std::map <std::string, int> rule_types={
   {"period_lo",9},
   {"period_up",10},

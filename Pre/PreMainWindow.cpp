@@ -519,8 +519,6 @@ void PreMainWindow::on_annular_checkbox_toggled(bool checked) {
 
 void PreMainWindow::on_actionNew_triggered()
 {
-  cfg = PreProcessSettings();
-
   SelectFile *selectfile = new SelectFile(&cfg);
   selectfile->setModal(true);
   selectfile->show();

@@ -40,6 +40,7 @@ SelectFile::SelectFile(PreProcessSettings *cfg_in, QWidget *parent)
 
 SelectFile::~SelectFile()
 {
+    delete merger;
     delete ui;
 }
 
