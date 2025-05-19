@@ -4,12 +4,6 @@
 #include <QDateTime>
 #include <QProgressBar>
 #include <QDebug>
-#include <vtkSmartPointer.h>
-#include <vtkAxesActor.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkArrowSource.h>
-#include <vtkOrientationMarkerWidget.h>
 
 PreMainWindow::PreMainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -150,7 +144,6 @@ void PreMainWindow::Assign_Value()
 void PreMainWindow::Assign_VTK()
 {
 #ifndef NO_VTK_WINDOW
-
   if(cfg.num_meshes > 0) {
     vector<vector<vtkSmartPointer<vtkUnstructuredGrid>>> datasets;
     vector<vector<vtkSmartPointer<vtkActor>>> actors(cfg.num_meshes);
@@ -169,58 +162,31 @@ void PreMainWindow::Assign_VTK()
         actors[i].push_back(actor);
       }
     }
-
+//    vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow= vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+//    vtkSmartPointer<vtkRenderer> renderer= vtkSmartPointer<vtkRenderer>::New();
+//    QVTKOpenGLNativeWidget *vtkWidget= new QVTKOpenGLNativeWidget(this);
     for (int i = 0; i < actors.size(); i++) {
       for (int j = 0; j < actors[i].size(); j++) {
         renderer->AddActor(actors[i][j]);
       }
     }
+
     renderer->ResetCamera();
     vtkWidget->renderWindow()->Render();
   }
-
-  //* Ensure Only deal with it once
   if (!isVTKWindow) {
-    ui->RunGraphLayout->insertWidget(0, vtkWidget, 1);
-
     renderer->SetBackground(1.0, 1.0, 1.0);
     renderer->SetBackground2(0.529, 0.8078, 0.92157);
     renderer->SetGradientBackground(true);
     isVTKWindow = true;
     renderWindow->AddRenderer(renderer);
     vtkWidget->setRenderWindow(renderWindow);
-
-    vtkRenderWindowInteractor* interactor = vtkWidget->renderWindow()->GetInteractor();
-    if (!interactor) {
-        vtkSmartPointer<vtkRenderWindowInteractor> newInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-        vtkWidget->renderWindow()->SetInteractor(newInteractor);
-        interactor = newInteractor;
-    }
-
-    //* Axe Widget Activate Here
-    vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
-    axes->SetShaftTypeToCylinder();
-    axes->SetXAxisLabelText("X");
-    axes->SetYAxisLabelText("Y");
-    axes->SetZAxisLabelText("Z");
-    axes->SetTotalLength(1.0, 1.0, 1.0);
-    axes->SetCylinderRadius(0.02);
-    axes->SetConeRadius(0.08);
-    axes->SetSphereRadius(0.08);
-
-    axisWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-    axisWidget->SetOutlineColor(0.9300, 0.5700, 0.1300);
-    axisWidget->SetOrientationMarker(axes);
-    axisWidget->SetInteractor(interactor);
-    axisWidget->SetViewport(0.8, 0.0, 1.0, 0.3);
-    axisWidget->SetEnabled(1);
-    axisWidget->On();
-    axisWidget->InteractiveOff();
+    ui->RunGraphLayout->insertWidget(0, vtkWidget, 1);
     vtkWidget->renderWindow()->Render();
-
   }
 #endif
 }
+
 
 void PreMainWindow::Assign_Run()
 {
@@ -2378,14 +2344,14 @@ void PreMainWindow::setup_UiElements() {
     ui->statusbar->insertPermanentWidget(1,tempwidget,1);
     ui->statusbar->insertPermanentWidget(2, progressBar, 1);
 //* [New]Qss Loading
-//    QFile file(":/qss/linux.qss");
-//    if(file.open(QFile::ReadOnly)) {
-//        QString styleSheet = QLatin1String(file.readAll());
-//        this->setStyleSheet(styleSheet);
-//        file.close();
-//    } else {
-//        qDebug() << "Failed to open stylesheet:" << file.errorString();
-//    }
+    QFile file(":/qss/linux.qss");
+    if(file.open(QFile::ReadOnly)) {
+        QString styleSheet = QLatin1String(file.readAll());
+        this->setStyleSheet(styleSheet);
+        file.close();
+    } else {
+        qDebug() << "Failed to open stylesheet:" << file.errorString();
+    }
 
     //* [New]Residual Start Here
 

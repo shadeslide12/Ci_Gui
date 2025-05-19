@@ -143,6 +143,17 @@ void SelectFile::on_show_boundary_button_clicked()
     stdfileNames.push_back(qstr.toStdString());
   }
 
+  //* fix the bug in selecting Files
+  if (selectedFilesModel->rowCount() > 0) {
+    QStandardItem *item = selectedFilesModel->item(0);
+    if (item) {
+      QFileInfo fileInfo(item->text());
+      QString fileDir = fileInfo.absolutePath();
+      QDir::setCurrent(fileDir);
+      qDebug() << "Changed working directory to: " << fileDir;
+    }
+  }
+
   cfg->mesh_files = stdfileNames;
   cfg->num_meshes = cfg->mesh_files.size();
 
