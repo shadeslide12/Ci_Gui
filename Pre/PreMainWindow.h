@@ -171,9 +171,7 @@ private slots:
 
     void on_comboBox_qcr_currentTextChanged(const QString &arg1);
 
-    void on_lineEdit_axis_x_textEdited(const QString &arg1);
-    void on_lineEdit_axis_y_textEdited(const QString &arg1);
-    void on_lineEdit_axis_z_textEdited(const QString &arg1);
+
     void on_lineEdit_factor_x_textEdited(const QString &arg1);
     void on_lineEdit_factor_y_textEdited(const QString &arg1);
     void on_lineEdit_factor_z_textEdited(const QString &arg1);
@@ -269,7 +267,7 @@ private:
 //* Plot Slot
 private slots:
     void on_Btn_ExportPerformPic_clicked();
-
+    void on_Combo_Axis_CurrentIndexChanged(int index);
     void onSelectFile();
     void onVariableSelectionChanged();
 

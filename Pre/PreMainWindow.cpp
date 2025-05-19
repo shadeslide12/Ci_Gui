@@ -331,9 +331,6 @@ void PreMainWindow::Assign_General()
   ui->film_checkbox->setChecked(false);
   ui->film_checkbox->toggled(false);
 
-  SetupDoubleLineEdit(this,ui->lineEdit_axis_x, cfg.rot_axis(0));
-  SetupDoubleLineEdit(this,ui->lineEdit_axis_y, cfg.rot_axis(1));
-  SetupDoubleLineEdit(this,ui->lineEdit_axis_z, cfg.rot_axis(2));
   SetupDoubleLineEdit(this,ui->lineEdit_factor_x, cfg.scaling_x);
   SetupDoubleLineEdit(this,ui->lineEdit_factor_y, cfg.scaling_y);
   SetupDoubleLineEdit(this,ui->lineEdit_factor_z, cfg.scaling_z);
@@ -1297,9 +1294,6 @@ void PreMainWindow::on_omega_lineEdit_textEdited(const QString &arg1){cfg.o_ic=a
 void PreMainWindow::on_epsilon_lineEdit_textEdited(const QString &arg1){cfg.e_ic=arg1.toDouble();}
 void PreMainWindow::on_gamma_lineEdit_textEdited(const QString &arg1){cfg.g_ic=arg1.toDouble();}
 
-void PreMainWindow::on_lineEdit_axis_x_textEdited(const QString &arg1){cfg.rot_axis(0)=arg1.toDouble();}
-void PreMainWindow::on_lineEdit_axis_y_textEdited(const QString &arg1){cfg.rot_axis(1)=arg1.toDouble();}
-void PreMainWindow::on_lineEdit_axis_z_textEdited(const QString &arg1){cfg.rot_axis(2)=arg1.toDouble();}
 void PreMainWindow::on_lineEdit_factor_x_textEdited(const QString &arg1){cfg.scaling_x=arg1.toDouble();}
 void PreMainWindow::on_lineEdit_factor_y_textEdited(const QString &arg1){cfg.scaling_y=arg1.toDouble();}
 void PreMainWindow::on_lineEdit_factor_z_textEdited(const QString &arg1){cfg.scaling_z=arg1.toDouble();}
@@ -2398,6 +2392,8 @@ void PreMainWindow::setup_Connection() {
             monitorplot, &MonitorPlot::updateMonitorChart);
 
 
+    //* ComboButton Axis
+    connect(ui->Combo_Axis,QOverload<int>::of(&QComboBox::currentIndexChanged),this,&PreMainWindow::on_Combo_Axis_CurrentIndexChanged);
     //* [New]Residual Button Binding Here
 
     connect(ui->Btn_ManualScale_Res,&QPushButton::clicked,this,[this](){residualplot->setManualScaleMode();ui->control_panel_Range_Res->setEnabled(1);});
@@ -2454,4 +2450,29 @@ void PreMainWindow::setup_Connection() {
         if(!syncMainWindowTheme){ui->Btn_SyncWindowTheme->setText("UnSync");syncMainWindowTheme=1;}
         else{ui->Btn_SyncWindowTheme->setText("Sync");syncMainWindowTheme=0;};
     });
+}
+
+
+//* Change the slot of Combo Axis
+void PreMainWindow::on_Combo_Axis_CurrentIndexChanged(int index) {
+    qDebug()<<"Combo Axis Index is :"<<index;
+    switch(index){
+        case 0:
+            cfg.rot_axis(0)=1.0;
+            cfg.rot_axis(1)=0.0;
+            cfg.rot_axis(2)=0.0;
+            break;
+        case 1:
+            cfg.rot_axis(0)=0.0;
+            cfg.rot_axis(1)=1.0;
+            cfg.rot_axis(2)=0.0;
+            break;
+        case 2:
+            cfg.rot_axis(0)=0.0;
+            cfg.rot_axis(1)=0.0;
+            cfg.rot_axis(2)=1.0;
+            break;
+        default:
+            break;
+    }
 }

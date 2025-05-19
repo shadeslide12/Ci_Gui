@@ -10,6 +10,7 @@
 #include <QString>
 #include <QDir>
 #include <QTreeView>
+#include <QDebug>
 
 SelectFile::SelectFile(PreProcessSettings *cfg_in, QWidget *parent)
     : QDialog(parent)

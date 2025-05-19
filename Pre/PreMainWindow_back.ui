@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1666</width>
-    <height>949</height>
+    <width>1920</width>
+    <height>1109</height>
    </rect>
   </property>
   <property name="font">
@@ -63,8 +63,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>339</width>
-            <height>877</height>
+            <width>348</width>
+            <height>993</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -91,7 +91,7 @@
               </font>
              </property>
              <property name="currentIndex">
-              <number>0</number>
+              <number>5</number>
              </property>
              <widget class="QWidget" name="general">
               <widget class="QWidget" name="verticalLayoutWidget_3">
@@ -160,7 +160,7 @@
                  <x>10</x>
                  <y>150</y>
                  <width>301</width>
-                 <height>578</height>
+                 <height>571</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="Turbulence_area">
@@ -421,103 +421,125 @@
                 </item>
                 <item>
                  <layout class="QGridLayout" name="LES_area_4">
-                  <item row="3" column="0">
-                   <widget class="QLabel" name="gas_friction_label_6">
-                    <property name="text">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;factor y&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="1">
-                   <widget class="QComboBox" name="Combo_Axis">
-                    <item>
-                     <property name="text">
-                      <string>X</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>Y</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>Z</string>
-                     </property>
-                    </item>
-                   </widget>
-                  </item>
-                  <item row="1" column="0">
+                  <item row="0" column="2">
                    <widget class="QLabel" name="label_12">
-                    <property name="font">
-                     <font>
-                      <family>.AppleSystemUIFont</family>
-                      <pointsize>10</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                     </font>
-                    </property>
                     <property name="text">
                      <string>Scale</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="0">
-                   <widget class="QLabel" name="label">
-                    <property name="text">
-                     <string>Rotation Axis </string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="1">
-                   <widget class="QLineEdit" name="lineEdit_factor_z">
-                    <property name="text">
-                     <string>1.0</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="0">
-                   <widget class="QLabel" name="gas_friction_label_4">
-                    <property name="text">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;factor x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="1">
-                   <widget class="QLineEdit" name="lineEdit_factor_y">
-                    <property name="text">
-                     <string>1.0</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="1">
+                  <item row="1" column="3">
                    <widget class="QLineEdit" name="lineEdit_factor_x">
                     <property name="text">
                      <string>1.0</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="0">
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="gas_friction_label_3">
+                    <property name="text">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;axis x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="3">
+                   <widget class="QLineEdit" name="lineEdit_factor_y">
+                    <property name="text">
+                     <string>1.0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="gas_friction_label_5">
+                    <property name="text">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;axis y&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>Rotation</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="lineEdit_axis_x">
+                    <property name="text">
+                     <string>1.0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QLineEdit" name="lineEdit_axis_y">
+                    <property name="text">
+                     <string>0.0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="2">
+                   <widget class="QLabel" name="gas_friction_label_6">
+                    <property name="text">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;factor y&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="2">
+                   <widget class="QLabel" name="gas_friction_label_4">
+                    <property name="text">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;factor x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="gas_friction_label_7">
+                    <property name="text">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;axis z&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="lineEdit_axis_z">
+                    <property name="text">
+                     <string>0.0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="2">
                    <widget class="QLabel" name="gas_friction_label_8">
                     <property name="text">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;factor z&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="5" column="1">
-                   <spacer name="verticalSpacer_2">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
+                  <item row="3" column="3">
+                   <widget class="QLineEdit" name="lineEdit_factor_z">
+                    <property name="text">
+                     <string>1.0</string>
                     </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>40</height>
-                     </size>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLabel" name="label_13">
+                    <property name="text">
+                     <string>Axis Vector</string>
                     </property>
-                   </spacer>
+                   </widget>
                   </item>
                  </layout>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </widget>
@@ -916,7 +938,7 @@
                  <x>0</x>
                  <y>410</y>
                  <width>311</width>
-                 <height>217</height>
+                 <height>210</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_advanced">
@@ -2587,7 +2609,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1666</width>
+     <width>1920</width>
      <height>24</height>
     </rect>
    </property>
