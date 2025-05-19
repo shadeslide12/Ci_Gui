@@ -267,7 +267,7 @@ private:
 //* Plot Slot
 private slots:
     void on_Btn_ExportPerformPic_clicked();
-    void on_Combo_Axis_CurrentIndexChanged(int index);
+    void Btn_ComboAxis_CurrentIndexChanged(int index);
     void onSelectFile();
     void onVariableSelectionChanged();
 

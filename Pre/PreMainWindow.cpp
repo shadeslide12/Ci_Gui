@@ -145,6 +145,9 @@ void PreMainWindow::Assign_VTK()
 {
 #ifndef NO_VTK_WINDOW
   if(cfg.num_meshes > 0) {
+    //* Remove All models Before Reading New Case
+    renderer->RemoveAllViewProps();
+    
     vector<vector<vtkSmartPointer<vtkUnstructuredGrid>>> datasets;
     vector<vector<vtkSmartPointer<vtkActor>>> actors(cfg.num_meshes);
     for (int i = 0; i < cfg.num_meshes; i++) {
@@ -516,12 +519,16 @@ void PreMainWindow::on_annular_checkbox_toggled(bool checked) {
 
 void PreMainWindow::on_actionNew_triggered()
 {
+  //* Reset Setting Member cfg to avoid Crash
   cfg = PreProcessSettings();
 
-  SelectFile *selectfile = new SelectFile(&cfg);
+  //* Prevent SelectFile Memory Leakage
+  SelectFile *selectfile = new SelectFile(&cfg,this);
   selectfile->setModal(true);
   selectfile->show();
   connect(selectfile, &QDialog::finished, this, &PreMainWindow::Assign_Value);
+  connect(selectfile, &QDialog::finished, selectfile, &QObject::deleteLater);
+
   ui->scrollArea->setEnabled(true);
 }
 
@@ -2393,7 +2400,8 @@ void PreMainWindow::setup_Connection() {
 
 
     //* ComboButton Axis
-    connect(ui->Combo_Axis,QOverload<int>::of(&QComboBox::currentIndexChanged),this,&PreMainWindow::on_Combo_Axis_CurrentIndexChanged);
+    connect(ui->Combo_Axis,QOverload<int>::of(&QComboBox::currentIndexChanged),this,
+            &PreMainWindow::Btn_ComboAxis_CurrentIndexChanged);
     //* [New]Residual Button Binding Here
 
     connect(ui->Btn_ManualScale_Res,&QPushButton::clicked,this,[this](){residualplot->setManualScaleMode();ui->control_panel_Range_Res->setEnabled(1);});
@@ -2454,7 +2462,7 @@ void PreMainWindow::setup_Connection() {
 
 
 //* Change the slot of Combo Axis
-void PreMainWindow::on_Combo_Axis_CurrentIndexChanged(int index) {
+void PreMainWindow::Btn_ComboAxis_CurrentIndexChanged(int index) {
     qDebug()<<"Combo Axis Index is :"<<index;
     switch(index){
         case 0:

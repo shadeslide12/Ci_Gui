@@ -42,6 +42,8 @@ SelectFile::SelectFile(PreProcessSettings *cfg_in, QWidget *parent)
 SelectFile::~SelectFile()
 {
     delete ui;
+    //* Avoid Memory Leakage
+    delete merger;
 }
 
 void SelectFile::onDirectoryDoubleClicked(const QModelIndex &index)
