@@ -137,6 +137,11 @@ void SelectFile::on_boundary_merger_button_clicked()
 void SelectFile::on_show_boundary_button_clicked()
 {
 //  BoundaryMerger
+  //* Ensure user selected Mesh files
+  if (selectedFilesModel->rowCount() <= 0) {
+    QMessageBox::warning(this, "warning", "Please Select a Mesh File");
+    return;
+  }
   std::vector<QString> fileNames = extractFileNames(selectedFilesModel);
   std::vector<std::string> stdfileNames;
   for (const auto& qstr : fileNames) {
@@ -144,15 +149,14 @@ void SelectFile::on_show_boundary_button_clicked()
   }
 
   //* fix the bug in selecting Files
-  if (selectedFilesModel->rowCount() > 0) {
-    QStandardItem *item = selectedFilesModel->item(0);
-    if (item) {
-      QFileInfo fileInfo(item->text());
-      QString fileDir = fileInfo.absolutePath();
-      QDir::setCurrent(fileDir);
-      qDebug() << "Changed working directory to: " << fileDir;
-    }
+  QStandardItem *item = selectedFilesModel->item(0);
+  if (item) {
+    QFileInfo fileInfo(item->text());
+    QString fileDir = fileInfo.absolutePath();
+    QDir::setCurrent(fileDir);
+    qDebug() << "Changed working directory to: " << fileDir;
   }
+
 
   cfg->mesh_files = stdfileNames;
   cfg->num_meshes = cfg->mesh_files.size();
