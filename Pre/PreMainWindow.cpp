@@ -187,6 +187,11 @@ void PreMainWindow::Assign_VTK()
     ui->RunGraphLayout->insertWidget(0, vtkWidget, 1);
     vtkWidget->renderWindow()->Render();
   }
+  if (cfg.num_meshes>0) createRotationLineWidget(0);
+  createAxisWidget();
+  vtkSmartPointer<vtkCamera> camera=renderer->GetActiveCamera();
+  camera->Zoom(0.5);
+  renderer->GetRenderWindow()->Render();
 #endif
 }
 
@@ -2483,4 +2488,74 @@ void PreMainWindow::Btn_ComboAxis_CurrentIndexChanged(int index) {
         default:
             break;
     }
+  createRotationLineWidget(index);
+}
+
+void PreMainWindow::createAxisWidget() {
+    vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
+    axes->SetShaftTypeToCylinder();
+    axes->SetXAxisLabelText("X");
+    axes->SetYAxisLabelText("Y");
+    axes->SetZAxisLabelText("Z");
+    axes->SetTotalLength(1.0, 1.0, 1.0);
+    axes->SetCylinderRadius(0.02);
+    axes->SetConeRadius(0.08);
+    axes->SetSphereRadius(0.08);
+
+    axisWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
+    axisWidget->SetOutlineColor(0.9300, 0.5700, 0.1300);
+    axisWidget->SetOrientationMarker(axes);
+
+
+    vtkRenderWindowInteractor* interactor = vtkWidget->renderWindow()->GetInteractor();
+    if (!interactor) {
+      vtkSmartPointer<vtkRenderWindowInteractor> newInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+      vtkWidget->renderWindow()->SetInteractor(newInteractor);
+      interactor = newInteractor;
+    }
+
+    axisWidget->SetInteractor(interactor);
+    //* axes Position
+    axisWidget->SetViewport(0.8, 0.0, 1.0, 0.3);
+
+    vtkWidget->renderWindow()->Render();
+    axisWidget->SetEnabled(1);
+    axisWidget->On();
+    axisWidget->InteractiveOff();
+}
+
+
+void PreMainWindow::createRotationLineWidget(int axisRotation) {
+  //* if added before ,remove it,avoid added multi times
+    if (actor_RotationLine)
+        renderer->RemoveActor(actor_RotationLine);
+    rotationLine = vtkSmartPointer<vtkLineSource>::New();
+    switch (axisRotation) {
+      case 0:
+        rotationLine->SetPoint1(-1200, -0.3, 0.0);
+        rotationLine->SetPoint2(1200, -0.3, 0.0);
+        qDebug()<< "change asix to x";
+        break;
+      case 1:
+        rotationLine->SetPoint1(-0.3, -1200, 0.0);
+        rotationLine->SetPoint2(-0.3, 1200, 0.0);
+        qDebug()<< "change axis to y";
+        break;
+      case 2:
+        rotationLine->SetPoint1(0.0, -0.3, -1200);
+        rotationLine->SetPoint2(0.0, -0.3, 1200);
+        qDebug()<< "change axis to z";
+        break;
+    }
+
+    vtkSmartPointer<vtkPolyDataMapper> rotationAxisMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    rotationAxisMapper->SetInputConnection(rotationLine->GetOutputPort());
+    actor_RotationLine = vtkSmartPointer<vtkActor>::New();
+    actor_RotationLine->SetMapper(rotationAxisMapper);
+
+    actor_RotationLine->GetProperty()->SetColor(0.0, 0.0, 0.0); // line is black
+    actor_RotationLine->GetProperty()->SetLineWidth(1.0);
+
+    renderer->AddActor(actor_RotationLine);
+    renderer->GetRenderWindow()->Render();
 }

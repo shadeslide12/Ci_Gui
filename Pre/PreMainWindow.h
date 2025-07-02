@@ -34,6 +34,13 @@
 #include <vtkGenericOpenGLRenderWindow.h>
 #include "vtkDataSetMapper.h"
 #include <QVTKOpenGLNativeWidget.h>
+#include <vtkOrientationMarkerWidget.h>
+#include <vtkLineSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkAxesActor.h>
+#include <vtkProperty.h>
+#include <vtkCamera.h>
+
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -284,6 +291,14 @@ private:
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow= vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
     vtkSmartPointer<vtkRenderer> renderer= vtkSmartPointer<vtkRenderer>::New();
     QVTKOpenGLNativeWidget *vtkWidget= new QVTKOpenGLNativeWidget(this);
+//* Rotation Line
+
+    vtkSmartPointer<vtkOrientationMarkerWidget> axisWidget;
+    vtkSmartPointer<vtkLineSource> rotationLine;
+    vtkSmartPointer<vtkActor> actor_RotationLine;
+
+    void createAxisWidget();
+    void createRotationLineWidget(int AxisofRotation);
 #endif
 };
 #endif // PREMAINWINDOW_H
