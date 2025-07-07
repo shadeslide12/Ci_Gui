@@ -16,6 +16,7 @@
 #include <QTimer>
 #include <QChartView>
 #include <QProgressBar>
+#include <QString>
 
 #include "Residual_Plot.h"
 #include "Perform_Plot.h"
@@ -40,7 +41,8 @@
 #include <vtkAxesActor.h>
 #include <vtkProperty.h>
 #include <vtkCamera.h>
-
+#include <fstream>
+#include <vtkFluentCFFReader.h>
 #endif
 
 QT_BEGIN_NAMESPACE

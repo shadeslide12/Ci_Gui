@@ -5,6 +5,8 @@
 #include <QProgressBar>
 #include <QDebug>
 
+#include "vtkFluentCFFReader.h"
+
 PreMainWindow::PreMainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::PreMainWindow)
@@ -146,14 +148,33 @@ void PreMainWindow::Assign_VTK()
 #ifndef NO_VTK_WINDOW
   if(cfg.num_meshes > 0) {
     //* Remove All models Before Reading New Case
+    qDebug()<<"[DEBUG] VTK Initializing ....";
+    qDebug()<<"[DEBUG] Mesh number is : " << cfg.num_meshes;
     renderer->RemoveAllViewProps();
     
     vector<vector<vtkSmartPointer<vtkUnstructuredGrid>>> datasets;
     vector<vector<vtkSmartPointer<vtkActor>>> actors(cfg.num_meshes);
     for (int i = 0; i < cfg.num_meshes; i++) {
-      std::string filename = cfg.mesh_files[i] + ".cgns";
-      CGNSReader reader(filename);
-      vector<vtkSmartPointer<vtkUnstructuredGrid>> ds = reader.getDataSet();
+      vector<vtkSmartPointer<vtkUnstructuredGrid>> ds;
+      if (cfg.Flag_Type_Files==0) {
+        std::string filename = cfg.mesh_files[i] + ".cgns";
+        qDebug()<<"[DEBUG] Loading file : : " << QString::fromStdString(filename);
+        if (std::ifstream(filename).good()) {
+            CGNSReader reader(filename);
+            ds =reader.getDataSet();
+        }
+        else qDebug()<<"[DEBUG] File doesn't exist";
+      }
+      else if (cfg.Flag_Type_Files == 1) {
+        std::string filename = cfg.mesh_files[i] + ".cas.h5";
+        qDebug()<<"[DEBUG] Loading file : : " << QString::fromStdString(filename);
+        if(std::ifstream(filename).good()) {
+          vtkFluentCFFReader reader(filename);
+          ds =reader.getDataSet();
+        }
+        else qDebug()<<"[DEBUG] File doesn't exist";
+      }
+      else qDebug()<<"[DEBUG} Wrong file type";
       datasets.push_back(ds);
     }
     for (int i = 0; i < datasets.size(); i++) {

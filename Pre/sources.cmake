@@ -25,6 +25,10 @@ list(APPEND QT_PRE2_VTK_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/vtkCGNSReader.cpp
 )
 
+list(APPEND QT_PRE2_VTK_SRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/vtkFluentCFFReader.cpp
+)
+
 list(APPEND QT_PRE2_MAIN_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
