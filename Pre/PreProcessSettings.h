@@ -65,7 +65,7 @@ public:
     int CPU_core=1;
     //* add flags
     int Flag_Type_Files = 0; // 0 = cgns 1 = cas.h5
-    bool vtk_Ready;
+    bool isVtkReady = false;
 
 };
 

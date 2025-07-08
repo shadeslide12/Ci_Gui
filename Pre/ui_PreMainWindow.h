@@ -248,6 +248,15 @@ public:
     QLabel *label_43;
     QLineEdit *LEdit_NumPoints_AutoRun;
     QPushButton *Btn_Start_AutoRun;
+    QWidget *widget_15;
+    QVBoxLayout *verticalLayout_14;
+    QLabel *unsteady_simulation_label_2;
+    QWidget *widget_16;
+    QHBoxLayout *horizontalLayout_8;
+    QCheckBox *check_on_off;
+    QSpacerItem *horizontalSpacer;
+    QLabel *lab_MG_Level;
+    QSpinBox *Sp_Number_MGLevel;
     QSpacerItem *verticalSpacer_7;
     QTabWidget *Show_MainWindow;
     QWidget *Show_Model;
@@ -429,7 +438,7 @@ public:
         scrollAreaWidgetContents_2 = new QWidget();
         scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
         scrollAreaWidgetContents_2->setEnabled(true);
-        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 339, 877));
+        scrollAreaWidgetContents_2->setGeometry(QRect(0, -164, 339, 983));
         verticalLayout_3 = new QVBoxLayout(scrollAreaWidgetContents_2);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
         widget_4 = new QWidget(scrollAreaWidgetContents_2);
@@ -1334,6 +1343,48 @@ public:
 
         verticalLayout_7->addWidget(widget_13);
 
+        widget_15 = new QWidget(savetab);
+        widget_15->setObjectName(QString::fromUtf8("widget_15"));
+        widget_15->setMinimumSize(QSize(0, 100));
+        verticalLayout_14 = new QVBoxLayout(widget_15);
+        verticalLayout_14->setObjectName(QString::fromUtf8("verticalLayout_14"));
+        unsteady_simulation_label_2 = new QLabel(widget_15);
+        unsteady_simulation_label_2->setObjectName(QString::fromUtf8("unsteady_simulation_label_2"));
+
+        verticalLayout_14->addWidget(unsteady_simulation_label_2);
+
+        widget_16 = new QWidget(widget_15);
+        widget_16->setObjectName(QString::fromUtf8("widget_16"));
+        horizontalLayout_8 = new QHBoxLayout(widget_16);
+        horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
+        check_on_off = new QCheckBox(widget_16);
+        check_on_off->setObjectName(QString::fromUtf8("check_on_off"));
+
+        horizontalLayout_8->addWidget(check_on_off);
+
+        horizontalSpacer = new QSpacerItem(50, 20, QSizePolicy::Preferred, QSizePolicy::Minimum);
+
+        horizontalLayout_8->addItem(horizontalSpacer);
+
+        lab_MG_Level = new QLabel(widget_16);
+        lab_MG_Level->setObjectName(QString::fromUtf8("lab_MG_Level"));
+
+        horizontalLayout_8->addWidget(lab_MG_Level);
+
+        Sp_Number_MGLevel = new QSpinBox(widget_16);
+        Sp_Number_MGLevel->setObjectName(QString::fromUtf8("Sp_Number_MGLevel"));
+        Sp_Number_MGLevel->setMinimumSize(QSize(80, 0));
+        Sp_Number_MGLevel->setMaximum(10);
+        Sp_Number_MGLevel->setValue(3);
+
+        horizontalLayout_8->addWidget(Sp_Number_MGLevel);
+
+
+        verticalLayout_14->addWidget(widget_16);
+
+
+        verticalLayout_7->addWidget(widget_15);
+
         verticalSpacer_7 = new QSpacerItem(20, 16, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         verticalLayout_7->addItem(verticalSpacer_7);
@@ -1976,8 +2027,8 @@ public:
 
         retranslateUi(PreMainWindow);
 
-        stackedWidget->setCurrentIndex(0);
-        Show_MainWindow->setCurrentIndex(3);
+        stackedWidget->setCurrentIndex(5);
+        Show_MainWindow->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(PreMainWindow);
@@ -2178,6 +2229,9 @@ public:
         label_43->setText(QCoreApplication::translate("PreMainWindow", "Number of Points:", nullptr));
         LEdit_NumPoints_AutoRun->setText(QString());
         Btn_Start_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "Start", nullptr));
+        unsteady_simulation_label_2->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p><span style=\" font-weight:696;\">Multi-Grid </span></p></body></html>", nullptr));
+        check_on_off->setText(QCoreApplication::translate("PreMainWindow", "On / Off", nullptr));
+        lab_MG_Level->setText(QCoreApplication::translate("PreMainWindow", "Level :", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Model), QCoreApplication::translate("PreMainWindow", "Model", nullptr));
         label_27->setText(QCoreApplication::translate("PreMainWindow", "Graph Options", nullptr));
         Btn_AutoScale_Res->setText(QCoreApplication::translate("PreMainWindow", "AutoScale", nullptr));

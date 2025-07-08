@@ -141,12 +141,26 @@ void PreMainWindow::Assign_Value()
   Assign_Run();
   Assign_Solver();
   Assign_VTK();
+
 }
 
 void PreMainWindow::Assign_VTK()
 {
 #ifndef NO_VTK_WINDOW
-  if(cfg.num_meshes > 0) {
+
+  //* Initializing Vtk Widget
+  if (!isVTKWindow) {
+    renderer->SetBackground(1.0, 1.0, 1.0);
+    renderer->SetBackground2(0.529, 0.8078, 0.92157);
+    renderer->SetGradientBackground(true);
+    isVTKWindow = true;
+    renderWindow->AddRenderer(renderer);
+    vtkWidget->setRenderWindow(renderWindow);
+    ui->RunGraphLayout->insertWidget(0, vtkWidget, 1);
+    createAxisWidget();
+    vtkWidget->renderWindow()->Render();
+  }
+  if(cfg.num_meshes > 0  ) {
     //* Remove All models Before Reading New Case
     qDebug()<<"[DEBUG] VTK Initializing ....";
     qDebug()<<"[DEBUG] Mesh number is : " << cfg.num_meshes;
@@ -155,27 +169,40 @@ void PreMainWindow::Assign_VTK()
     vector<vector<vtkSmartPointer<vtkUnstructuredGrid>>> datasets;
     vector<vector<vtkSmartPointer<vtkActor>>> actors(cfg.num_meshes);
     for (int i = 0; i < cfg.num_meshes; i++) {
-      vector<vtkSmartPointer<vtkUnstructuredGrid>> ds;
-      if (cfg.Flag_Type_Files==0) {
-        std::string filename = cfg.mesh_files[i] + ".cgns";
-        qDebug()<<"[DEBUG] Loading file : : " << QString::fromStdString(filename);
-        if (std::ifstream(filename).good()) {
+      vector<vtkSmartPointer<vtkUnstructuredGrid>> currentDataSet;
+      std::string filename;
+      
+      switch (cfg.Flag_Type_Files) {
+        case 0: 
+          filename = cfg.mesh_files[i] + ".cgns";
+          qDebug() << "[DEBUG] Loading CGNS Files : " << QString::fromStdString(filename);
+          
+          if (std::ifstream(filename).good()) {
             CGNSReader reader(filename);
-            ds =reader.getDataSet();
-        }
-        else qDebug()<<"[DEBUG] File doesn't exist";
+            currentDataSet = reader.getDataSet();
+          } else {
+            qDebug() << "[DEBUG] File Doesn't exist "  ;
+          }
+          break;
+          
+        case 1: 
+          filename = cfg.mesh_files[i] + ".cas.h5";
+          qDebug() << "[DEBUG] Loading Cas Files : " << QString::fromStdString(filename);
+          
+          if (std::ifstream(filename).good()) {
+            vtkFluentCFFReader reader(filename);
+            currentDataSet = reader.getDataSet();
+          } else {
+            qDebug() << "[DEBUG] File Doesn't exist "  ;
+          }
+          break;
+          
+        default:
+          qDebug() << "[DEBUG] Invalid Files" ;
+          break;
       }
-      else if (cfg.Flag_Type_Files == 1) {
-        std::string filename = cfg.mesh_files[i] + ".cas.h5";
-        qDebug()<<"[DEBUG] Loading file : : " << QString::fromStdString(filename);
-        if(std::ifstream(filename).good()) {
-          vtkFluentCFFReader reader(filename);
-          ds =reader.getDataSet();
-        }
-        else qDebug()<<"[DEBUG] File doesn't exist";
-      }
-      else qDebug()<<"[DEBUG} Wrong file type";
-      datasets.push_back(ds);
+      
+      datasets.push_back(currentDataSet);
     }
     for (int i = 0; i < datasets.size(); i++) {
       for (int j = 1; j < datasets[i].size(); j++) {
@@ -198,18 +225,8 @@ void PreMainWindow::Assign_VTK()
     renderer->ResetCamera();
     vtkWidget->renderWindow()->Render();
   }
-  if (!isVTKWindow) {
-    renderer->SetBackground(1.0, 1.0, 1.0);
-    renderer->SetBackground2(0.529, 0.8078, 0.92157);
-    renderer->SetGradientBackground(true);
-    isVTKWindow = true;
-    renderWindow->AddRenderer(renderer);
-    vtkWidget->setRenderWindow(renderWindow);
-    ui->RunGraphLayout->insertWidget(0, vtkWidget, 1);
-    vtkWidget->renderWindow()->Render();
-  }
+
   if (cfg.num_meshes>0) createRotationLineWidget(0);
-  createAxisWidget();
   vtkSmartPointer<vtkCamera> camera=renderer->GetActiveCamera();
   camera->Zoom(0.5);
   renderer->GetRenderWindow()->Render();
@@ -552,10 +569,13 @@ void PreMainWindow::on_actionNew_triggered()
   SelectFile *selectfile = new SelectFile(&cfg,this);
   selectfile->setModal(true);
   selectfile->show();
-  connect(selectfile, &QDialog::finished, this, &PreMainWindow::Assign_Value);
+  //* Ensure everything is ready before enter next step
+  connect(selectfile, &SelectFile::fileLoaded, this, [this] {
+    Assign_Value();
+    ui->scrollArea->setEnabled(true);
+  });
   connect(selectfile, &QDialog::finished, selectfile, &QObject::deleteLater);
 
-  ui->scrollArea->setEnabled(true);
 }
 
 void PreMainWindow::on_tb_type_combo_currentTextChanged(const QString &arg1)
@@ -717,6 +737,7 @@ void PreMainWindow::onFilmBCbuttonClicked(QComboBox *bmd, int zone_id, int bc_id
     QVector<double> tableData1;
     for (size_t j = 0; j < cfg.all_film_config_data[zone_id][bc_id].second[i].size(); ++j) {
       tableData1.push_back(cfg.all_film_config_data[zone_id][bc_id].second[i][j]);
+//      std::cout<< tableData[i][j] <<std::endl;
     }
     tableData.push_back(tableData1);
   }
@@ -726,7 +747,7 @@ void PreMainWindow::onFilmBCbuttonClicked(QComboBox *bmd, int zone_id, int bc_id
     QVector<double> tableData1;
     for (size_t j = 0; j < cfg.all_film_input_data[zone_id][bc_id].second[i].size(); ++j) {
       tableData1.push_back(cfg.all_film_input_data[zone_id][bc_id].second[i][j]);
-//      std::cout <<i << cfg.all_film_input_data[zone_id][bc_id].second[i][j] << std::endl;
+//      std::cout<< tableData[i][j] <<std::endl;
     }
     tableData_input.push_back(tableData1);
   }
@@ -1129,13 +1150,13 @@ void PreMainWindow::onBCExtraClicked(QComboBox *cmb, int zone_id, int bc_id)
   extra_bc_window->show();
 }
 
-void PreMainWindow::on_actionLoadMain_triggered()
-{
-  cfg=PreProcessSettings();
-  cfg.LoadYAML(global_pre_setup_yaml);
-  ui->scrollArea->setEnabled(true);
-  Assign_Value();
-}
+// void PreMainWindow::on_actionLoadMain_triggered()
+// {
+//   cfg=PreProcessSettings();
+//   cfg.LoadYAML(global_pre_setup_yaml);
+//   ui->scrollArea->setEnabled(true);
+//   Assign_Value();
+// }
 
 void PreMainWindow::on_conbo_rans_currentTextChanged(const QString &arg1)
 {
@@ -1695,7 +1716,7 @@ void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStat
     performPlot->updateChart(simulationDataManager->getMonitorData());
     statusLabel->setText("Status: waiting");
 
-//* [New] some change here for auto Running
+//* [New] some change for auto Running
   if (exitCode==0 && exitStatus==QProcess::NormalExit) {
       qDebug() << "Inside if condition";
       qDebug() << "progress arrived at 100";
@@ -2484,6 +2505,9 @@ void PreMainWindow::setup_Connection() {
         if(!syncMainWindowTheme){ui->Btn_SyncWindowTheme->setText("UnSync");syncMainWindowTheme=1;}
         else{ui->Btn_SyncWindowTheme->setText("Sync");syncMainWindowTheme=0;};
     });
+
+    connect(ui->check_on_off, &QCheckBox::toggled, this, &PreMainWindow::on_check_on_off_toggled);
+
 }
 
 
@@ -2579,4 +2603,21 @@ void PreMainWindow::createRotationLineWidget(int axisRotation) {
 
     renderer->AddActor(actor_RotationLine);
     renderer->GetRenderWindow()->Render();
+}
+
+
+//* MultiGrid
+void PreMainWindow::on_check_on_off_toggled(bool checked) {
+  qDebug()<< "[Debug] on_check_on_off_toggled: "<<checked;
+  isMultiGrid = checked;
+  ui->Sp_Number_MGLevel->setReadOnly(!isMultiGrid);
+  if(isMultiGrid) {
+    ui->Sp_Number_MGLevel->setStyleSheet("QSpinBox { background-color: white; }");
+  } else {
+    ui->Sp_Number_MGLevel->setStyleSheet("QSpinBox { background-color: #E0E0E0; }");
+  }
+}
+
+void PreMainWindow::on_actionLoadMain_triggered() {
+   QMessageBox::information(this,"information","Developing.....");
 }

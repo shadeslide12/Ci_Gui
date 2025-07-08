@@ -112,6 +112,9 @@ void BoundaryMerger::on_nextButton_clicked()
   SolverPre.LoadYAMLConfigs(2);
   SolverPre.ConvertStep2_3_yaml();
 
+    //* Ensure Cas is Ready for Vtk
+  cfg->isVtkReady = true;
+
   this->close();
 }
 

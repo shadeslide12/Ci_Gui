@@ -29,6 +29,7 @@
 #include "SelectFile.h"
 #include "UtilitiesGUIPre.h"
 #include "DataStructure.h"
+#include <QMessageBox>
 
 #ifndef NO_VTK_WINDOW
 #include "vtkCGNSReader.h"
@@ -76,6 +77,9 @@ private slots:
     void on_annular_checkbox_toggled(bool checked);
 
     void on_actionNew_triggered();
+    
+    //* Load Main
+    void on_actionLoadMain_triggered();
 
     void on_actionactionSaveTab_triggered();
 
@@ -94,8 +98,6 @@ private slots:
     void onBCExtraClicked(QComboBox *bmd, int bnd_id, int bc_id);
     void onFilmComboChanged(QComboBox* cmb, QPushButton* btn, int bnd_id, int bc_id);
     void onFilmBCbuttonClicked(QComboBox *bmd, int bnd_id, int bc_id);
-
-    void on_actionLoadMain_triggered();
 
     void on_conbo_rans_currentTextChanged(const QString &arg1);
 
@@ -236,6 +238,11 @@ private:
     void EnablePerformanceCurve(bool isEnable);
     void ShowPerformanceCurve(bool isShow);
     void ShowPassageRepeatTree();
+
+//* MultiGride 
+    void on_check_on_off_toggled(bool checked);
+private:
+    bool isMultiGrid=false;
 
 //*AutoRun Start Here
 private:

@@ -180,6 +180,8 @@ void SelectFile::on_load_file_button_clicked(){
   SolverPre.LoadYAMLConfigs(2);
   SolverPre.ConvertStep2_3_yaml();
   cfg->LoadYAML(global_pre_setup_yaml);
+  emit fileLoaded();
+
   this->close();
 }
 

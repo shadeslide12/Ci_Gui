@@ -1569,10 +1569,10 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QWidget" name="" native="true">
+                   <widget class="QWidget" name="widget_16" native="true">
                     <layout class="QHBoxLayout" name="horizontalLayout_8">
                      <item>
-                      <widget class="QCheckBox" name="checkBox">
+                      <widget class="QCheckBox" name="check_on_off">
                        <property name="text">
                         <string>On / Off</string>
                        </property>
@@ -1595,14 +1595,14 @@
                       </spacer>
                      </item>
                      <item>
-                      <widget class="QLabel" name="label_13">
+                      <widget class="QLabel" name="lab_MG_Level">
                        <property name="text">
                         <string>Level :</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QSpinBox" name="spinBox">
+                      <widget class="QSpinBox" name="Sp_Number_MGLevel">
                        <property name="minimumSize">
                         <size>
                          <width>80</width>
