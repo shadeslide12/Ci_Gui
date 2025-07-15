@@ -894,10 +894,11 @@ double* vtkDisplayWindow::GetModelBounds()
     // 返回的数组包含6个值：[xmin, xmax, ymin, ymax, zmin, zmax]
 }
 
-void vtkDisplayWindow::CreateXPlane(int value)
+void vtkDisplayWindow::CreatePlanePreview(double value,int currenAxis)
 {
     // 获取模型的边界框
-    std::cout << "[Debug] try to create plane";
+    std::cout << "[Debug] try to create plane with actual value: " << value << std::endl;
+
     double bounds[6];
     if (aesReader.GetTotalGrid())
     {
@@ -913,35 +914,70 @@ void vtkDisplayWindow::CreateXPlane(int value)
     }
     
     // 创建一个平面 - 直接使用边界框中间的x位置
-    double centerX = (bounds[0] + bounds[1]) / 2.0;
-    
-    vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
-    planeSource->SetCenter(centerX, 0.0, 0.0);
-    planeSource->SetNormal(1.0, 0.0, 0.0);
-    
-    // 使用边界框直接设置平面的大小，不使用裁剪
+    double position = value;
+    double xRange = bounds[1] - bounds[0];
     double yRange = bounds[3] - bounds[2];
     double zRange = bounds[5] - bounds[4];
-    double centerY = (bounds[2] + bounds[3]) / 2.0;
-    double centerZ = (bounds[4] + bounds[5]) / 2.0;
-    
-    // 确保平面足够大但不要太大
-    planeSource->SetOrigin(centerX, bounds[2] - 0.1*yRange, bounds[4] - 0.1*zRange);
-    planeSource->SetPoint1(centerX, bounds[3] + 0.1*yRange, bounds[4] - 0.1*zRange);
-    planeSource->SetPoint2(centerX, bounds[2] - 0.1*yRange, bounds[5] + 0.1*zRange);
+
+    if (!xPlaneSource) {
+        xPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+    }
+
+    switch ( currenAxis) {
+        case 0: // X轴 - YZ平面
+            xPlaneSource->SetCenter(position, 0.0, 0.0);
+            xPlaneSource->SetNormal(1.0, 0.0, 0.0);
+            xPlaneSource->SetOrigin(position, bounds[2] - 0.1*yRange, bounds[4] - 0.1*zRange);
+            xPlaneSource->SetPoint1(position, bounds[3] + 0.1*yRange, bounds[4] - 0.1*zRange);
+            xPlaneSource->SetPoint2(position, bounds[2] - 0.1*yRange, bounds[5] + 0.1*zRange);
+            std::cout << "创建X轴切面，位置: " << position << std::endl;
+            break;
+
+        case 1: // Y轴 - XZ平面
+            xPlaneSource->SetCenter(0.0, position, 0.0);
+            xPlaneSource->SetNormal(0.0, 1.0, 0.0);
+            xPlaneSource->SetOrigin(bounds[0] - 0.1*xRange, position, bounds[4] - 0.1*zRange);
+            xPlaneSource->SetPoint1(bounds[1] + 0.1*xRange, position, bounds[4] - 0.1*zRange);
+            xPlaneSource->SetPoint2(bounds[0] - 0.1*xRange, position, bounds[5] + 0.1*zRange);
+            std::cout << "创建Y轴切面，位置: " << position << std::endl;
+            break;
+
+        case 2: // Z轴 - XY平面
+            xPlaneSource->SetCenter(0.0, 0.0, position);
+            xPlaneSource->SetNormal(0.0, 0.0, 1.0);
+            xPlaneSource->SetOrigin(bounds[0] - 0.1*xRange, bounds[2] - 0.1*yRange, position);
+            xPlaneSource->SetPoint1(bounds[1] + 0.1*xRange, bounds[2] - 0.1*yRange, position);
+            xPlaneSource->SetPoint2(bounds[0] - 0.1*xRange, bounds[3] + 0.1*yRange, position);
+            std::cout << "创建Z轴切面，位置: " << position << std::endl;
+            break;
+    }
     
     // 创建映射器和Actor - 直接使用平面而不是裁剪的结果
-    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputConnection(planeSource->GetOutputPort());
+    if (!xPlaneMapper) {
+        xPlaneMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    }
+    xPlaneMapper->SetInputConnection(xPlaneSource->GetOutputPort());
+    xPlaneMapper->SetInputConnection(xPlaneSource->GetOutputPort());
     
-    vtkSmartPointer<vtkActor> planeActor = vtkSmartPointer<vtkActor>::New();
-    planeActor->SetMapper(mapper);
-    
-    planeActor->GetProperty()->SetColor(0.0, 0.5, 1.0);
-    // planeActor->GetProperty()->SetOpacity(0.3);
-    
-    renderer->AddActor(planeActor);
-    // 确保保存引用
-    // xPlaneActor = planeActor;
+    if (!xPlaneActor) {
+        xPlaneActor = vtkSmartPointer<vtkActor>::New();
+    }
+    xPlaneActor->SetMapper(xPlaneMapper);
+
+    xPlaneActor->GetProperty()->SetColor(0.0, 0.5, 1.0);
+    // xPlaneActor->GetProperty()->SetOpacity(0.3);
+
+    renderer->AddActor(xPlaneActor);
     renderWindow->Render();
+}
+
+void vtkDisplayWindow::HidePlanePreview()
+{
+    // 如果存在预览平面Actor，则从渲染器中移除
+    if (xPlaneActor)
+    {
+        std::cout << "隐藏预览平面" << std::endl;
+        renderer->RemoveActor(xPlaneActor);
+        renderWindow->Render();
+    }
 }

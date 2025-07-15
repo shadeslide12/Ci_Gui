@@ -153,7 +153,7 @@ void CutplaneDialog::onSliderValueChanged(int value)
     updateValueLabel(actualValue);
     setPlanePosition(actualValue);
     std::cout << "【Debug】emit signal slicelocation";
-    emit sliceLocation(actualValue);
+    emit sliceLocation(actualValue,currentAxis);
 }
 
 // 处理提取切片按钮点击

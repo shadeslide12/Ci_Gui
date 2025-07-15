@@ -3,7 +3,7 @@
 #include <QObject>
 #include <vtkBox.h>
 #include <vtkClipPolyData.h>
-
+#include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
 #include <vtkActor.h>
 #include <vtkRenderer.h>
@@ -171,8 +171,13 @@ private:
     void CreateScalarBarWidget();
     void CreateOutlineActor();
     void setBackground();
-
+    
 public:
-    void CreateXPlane(int value);
+    void CreatePlanePreview(double value,int currenAxis);
+    void HidePlanePreview();
+    vtkSmartPointer<vtkPlaneSource> xPlaneSource;
+    vtkSmartPointer<vtkActor> xPlaneActor;
+    vtkSmartPointer<vtkPolyDataMapper> xPlaneMapper;
+
 
 };
