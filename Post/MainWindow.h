@@ -124,4 +124,8 @@ private:
     void SetvtkBox();
     void ResetScrollArea();
     void DisableScrollArea();
+
+
+    //* test
+    void CreateCutPreview();
 };

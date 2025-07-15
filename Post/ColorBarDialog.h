@@ -28,12 +28,14 @@ private slots:
 signals:
     void finishSetParameters(double, double, int, int);
 
+public:
+    double m;
+    double M;
+
 private:
     Ui::ColorBarDialog *ui;
     std::vector<vtkAesReader::FlowData> flowInfo;
     double rangeM;
     double rangem;
-    double m;
-    double M;
     int colorNumber;
 };

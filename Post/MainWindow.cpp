@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+#include <QDebug>
 using std::string; using std::vector;
 
 #include <QFileDialog>
@@ -113,6 +114,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     InitializeMainWindow();
+
 }
 
 MainWindow::~MainWindow()
@@ -141,6 +143,10 @@ void MainWindow::on_actionLoadMesh_triggered()
     }
     ResetScrollArea();
     cout << "End Load Mesh" << endl;
+    double* bounds = qtvtkWindow->GetModelBounds();
+    if (bounds != nullptr) {
+        qDebug() << "Outline在X轴上的范围：" << "最小值 = " << bounds[0] << ", 最大值 = " << bounds[1];
+    }
 }
 
 void MainWindow::on_actionUpdateFlow_triggered()
@@ -449,6 +455,15 @@ void MainWindow::setColorBar(double m, double M, int number, int flowNumber)
 {
     qtvtkWindow->SetScalarBar(m,M,number,flowNumber);
     ui->vtkBox->renderWindow()->Render();
+
+
+    auto plane = qtvtkWindow->ChangeMeridionalFlow(m, M, flowNumber);
+    Meridionalrenderer->RemoveAllViewProps();
+    for(int i = 0; i < plane.size(); i++)
+    {
+        Meridionalrenderer->AddActor(plane[i]);
+    }
+    MeridionalrenderWindow->Render();
 }
 
 void MainWindow::vectorSettingButtonTriggered()
@@ -593,10 +608,24 @@ void MainWindow::slicesSettingButtonTriggered()
     }
     CutplaneDialog *cutplaneDialog = new CutplaneDialog(this);
     cutplaneDialog->setCutplaneDialog(qtvtkWindow->GetPlanes());
+
+    double* bounds = qtvtkWindow->GetModelBounds();
+    if (bounds != nullptr) {
+        cutplaneDialog->setModelBounds(bounds);
+    }
+    
     cutplaneDialog->setAttribute(Qt::WA_DeleteOnClose);
     cutplaneDialog->setWindowModality(Qt::ApplicationModal);
     connect(cutplaneDialog, SIGNAL(finishSetParameters(double*,double*,int)),this, SLOT(changeCutplane(double*,double*,int)));
     connect(cutplaneDialog, SIGNAL(createNewCutplane()), this, SLOT(makeNewCutplane()));
+    //* test
+    connect(cutplaneDialog, &CutplaneDialog::sliceLocation,
+            [this](int value) {
+                if (qtvtkWindow) {
+                    qtvtkWindow->CreateXPlane(value);
+                    ui->vtkBox->renderWindow()->Render();
+                }
+            });
     cutplaneDialog->show();
 }
 
@@ -611,8 +640,32 @@ void MainWindow::changeCutplane(double* origin, double *normal, int cutplaneNumb
 void MainWindow::makeNewCutplane()
 {
     qtvtkWindow->AddNewCutplane();
-    selectBoundaryDialog->addCutplaneItem();
+    
+    // 检查selectBoundaryDialog是否为空，如果为空则初始化它
+    if (selectBoundaryDialog == nullptr)
+    {
+        selectBoundaryDialog = new SelectBoundaryDialog(this);
+        connect(selectBoundaryDialog, SIGNAL(setBoundarys(int,int,bool)), this, SLOT(showBoundaryActor(int,int,bool)));
+        connect(selectBoundaryDialog, SIGNAL(setCutplaneVisiable(int, bool)), this, SLOT(showCutplane(int, bool)));
+        selectBoundaryDialog->setWindowModality(Qt::ApplicationModal);
+        
+        // 如果有边界数据，初始化边界列表
+        if (!qtvtkWindow->GetBoundaryDatasets().empty())
+        {
+            selectBoundaryDialog->setSelectBoundaryDialog(qtvtkWindow->GetBoundaryDatasets());
+        }
+        
+        // 初始化切面列表
+        selectBoundaryDialog->setSelectCutplaneItems();
+    }
+    else
+    {
+        // 如果selectBoundaryDialog已存在，只添加新的切面项
+        selectBoundaryDialog->addCutplaneItem();
+    }
+    
     cout << "add new cut plane" << endl;
+    ui->vtkBox->renderWindow()->Render();
 }
 
 void MainWindow::transparancyCheckBoxTriggered()
@@ -773,7 +826,7 @@ void MainWindow::MeridionalCheckBoxTriggered()
             MeridionalrenderWindow->AddRenderer(Meridionalrenderer);
             vtkWidget->setRenderWindow(MeridionalrenderWindow);
             ui->VTKLayout->insertWidget(1,vtkWidget);
-            auto plane = qtvtkWindow->CreateMeridionalPlane();
+            auto plane = qtvtkWindow->CreateMeridionalPlane(0, 10);
             for(int i = 0; i < plane.size();i++)
             {
                 Meridionalrenderer->AddActor(plane[i]);
@@ -823,7 +876,7 @@ void MainWindow::ChangeConstHeightFlow(int flow)
 
 void MainWindow::ChangeMeridionalPlaneFlow(int flow)
 {
-    auto plane = qtvtkWindow->ChangeMeridionalFlow(flow);
+    auto plane = qtvtkWindow->ChangeMeridionalFlow(0, 1, flow);
     Meridionalrenderer->RemoveAllViewProps();
     for(int i = 0; i < plane.size(); i++)
     {

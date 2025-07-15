@@ -19,16 +19,21 @@ public:
     ~CutplaneDialog();
 
     void setCutplaneDialog(std::vector<vtkSmartPointer<vtkPlane>> planes);
+    void setModelBounds(double* bounds);
 
 private slots:
     void setParameters();
     void createSignal();
     void changeCutplaneNumber(int number);
 
+    void onSliceLocationChanged(int index); // 处理平面类型变化
+    void onSliderValueChanged(int value);   // 处理滑块值变化
+    void onExtractSliceClicked();           // 处理提取切片按钮点击
+
 signals:
     void finishSetParameters(double*, double*, int);
     void createNewCutplane();
-
+    void sliceLocation(int);
 private:
     Ui::CutplaneDialog *ui;
 
@@ -37,4 +42,14 @@ private:
     double curOrigin[3];
     double curNormal[3];
     bool createFlag = false;
+
+    double modelBounds[6]; // [xmin, xmax, ymin, ymax, zmin, zmax]
+    int currentAxis;       // 当前选择的轴：0=X轴, 1=Y轴, 2=Z轴
+    
+    // 设置滑块范围和当前值
+    void updateSliderRange();
+    // 根据滑块值更新标签显示
+    void updateValueLabel(double value);
+    // 根据滑块值设置切面位置
+    void setPlanePosition(double value);
 };

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <QObject>
+#include <vtkBox.h>
+#include <vtkClipPolyData.h>
+
 #include <vtkSmartPointer.h>
 #include <vtkActor.h>
 #include <vtkRenderer.h>
@@ -22,9 +26,12 @@
 //>>>>>>> Stashed changes
 
 #include "vtkAesReader.h"
+#include <vtkPlaneSource.h>
 
-class vtkDisplayWindow
+
+class vtkDisplayWindow : public QObject
 {
+Q_OBJECT
 
 public:
     struct BasicObject
@@ -59,7 +66,7 @@ public:
 
 public:
 
-    vtkDisplayWindow();
+    vtkDisplayWindow(QObject *parent = nullptr);
     ~vtkDisplayWindow();
 
     void ReadAesFile(std::string aesFileName);
@@ -131,9 +138,11 @@ public:
     bool IsOutlineActorVisiable(){return auxiliarys.outlineActors[0]->GetVisibility();}
     bool IsScalarBarWidgetActive(){return auxiliarys.scalarBarWidget->GetEnabled();}
 
-    std::vector<vtkSmartPointer<vtkActor>> CreateMeridionalPlane();
+    double* GetModelBounds();
+
+    std::vector<vtkSmartPointer<vtkActor>> CreateMeridionalPlane(double minRange, double maxRange);
     void CreateConstHeight(double height);
-    std::vector<vtkSmartPointer<vtkActor>> ChangeMeridionalFlow(int flowNumber);
+    std::vector<vtkSmartPointer<vtkActor>> ChangeMeridionalFlow(double minRange, double maxRange, int flowNumber);
     void ChangeConstHeightFlow(int flowNumber);
     std::vector<vtkSmartPointer<vtkActor>> MeridionalPlaneActor;
     std::vector<vtkSmartPointer<vtkActor>> ConstHeightPlaneActor;
@@ -162,4 +171,8 @@ private:
     void CreateScalarBarWidget();
     void CreateOutlineActor();
     void setBackground();
+
+public:
+    void CreateXPlane(int value);
+
 };

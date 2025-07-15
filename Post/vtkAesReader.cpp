@@ -362,7 +362,7 @@ void vtkAesReader::UpdateFlow(string flowFileName)
         //     int index = i * (255 / (10 - 1));
         //     lut->SetTableValue(i, viridisColor[index][0], viridisColor[index][1], viridisColor[index][2]);
         // }
-        lut->SetRange(flow.range);
+        lut->SetRange(100000,140000);
         lut->Build();
         flow.scalarBar = vtkSmartPointer< vtkScalarBarActor >::New();
         flow.scalarBar->SetTitle((flowNames[i]).c_str());

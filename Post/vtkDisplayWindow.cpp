@@ -53,7 +53,7 @@ using std::string; using std::vector; using std::set;
 #include <vtkPolyLine.h>
 #include <vtkCleanPolyData.h>
 
-vtkDisplayWindow::vtkDisplayWindow()
+vtkDisplayWindow::vtkDisplayWindow(QObject *parent):QObject(parent)
 {
     renderer = vtkSmartPointer<vtkRenderer>::New();
     renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -692,7 +692,7 @@ void vtkDisplayWindow::SetBackground()
 
 }
 
-std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane()
+std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane(double minRange, double maxRange)
 {
 
   if(MeridionalPlaneActor.empty())
@@ -731,11 +731,12 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane()
 
       MeridionalPlane.emplace_back(polyData);
 
-      ChangeMeridionalFlow(curFlow);
+      ChangeMeridionalFlow(Flow[0].range[0], Flow[0].range[1], curFlow);
       return MeridionalPlaneActor;
     }
 }
-std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeMeridionalFlow(int flowNumber)
+std::vector<vtkSmartPointer<vtkActor>>
+vtkDisplayWindow::ChangeMeridionalFlow(double minRange, double maxRange, int flowNumber)
 {
     RemoveMeridianActor();
     MeridionalPlaneActor.clear();
@@ -772,7 +773,7 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeMeridionalFlow(in
     vtkSmartPointer<vtkPolyDataMapper> mapper =vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputConnection(inter->GetOutputPort());
     mapper->SetLookupTable(Flow[flowNumber].scalarBar->GetLookupTable());
-    mapper->SetScalarRange(Flow[flowNumber].range);
+    mapper->SetScalarRange(minRange,maxRange);
     mapper->Update();
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
@@ -877,4 +878,70 @@ vtkSmartPointer<vtkPolyData> ConvertUnstructuredGridToPolyData(vtkSmartPointer<v
   polyData->SetPolys(polys);
 
   return polyData;
+}
+
+double* vtkDisplayWindow::GetModelBounds()
+{
+    if (!hasGrid)
+    {
+        std::cout << "没有加载网格数据，无法获取边界值" << std::endl;
+        return nullptr;
+    }
+    
+    // 获取总网格数据的边界值
+    return aesReader.GetTotalGrid()->GetBounds();
+    
+    // 返回的数组包含6个值：[xmin, xmax, ymin, ymax, zmin, zmax]
+}
+
+void vtkDisplayWindow::CreateXPlane(int value)
+{
+    // 获取模型的边界框
+    std::cout << "[Debug] try to create plane";
+    double bounds[6];
+    if (aesReader.GetTotalGrid())
+    {
+        aesReader.GetTotalGrid()->GetBounds(bounds);
+        std::cout << "边界框: [" << bounds[0] << ", " << bounds[1] << ", " 
+                  << bounds[2] << ", " << bounds[3] << ", " 
+                  << bounds[4] << ", " << bounds[5] << "]" << std::endl;
+    }
+    else
+    {
+        std::cout << "未找到模型网格！" << std::endl;
+        return;  // 没有模型就不创建平面
+    }
+    
+    // 创建一个平面 - 直接使用边界框中间的x位置
+    double centerX = (bounds[0] + bounds[1]) / 2.0;
+    
+    vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+    planeSource->SetCenter(centerX, 0.0, 0.0);
+    planeSource->SetNormal(1.0, 0.0, 0.0);
+    
+    // 使用边界框直接设置平面的大小，不使用裁剪
+    double yRange = bounds[3] - bounds[2];
+    double zRange = bounds[5] - bounds[4];
+    double centerY = (bounds[2] + bounds[3]) / 2.0;
+    double centerZ = (bounds[4] + bounds[5]) / 2.0;
+    
+    // 确保平面足够大但不要太大
+    planeSource->SetOrigin(centerX, bounds[2] - 0.1*yRange, bounds[4] - 0.1*zRange);
+    planeSource->SetPoint1(centerX, bounds[3] + 0.1*yRange, bounds[4] - 0.1*zRange);
+    planeSource->SetPoint2(centerX, bounds[2] - 0.1*yRange, bounds[5] + 0.1*zRange);
+    
+    // 创建映射器和Actor - 直接使用平面而不是裁剪的结果
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputConnection(planeSource->GetOutputPort());
+    
+    vtkSmartPointer<vtkActor> planeActor = vtkSmartPointer<vtkActor>::New();
+    planeActor->SetMapper(mapper);
+    
+    planeActor->GetProperty()->SetColor(0.0, 0.5, 1.0);
+    // planeActor->GetProperty()->SetOpacity(0.3);
+    
+    renderer->AddActor(planeActor);
+    // 确保保存引用
+    // xPlaneActor = planeActor;
+    renderWindow->Render();
 }
