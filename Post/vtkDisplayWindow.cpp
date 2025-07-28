@@ -568,11 +568,28 @@ void vtkDisplayWindow::SetIsoSurfaceValue(double value)
 
 void vtkDisplayWindow::AddNewCutplane()
 {
+    AddNewCutplane(nullptr, nullptr);
+}
+
+void vtkDisplayWindow::AddNewCutplane(double* origin, double* normal)
+{
     auto totalMesh = aesReader.GetTotalGrid();
     vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
     vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
-    plane->SetOrigin(0,0,0);
-    plane->SetNormal(1,0,0);
+    
+    // 如果提供了参数，使用提供的参数；否则使用默认值
+    if (origin && normal) {
+        plane->SetOrigin(origin);
+        plane->SetNormal(normal);
+        std::cout << "[Debug] Creating cutplane with custom parameters: origin(" 
+                  << origin[0] << ", " << origin[1] << ", " << origin[2] 
+                  << ") normal(" << normal[0] << ", " << normal[1] << ", " << normal[2] << ")" << std::endl;
+    } else {
+        plane->SetOrigin(0,0,0);
+        plane->SetNormal(1,0,0);
+        std::cout << "[Debug] Creating cutplane with default parameters" << std::endl;
+    }
+    
     cutter->SetInputData(totalMesh);
     cutter->SetCutFunction(plane);
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();

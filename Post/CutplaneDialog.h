@@ -32,7 +32,7 @@ private slots:
 
 signals:
     void finishSetParameters(double*, double*, int);
-    void createNewCutplane();
+    void createNewCutplane(double*, double*);
     void sliceLocation(double,int);
 private:
     Ui::CutplaneDialog *ui;

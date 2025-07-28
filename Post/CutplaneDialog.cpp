@@ -13,7 +13,7 @@ CutplaneDialog::CutplaneDialog(QWidget *parent): QDialog(parent),ui(new Ui::Cutp
     ui->setupUi(this);
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(setParameters()));
     connect(ui->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeCutplaneNumber(int)));
-    connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(createSignal()));
+    connect(ui->Btn_AddNew, SIGNAL(clicked()), this, SLOT(createSignal()));
 
     // 连接新添加的控件信号
     connect(ui->Combo_SLiceLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(onSliceLocationChanged(int)));
@@ -32,23 +32,6 @@ CutplaneDialog::CutplaneDialog(QWidget *parent): QDialog(parent),ui(new Ui::Cutp
     ui->horizontalSlider->setMaximum(100);
     ui->horizontalSlider->setValue(50);
 
-    ui->label_Origin_x->hide();
-    ui->label_Origin_y->hide();
-    ui->label_Origin_z->hide();
-
-    ui->label_Noraml_x->hide();
-    ui->label_Noraml_y->hide();
-    ui->label_Noraml_z->hide();
-
-    ui->lineEdit_Origin_x->hide();
-    ui->lineEdit_Origin_y->hide();
-    ui->lineEdit_Origin_z->hide();
-
-    ui->lineEdit_Noraml_x->hide();
-    ui->lineEdit_Noraml_y->hide();
-    ui->lineEdit_Noraml_z->hide();
-
-
     updateValueLabel(0.0);
 }
 
@@ -66,6 +49,12 @@ void CutplaneDialog::createSignal()
 void CutplaneDialog::setCutplaneDialog(vector<vtkSmartPointer<vtkPlane>> planes)
 {
     int n = planes.size();
+    
+    // 清空现有数据
+    ui->comboBox->clear();
+    origin.clear();
+    normal.clear();
+    
     for (int i = 1; i <= n; i++)
     {
         string name = "cutplane";
@@ -75,38 +64,43 @@ void CutplaneDialog::setCutplaneDialog(vector<vtkSmartPointer<vtkPlane>> planes)
         origin.push_back(planes[i-1]->GetOrigin());
         normal.push_back(planes[i-1]->GetNormal());
     }
-    ui->lineEdit_Origin_x->setText(std::to_string(origin[0][0]).c_str());
-    ui->lineEdit_Origin_y->setText(std::to_string(origin[0][1]).c_str());
-    ui->lineEdit_Origin_z->setText(std::to_string(origin[0][2]).c_str());
-    ui->lineEdit_Noraml_x->setText(std::to_string(normal[0][0]).c_str());
-    ui->lineEdit_Noraml_y->setText(std::to_string(normal[0][1]).c_str());
-    ui->lineEdit_Noraml_z->setText(std::to_string(normal[0][2]).c_str());
+
+    // 如果有cutplane数据，初始化第一个
+    if (n > 0) {
+        ui->comboBox->setCurrentIndex(0);
+    }
 
     updateSliderRange();
-
 }
 
 void CutplaneDialog::changeCutplaneNumber(int number)
 {
     if (origin.size() == 0) return;
-    ui->lineEdit_Origin_x->setText(std::to_string(origin[number][0]).c_str());
-    ui->lineEdit_Origin_y->setText(std::to_string(origin[number][1]).c_str());
-    ui->lineEdit_Origin_z->setText(std::to_string(origin[number][2]).c_str());
-    ui->lineEdit_Noraml_x->setText(std::to_string(normal[number][0]).c_str());
-    ui->lineEdit_Noraml_y->setText(std::to_string(normal[number][1]).c_str());
-    ui->lineEdit_Noraml_z->setText(std::to_string(normal[number][2]).c_str());
+    curOrigin[0] = origin[0][0];
+    curOrigin[1] = origin[0][1];
+    curOrigin[2] = origin[0][2];
+    curNormal[0] = normal[0][0];
+    curNormal[1] = normal[0][1];
+    curNormal[2] = normal[0][2];
 }
 
 void CutplaneDialog::setParameters()
 {
-    curOrigin[0] = stod(ui->lineEdit_Origin_x->text().toStdString());
-    curOrigin[1] = stod(ui->lineEdit_Origin_y->text().toStdString());
-    curOrigin[2] = stod(ui->lineEdit_Origin_z->text().toStdString());
-    curNormal[0] = stod(ui->lineEdit_Noraml_x->text().toStdString());
-    curNormal[1] = stod(ui->lineEdit_Noraml_y->text().toStdString());
-    curNormal[2] = stod(ui->lineEdit_Noraml_z->text().toStdString());
-    emit(finishSetParameters(curOrigin, curNormal, ui->comboBox->currentIndex()));
-    if (createFlag) emit(createNewCutplane());
+
+    std::cout<< "[Debug] CurrentIndex is :"<< ui->comboBox->currentIndex() << std::endl;
+    
+    if (createFlag) {
+        // 创建新切片模式：只创建新切片，不更新现有切片
+        std::cout << "[Debug] Creating new cutplane with origin: (" 
+                  << curOrigin[0] << ", " << curOrigin[1] << ", " << curOrigin[2] 
+                  << ") normal: (" << curNormal[0] << ", " << curNormal[1] << ", " << curNormal[2] << ")" << std::endl;
+        emit(createNewCutplane(curOrigin, curNormal));
+        createFlag = false; // 重置标志
+    } else {
+        // 编辑现有切片模式：更新当前选中的切片
+        std::cout << "[Debug] Updating existing cutplane at index: " << ui->comboBox->currentIndex() << std::endl;
+        emit(finishSetParameters(curOrigin, curNormal, ui->comboBox->currentIndex()));
+    }
 }
 
 // 新增：设置模型边界值
@@ -161,7 +155,7 @@ void CutplaneDialog::onExtractSliceClicked()
 {
     // 根据当前设置创建新切面
     createFlag = true;
-    emit(createNewCutplane());
+    emit(createNewCutplane(curOrigin, curNormal));
 }
 
 // 更新滑块范围
@@ -218,11 +212,5 @@ void CutplaneDialog::setPlanePosition(double value)
             break;
     }
     
-    // 更新UI显示
-    ui->lineEdit_Origin_x->setText(QString::number(curOrigin[0]));
-    ui->lineEdit_Origin_y->setText(QString::number(curOrigin[1]));
-    ui->lineEdit_Origin_z->setText(QString::number(curOrigin[2]));
-    ui->lineEdit_Noraml_x->setText(QString::number(curNormal[0]));
-    ui->lineEdit_Noraml_y->setText(QString::number(curNormal[1]));
-    ui->lineEdit_Noraml_z->setText(QString::number(curNormal[2]));
+
 }

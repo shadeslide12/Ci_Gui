@@ -97,7 +97,7 @@ private slots:
     void slicesCheckBoxTriggered();
     void slicesSettingButtonTriggered();
     void changeCutplane(double*,double*,int);
-    void makeNewCutplane();
+    void makeNewCutplane(double* origin, double* normal);
     void showCutplane(int, bool);
 
     void MeridionalButtonTriggered();

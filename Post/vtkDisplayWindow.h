@@ -111,6 +111,7 @@ public:
     void SetIsoSurfaceValue(double);
 
     void AddNewCutplane();
+    void AddNewCutplane(double* origin, double* normal);
     void SetCutplane(int cutplaneNumber, double *origin, double *normal);
     void AddCutplaneActors();
     void RemoveCutplaneActors();

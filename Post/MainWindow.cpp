@@ -617,7 +617,7 @@ void MainWindow::slicesSettingButtonTriggered()
     cutplaneDialog->setAttribute(Qt::WA_DeleteOnClose);
     cutplaneDialog->setWindowModality(Qt::ApplicationModal);
     connect(cutplaneDialog, SIGNAL(finishSetParameters(double*,double*,int)),this, SLOT(changeCutplane(double*,double*,int)));
-    connect(cutplaneDialog, SIGNAL(createNewCutplane()), this, SLOT(makeNewCutplane()));
+    connect(cutplaneDialog, &CutplaneDialog::createNewCutplane, this, &MainWindow::makeNewCutplane);
     //* test
     connect(cutplaneDialog, &CutplaneDialog::sliceLocation,
             [this](double value,int axis) {
@@ -645,9 +645,9 @@ void MainWindow::changeCutplane(double* origin, double *normal, int cutplaneNumb
     ui->vtkBox->renderWindow()->Render();
 }
 
-void MainWindow::makeNewCutplane()
+void MainWindow::makeNewCutplane(double* origin, double* normal)
 {
-    qtvtkWindow->AddNewCutplane();
+    qtvtkWindow->AddNewCutplane(origin, normal);
     
     // 检查selectBoundaryDialog是否为空，如果为空则初始化它
     if (selectBoundaryDialog == nullptr)
@@ -672,7 +672,8 @@ void MainWindow::makeNewCutplane()
         selectBoundaryDialog->addCutplaneItem();
     }
     
-    cout << "add new cut plane" << endl;
+    cout << "add new cut plane with origin(" << origin[0] << ", " << origin[1] << ", " << origin[2] 
+         << ") normal(" << normal[0] << ", " << normal[1] << ", " << normal[2] << ")" << endl;
     ui->vtkBox->renderWindow()->Render();
 }
 
