@@ -27,7 +27,8 @@
 
 #include "vtkAesReader.h"
 #include <vtkPlaneSource.h>
-
+#include <vtkLookupTable.h>
+#include <vtkScalarBarActor.h>
 
 class vtkDisplayWindow : public QObject
 {
@@ -62,6 +63,20 @@ public:
         std::vector<vtkSmartPointer<vtkActor>> cutplaneActors;
         std::vector<vtkSmartPointer<vtkPlane>> cutplanes;
         std::vector<vtkSmartPointer<vtkCutter>> cutters;
+        
+        //* 所有cutplane共用的独立云图映射
+        vtkSmartPointer<vtkLookupTable> cutplaneLookupTable;
+        vtkSmartPointer<vtkScalarBarActor> cutplaneScalarBar;
+        
+        //* cutplane云图参数
+        struct CutplaneColorMapping {
+            double minValue;
+            double maxValue;
+            int numberOfColors;
+            bool useCustomRange;
+            
+            CutplaneColorMapping() : minValue(0.0), maxValue(1.0), numberOfColors(256), useCustomRange(false) {}
+        } cutplaneColorMapping;
     };
 
 public:
@@ -113,6 +128,9 @@ public:
     void AddNewCutplane();
     void AddNewCutplane(double* origin, double* normal);
     void SetCutplane(int cutplaneNumber, double *origin, double *normal);
+    void SetCutplaneColorMapping(double minValue, double maxValue, int numberOfColors);
+    void UpdateCutplaneColorMapping();
+    DerivedObject::CutplaneColorMapping GetCutplaneColorMapping();
     void AddCutplaneActors();
     void RemoveCutplaneActors();
     void AddCutplane(int number);

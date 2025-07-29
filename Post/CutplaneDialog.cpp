@@ -101,6 +101,7 @@ void CutplaneDialog::setParameters()
         std::cout << "[Debug] Updating existing cutplane at index: " << ui->comboBox->currentIndex() << std::endl;
         emit(finishSetParameters(curOrigin, curNormal, ui->comboBox->currentIndex()));
     }
+    onColorMappingChanged();
 }
 
 // 新增：设置模型边界值
@@ -212,5 +213,40 @@ void CutplaneDialog::setPlanePosition(double value)
             break;
     }
     
+}
 
+
+void CutplaneDialog::onColorMappingChanged()
+{
+    
+    bool ok;
+    double minValue = ui->LnEdit_Min->text().toDouble(&ok);
+    if (!ok) {
+        std::cout << "[Warning] Invalid min value: " << ui->LnEdit_Min->text().toStdString() << std::endl;
+        return;
+    }
+    
+    double maxValue = ui->LnEdit_Max->text().toDouble(&ok);
+    if (!ok) {
+        std::cout << "[Warning] Invalid max value: " << ui->LnEdit_Max->text().toStdString() << std::endl;
+        return;
+    }
+    
+    int numberOfColors = ui->LnEdit_Numbers->text().toInt(&ok);
+    if (!ok || numberOfColors <= 0) {
+        std::cout << "[Warning] Invalid number of colors: " << ui->LnEdit_Numbers->text().toStdString() << std::endl;
+        return;
+    }
+    
+    if (minValue >= maxValue) {
+        std::cout << "[Warning] Min value must be less than max value" << std::endl;
+        return;
+    }
+    
+    // 发送颜色映射变化信号（共享给所有cutplane）
+    emit colorMappingChanged(minValue, maxValue, numberOfColors);
+    
+    std::cout << "[Debug] Shared cutplane color mapping changed: range[" 
+              << minValue << ", " << maxValue 
+              << "], colors=" << numberOfColors << std::endl;
 }

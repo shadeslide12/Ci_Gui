@@ -34,6 +34,8 @@ signals:
     void finishSetParameters(double*, double*, int);
     void createNewCutplane(double*, double*);
     void sliceLocation(double,int);
+    void colorMappingChanged(double minValue, double maxValue, int numberOfColors);
+
 private:
     Ui::CutplaneDialog *ui;
 
@@ -52,4 +54,5 @@ private:
     void updateValueLabel(double value);
     // 根据滑块值设置切面位置
     void setPlanePosition(double value);
+    void onColorMappingChanged();
 };

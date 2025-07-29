@@ -456,7 +456,6 @@ void MainWindow::setColorBar(double m, double M, int number, int flowNumber)
     qtvtkWindow->SetScalarBar(m,M,number,flowNumber);
     ui->vtkBox->renderWindow()->Render();
 
-
     auto plane = qtvtkWindow->ChangeMeridionalFlow(m, M, flowNumber);
     Meridionalrenderer->RemoveAllViewProps();
     for(int i = 0; i < plane.size(); i++)
@@ -618,6 +617,7 @@ void MainWindow::slicesSettingButtonTriggered()
     cutplaneDialog->setWindowModality(Qt::ApplicationModal);
     connect(cutplaneDialog, SIGNAL(finishSetParameters(double*,double*,int)),this, SLOT(changeCutplane(double*,double*,int)));
     connect(cutplaneDialog, &CutplaneDialog::createNewCutplane, this, &MainWindow::makeNewCutplane);
+    connect(cutplaneDialog, &CutplaneDialog::colorMappingChanged, this, &MainWindow::updateCutplaneColorMapping);
     //* test
     connect(cutplaneDialog, &CutplaneDialog::sliceLocation,
             [this](double value,int axis) {
@@ -892,4 +892,10 @@ void MainWindow::ChangeMeridionalPlaneFlow(int flow)
         Meridionalrenderer->AddActor(plane[i]);
     }
     MeridionalrenderWindow->Render();
+}
+
+void MainWindow::updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors)
+{
+    qtvtkWindow->SetCutplaneColorMapping(minValue, maxValue, numberOfColors);
+    ui->vtkBox->renderWindow()->Render();
 }

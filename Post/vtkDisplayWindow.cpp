@@ -566,9 +566,8 @@ void vtkDisplayWindow::SetIsoSurfaceValue(double value)
     deriveds.contourFilter->Update();
 }
 
-void vtkDisplayWindow::AddNewCutplane()
-{
-    AddNewCutplane(nullptr, nullptr);
+void vtkDisplayWindow::AddNewCutplane() {
+    AddNewCutplane(nullptr,nullptr);
 }
 
 void vtkDisplayWindow::AddNewCutplane(double* origin, double* normal)
@@ -592,18 +591,57 @@ void vtkDisplayWindow::AddNewCutplane(double* origin, double* normal)
     
     cutter->SetInputData(totalMesh);
     cutter->SetCutFunction(plane);
+    
+    // 如果是第一个cutplane，创建共享的LookupTable
+    if (deriveds.cutplanes.empty()) {
+        // 添加边界检查，防止程序卡住
+        auto flows = aesReader.GetFlows();
+        if (flows.empty() || curFlow < 0 || curFlow >= flows.size()) {
+            std::cerr << "[Error] Invalid flow data or curFlow index: " << curFlow 
+                      << ", flows size: " << flows.size() << std::endl;
+            return;
+        }
+        
+        deriveds.cutplaneLookupTable = vtkSmartPointer<vtkLookupTable>::New();
+        deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+        deriveds.cutplaneLookupTable->SetRange(flows[curFlow].range);
+        deriveds.cutplaneLookupTable->Build();
+        
+        // 创建共享的ScalarBar
+        deriveds.cutplaneScalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+        deriveds.cutplaneScalarBar->SetTitle(flows[curFlow].name.c_str());
+        deriveds.cutplaneScalarBar->SetNumberOfLabels(5);
+        
+        // 初始化颜色映射参数
+        deriveds.cutplaneColorMapping.minValue = flows[curFlow].range[0];
+        deriveds.cutplaneColorMapping.maxValue = flows[curFlow].range[1];
+        deriveds.cutplaneColorMapping.numberOfColors = 256;
+        deriveds.cutplaneColorMapping.useCustomRange = false;
+        
+        std::cout << "[Debug] Created shared cutplane LookupTable with range: [" 
+                  << deriveds.cutplaneColorMapping.minValue << ", " 
+                  << deriveds.cutplaneColorMapping.maxValue << "]" << std::endl;
+    }
+    
+    // 创建mapper并使用共享的LookupTable
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputConnection(cutter->GetOutputPort());
-    auto scalarBar = aesReader.GetFlows()[curFlow].scalarBar;
-    mapper->SetLookupTable(scalarBar->GetLookupTable());
-    mapper->SetScalarRange(scalarBar->GetLookupTable()->GetRange());
+    mapper->SetLookupTable(deriveds.cutplaneLookupTable);
+    mapper->SetScalarRange(deriveds.cutplaneLookupTable->GetRange());
+    
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     
+    // 添加到容器
     deriveds.cutplanes.emplace_back(plane);
     deriveds.cutters.emplace_back(cutter);
     deriveds.cutplaneActors.emplace_back(actor);
+    
     renderer->AddActor(deriveds.cutplaneActors.back());
+    
+    std::cout << "[Debug] Added cutplane " << (deriveds.cutplanes.size() - 1) 
+              << ", total cutplanes: " << deriveds.cutplanes.size() << std::endl;
 }
 
 void vtkDisplayWindow::SetCutplane(int cutplaneNumber, double *origin, double *normal)
@@ -752,8 +790,7 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane(d
       return MeridionalPlaneActor;
     }
 }
-std::vector<vtkSmartPointer<vtkActor>>
-vtkDisplayWindow::ChangeMeridionalFlow(double minRange, double maxRange, int flowNumber)
+std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeMeridionalFlow(double minRange, double maxRange, int flowNumber)
 {
     RemoveMeridianActor();
     MeridionalPlaneActor.clear();
@@ -779,21 +816,33 @@ vtkDisplayWindow::ChangeMeridionalFlow(double minRange, double maxRange, int flo
     {
         scalar->InsertNextValue(Flow[flowNumber].datas[i]);
     }
+
     ply->GetPointData()->SetScalars(scalar);
     vtkSmartPointer<vtkPointInterpolator> inter = vtkSmartPointer<vtkPointInterpolator>::New();
+
+    if (MeridionalPlane.empty()) {
+        std::cout << "[DEBug] MeridionalPlane is empty "<< std::endl;
+        return {};
+    }
+
     inter->SetInputData(MeridionalPlane[0]);
     inter->SetSourceData(ply);
 //    vtkSmartPointer<vtkGaussianKernel> kernel = vtkSmartPointer<vtkGaussianKernel>::New();
     vtkSmartPointer<vtkVoronoiKernel> kernel = vtkSmartPointer<vtkVoronoiKernel>::New();
 //    kernel->SetRadius(0.001);
+
     inter->SetKernel(kernel);
     vtkSmartPointer<vtkPolyDataMapper> mapper =vtkSmartPointer<vtkPolyDataMapper>::New();
+
     mapper->SetInputConnection(inter->GetOutputPort());
     mapper->SetLookupTable(Flow[flowNumber].scalarBar->GetLookupTable());
     mapper->SetScalarRange(minRange,maxRange);
     mapper->Update();
+
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
+    std::cout << "[Debug] Mer 6 "<< std::endl;
+
     MeridionalPlaneActor.emplace_back(actor);
 //    renderer->AddActor(actor);
 //    renderer->ResetCamera();
@@ -997,4 +1046,56 @@ void vtkDisplayWindow::HidePlanePreview()
         renderer->RemoveActor(xPlaneActor);
         renderWindow->Render();
     }
+}
+
+void vtkDisplayWindow::SetCutplaneColorMapping(double minValue, double maxValue, int numberOfColors)
+{
+    if (!deriveds.cutplaneLookupTable) {
+        std::cerr << "No cutplane LookupTable exists" << std::endl;
+        return;
+    }
+    
+    // 更新颜色映射参数
+    deriveds.cutplaneColorMapping.minValue = minValue;
+    deriveds.cutplaneColorMapping.maxValue = maxValue;
+    deriveds.cutplaneColorMapping.numberOfColors = numberOfColors;
+    deriveds.cutplaneColorMapping.useCustomRange = true;
+    
+    // 更新LookupTable
+    UpdateCutplaneColorMapping();
+}
+
+void vtkDisplayWindow::UpdateCutplaneColorMapping()
+{
+    if (!deriveds.cutplaneLookupTable) {
+        std::cerr << "No cutplane LookupTable exists" << std::endl;
+        return;
+    }
+    
+    auto& colorMapping = deriveds.cutplaneColorMapping;
+    
+    // 设置LookupTable参数
+    deriveds.cutplaneLookupTable->SetNumberOfTableValues(colorMapping.numberOfColors);
+    deriveds.cutplaneLookupTable->SetRange(colorMapping.minValue, colorMapping.maxValue);
+    deriveds.cutplaneLookupTable->Build();
+    
+    // 更新所有cutplane actors的mapper范围
+    for (auto& actor : deriveds.cutplaneActors) {
+        auto mapper = actor->GetMapper();
+        mapper->SetScalarRange(colorMapping.minValue, colorMapping.maxValue);
+    }
+    
+    // 更新ScalarBar
+    if (deriveds.cutplaneScalarBar) {
+        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+    }
+    
+    std::cout << "[Debug] Updated shared cutplane color mapping: range[" 
+              << colorMapping.minValue << ", " << colorMapping.maxValue 
+              << "], colors=" << colorMapping.numberOfColors << std::endl;
+}
+
+vtkDisplayWindow::DerivedObject::CutplaneColorMapping vtkDisplayWindow::GetCutplaneColorMapping()
+{
+    return deriveds.cutplaneColorMapping;
 }

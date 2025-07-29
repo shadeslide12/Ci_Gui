@@ -98,6 +98,7 @@ private slots:
     void slicesSettingButtonTriggered();
     void changeCutplane(double*,double*,int);
     void makeNewCutplane(double* origin, double* normal);
+    void updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors);
     void showCutplane(int, bool);
 
     void MeridionalButtonTriggered();

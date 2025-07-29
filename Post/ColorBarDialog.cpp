@@ -52,8 +52,8 @@ void ColorBarDialog::changeFlowNumber(int number)
     auto flow = flowInfo[number];
     rangem = flow.range[0];
     rangeM = flow.range[1];
-    m = flow.scalarBar->GetLookupTable()->GetRange()[0];
-    M = flow.scalarBar->GetLookupTable()->GetRange()[1];
+    m = flow.range[0];
+    M = flow.range[1];
 
     string rangeText = "(" + to_string(rangem) + ", " + to_string(rangeM) + ")";
     ui->textParameterRange->setText(rangeText.c_str());
