@@ -585,10 +585,6 @@ void MainWindow::slicesCheckBoxTriggered()
         cout << "test" << endl;
         qtvtkWindow->AddNewCutplane();
         
-        // 第一次创建cutplane时也要显示ScalarBar
-        if (ui->slicesCheckBox->isChecked()) {
-            qtvtkWindow->ShowCutplaneScalarBar();
-        }
 
         cout << "add a simple cutplane" << endl;
         ui->vtkBox->renderWindow()->Render();
@@ -597,12 +593,51 @@ void MainWindow::slicesCheckBoxTriggered()
     if (ui->slicesCheckBox->isChecked())
     {
         qtvtkWindow->AddCutplaneActors();
-        qtvtkWindow->ShowCutplaneScalarBar();
+        
+        // 显示切片颜色条
+        auto deriveds = qtvtkWindow->GetDeriveds();
+        if (deriveds.cutplaneLookupTable) {
+            // 创建ScalarBar（如果还没创建）
+            if (!deriveds.cutplaneScalarBar) {
+                deriveds.cutplaneScalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+                deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+                deriveds.cutplaneScalarBar->SetTitle("Cutplane");
+                deriveds.cutplaneScalarBar->SetNumberOfLabels(5);
+                
+                // 设置位置 - 水平显示在顶部
+                deriveds.cutplaneScalarBar->SetOrientationToHorizontal();
+                deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+                deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetValue(0.1, 0.85);
+                deriveds.cutplaneScalarBar->SetWidth(0.8);
+                deriveds.cutplaneScalarBar->SetHeight(0.1);
+                
+                // 设置字体
+                deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(12);
+                deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(10);
+            }
+            
+            // 添加到渲染器并显示
+            auto renderer = qtvtkWindow->GetRenderer();
+            if (!renderer->HasViewProp(deriveds.cutplaneScalarBar)) {
+                renderer->AddActor2D(deriveds.cutplaneScalarBar);
+            }
+            deriveds.cutplaneScalarBar->SetVisibility(1);
+            cout << "[Debug] Showing cutplane ScalarBar" << endl;
+        }
     }
-    else 
-    {
+    else {
         qtvtkWindow->RemoveCutplaneActors();
-        qtvtkWindow->HideCutplaneScalarBar();
+        
+        // 隐藏切片颜色条
+        auto& deriveds = qtvtkWindow->GetDerivedObject();
+        if (deriveds.cutplaneScalarBar) {
+            auto renderer = qtvtkWindow->GetRenderer();
+            if (renderer->HasViewProp(deriveds.cutplaneScalarBar)) {
+                renderer->RemoveActor2D(deriveds.cutplaneScalarBar);
+            }
+            deriveds.cutplaneScalarBar->SetVisibility(0);
+            cout << "[Debug] Hiding cutplane ScalarBar" << endl;
+        }
     }
     ui->vtkBox->renderWindow()->Render();
 }
@@ -627,10 +662,6 @@ void MainWindow::slicesSettingButtonTriggered()
     connect(cutplaneDialog, SIGNAL(finishSetParameters(double*,double*,int)),this, SLOT(changeCutplane(double*,double*,int)));
     connect(cutplaneDialog, &CutplaneDialog::createNewCutplane, this, &MainWindow::makeNewCutplane);
     connect(cutplaneDialog, &CutplaneDialog::colorMappingChanged, this, &MainWindow::updateCutplaneColorMapping);
-    connect(cutplaneDialog, &CutplaneDialog::colorSchemeChanged, [this](int index){
-        qtvtkWindow->SetCutplaneColorScheme(index);
-        ui->vtkBox->renderWindow()->Render();
-    });
     //* test
     connect(cutplaneDialog, &CutplaneDialog::sliceLocation,
             [this](double value,int axis) {

@@ -28,7 +28,7 @@ class Ui_CutplaneDialog
 {
 public:
     QDialogButtonBox *buttonBox;
-    QLabel *label_2;
+    QLabel *lab_ContourType;
     QComboBox *Combo_ContourType;
     QLabel *label_3;
     QCheckBox *Check_Banded;
@@ -51,6 +51,8 @@ public:
     QSlider *horizontalSlider;
     QPushButton *Btn_ExtractSlice;
     QPushButton *Btn_AddNew;
+    QLabel *lab_MapVariable;
+    QComboBox *Combo_SekectMapVariable;
 
     void setupUi(QDialog *CutplaneDialog)
     {
@@ -64,12 +66,12 @@ public:
         buttonBox->setGeometry(QRect(440, 530, 166, 24));
         buttonBox->setOrientation(Qt::Horizontal);
         buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-        label_2 = new QLabel(CutplaneDialog);
-        label_2->setObjectName(QString::fromUtf8("label_2"));
-        label_2->setGeometry(QRect(20, 260, 151, 16));
+        lab_ContourType = new QLabel(CutplaneDialog);
+        lab_ContourType->setObjectName(QString::fromUtf8("lab_ContourType"));
+        lab_ContourType->setGeometry(QRect(20, 260, 151, 16));
         QFont font;
         font.setPointSize(11);
-        label_2->setFont(font);
+        lab_ContourType->setFont(font);
         Combo_ContourType = new QComboBox(CutplaneDialog);
         Combo_ContourType->setObjectName(QString::fromUtf8("Combo_ContourType"));
         Combo_ContourType->setGeometry(QRect(20, 300, 541, 23));
@@ -173,6 +175,13 @@ public:
 
         gridLayout->addWidget(Btn_AddNew, 0, 2, 1, 1);
 
+        lab_MapVariable = new QLabel(CutplaneDialog);
+        lab_MapVariable->setObjectName(QString::fromUtf8("lab_MapVariable"));
+        lab_MapVariable->setGeometry(QRect(20, 230, 151, 16));
+        lab_MapVariable->setFont(font);
+        Combo_SekectMapVariable = new QComboBox(CutplaneDialog);
+        Combo_SekectMapVariable->setObjectName(QString::fromUtf8("Combo_SekectMapVariable"));
+        Combo_SekectMapVariable->setGeometry(QRect(180, 230, 171, 23));
 
         retranslateUi(CutplaneDialog);
         QObject::connect(buttonBox, SIGNAL(accepted()), CutplaneDialog, SLOT(accept()));
@@ -184,7 +193,7 @@ public:
     void retranslateUi(QDialog *CutplaneDialog)
     {
         CutplaneDialog->setWindowTitle(QCoreApplication::translate("CutplaneDialog", "Slice Details", nullptr));
-        label_2->setText(QCoreApplication::translate("CutplaneDialog", "Color Map Option :", nullptr));
+        lab_ContourType->setText(QCoreApplication::translate("CutplaneDialog", "Color Map Option :", nullptr));
         label_3->setText(QCoreApplication::translate("CutplaneDialog", "Color Map Distribution Method :", nullptr));
         Check_Banded->setText(QCoreApplication::translate("CutplaneDialog", "Banded", nullptr));
         Check_Continuous->setText(QCoreApplication::translate("CutplaneDialog", "Continuous", nullptr));
@@ -202,6 +211,7 @@ public:
         checkBox->setText(QCoreApplication::translate("CutplaneDialog", "Show Primary Slice", nullptr));
         Btn_ExtractSlice->setText(QCoreApplication::translate("CutplaneDialog", "Extract Slices", nullptr));
         Btn_AddNew->setText(QCoreApplication::translate("CutplaneDialog", "new", nullptr));
+        lab_MapVariable->setText(QCoreApplication::translate("CutplaneDialog", "Mapping Variable :", nullptr));
     } // retranslateUi
 
 };

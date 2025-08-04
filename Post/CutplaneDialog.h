@@ -29,12 +29,14 @@ private slots:
     void onSliceLocationChanged(int index); // 处理平面类型变化
     void onSliderValueChanged(int value);   // 处理滑块值变化
     void onExtractSliceClicked();           // 处理提取切片按钮点击
+    void onColorSchemeChanged(int index);   // 处理颜色方案变化
 
 signals:
     void finishSetParameters(double*, double*, int);
     void createNewCutplane(double*, double*);
     void sliceLocation(double,int);
     void colorMappingChanged(double minValue, double maxValue, int numberOfColors);
+    void colorSchemeChanged(int schemeIndex);  // 颜色方案变化信号
 
 private:
     Ui::CutplaneDialog *ui;

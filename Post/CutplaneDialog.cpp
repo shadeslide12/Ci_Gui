@@ -19,7 +19,15 @@ CutplaneDialog::CutplaneDialog(QWidget *parent): QDialog(parent),ui(new Ui::Cutp
     connect(ui->Combo_SLiceLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(onSliceLocationChanged(int)));
     connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
     connect(ui->Btn_ExtractSlice, SIGNAL(clicked()), this, SLOT(onExtractSliceClicked()));
+    connect(ui->Combo_ContourType, SIGNAL(currentIndexChanged(int)), this, SLOT(onColorSchemeChanged(int)));
     
+  
+    ui->Combo_ContourType->clear();
+    ui->Combo_ContourType->addItem("Rainbow");              // 0: 彩虹色 (默认) - SetHueRange(0.6667, 0.0)
+    ui->Combo_ContourType->addItem("Viridis");              // 1: Viridis配色方案
+    ui->Combo_ContourType->addItem("Gray");                 // 2: 灰度
+    ui->Combo_ContourType->setCurrentIndex(0);  // 默认选择Rainbow
+
     // 初始化
     currentAxis = 0; // 默认为X轴
     // 初始化模型边界值为0
@@ -57,7 +65,7 @@ void CutplaneDialog::setCutplaneDialog(vector<vtkSmartPointer<vtkPlane>> planes)
     
     for (int i = 1; i <= n; i++)
     {
-        string name = "cutplane";
+        string name = "Slice";
         name += std::to_string(i);
         ui->comboBox->addItem(name.c_str());
 
@@ -249,4 +257,17 @@ void CutplaneDialog::onColorMappingChanged()
     std::cout << "[Debug] Shared cutplane color mapping changed: range[" 
               << minValue << ", " << maxValue 
               << "], colors=" << numberOfColors << std::endl;
+}
+
+
+void CutplaneDialog::onColorSchemeChanged(int index)
+{
+    std::cout << "[Debug] Color scheme changed to index: " << index << std::endl;
+    
+    // 发送颜色方案变化信号
+    emit colorSchemeChanged(index);
+    
+    // 打印当前选择的颜色方案
+    QString schemeName = ui->Combo_ContourType->currentText();
+    std::cout << "[Debug] Selected color scheme: " << schemeName.toStdString() << std::endl;
 }

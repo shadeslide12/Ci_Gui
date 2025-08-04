@@ -605,13 +605,8 @@ void vtkDisplayWindow::AddNewCutplane(double* origin, double* normal)
         deriveds.cutplaneLookupTable = vtkSmartPointer<vtkLookupTable>::New();
         deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
         deriveds.cutplaneLookupTable->SetRange(flows[curFlow].range);
+        deriveds.cutplaneLookupTable->SetHueRange(0.6667, 0.0);  // 蓝到红渐变，与主模型一致
         deriveds.cutplaneLookupTable->Build();
-        
-        // 创建共享的ScalarBar
-        deriveds.cutplaneScalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
-        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
-        deriveds.cutplaneScalarBar->SetTitle(flows[curFlow].name.c_str());
-        deriveds.cutplaneScalarBar->SetNumberOfLabels(5);
         
         // 初始化颜色映射参数
         deriveds.cutplaneColorMapping.minValue = flows[curFlow].range[0];
@@ -1078,7 +1073,7 @@ void vtkDisplayWindow::UpdateCutplaneColorMapping()
     deriveds.cutplaneLookupTable->SetNumberOfTableValues(colorMapping.numberOfColors);
     deriveds.cutplaneLookupTable->SetRange(colorMapping.minValue, colorMapping.maxValue);
     deriveds.cutplaneLookupTable->Build();
-    
+
     // 更新所有cutplane actors的mapper范围
     for (auto& actor : deriveds.cutplaneActors) {
         auto mapper = actor->GetMapper();
@@ -1098,4 +1093,127 @@ void vtkDisplayWindow::UpdateCutplaneColorMapping()
 vtkDisplayWindow::DerivedObject::CutplaneColorMapping vtkDisplayWindow::GetCutplaneColorMapping()
 {
     return deriveds.cutplaneColorMapping;
+}
+
+
+void vtkDisplayWindow::InitializeCutplaneScalarBar()
+{
+    // 确保cutplaneLookupTable存在
+    if (!deriveds.cutplaneLookupTable) {
+        std::cerr << "[Error] Cannot initialize cutplane ScalarBar: cutplaneLookupTable not found" << std::endl;
+        return;
+    }
+    
+    // 如果ScalarBar还没创建，创建它
+    if (!deriveds.cutplaneScalarBar) {
+        deriveds.cutplaneScalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+        deriveds.cutplaneScalarBar->SetTitle("Slice");
+        deriveds.cutplaneScalarBar->SetNumberOfLabels(10);
+        
+        // 设置位置 - 水平显示在窗口中下方（避免被截断）
+        deriveds.cutplaneScalarBar->SetOrientationToHorizontal();
+        deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+        deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetValue(0.2, 0.1);   // 中下方位置
+        deriveds.cutplaneScalarBar->SetWidth(0.6);   // 宽度占窗口60%
+        deriveds.cutplaneScalarBar->SetHeight(0.06); // 高度占窗口6%
+        
+        // 设置字体 - 更小的字体
+        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(10);
+        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(8);
+        
+        // 确保可见性
+        deriveds.cutplaneScalarBar->SetVisibility(1);
+        
+        std::cout << "[Debug] Initialized cutplane ScalarBar at position (0.2, 0.1) with size (0.6, 0.06)" << std::endl;
+    }
+}
+
+
+void vtkDisplayWindow::ShowCutplaneScalarBar()
+{
+    std::cout << "[Debug] ShowCutplaneScalarBar called" << std::endl;
+    
+    // 初始化ScalarBar（如果需要）
+    InitializeCutplaneScalarBar();
+    
+    if (deriveds.cutplaneScalarBar) {
+        std::cout << "[Debug] cutplaneScalarBar exists" << std::endl;
+        
+        // 添加到渲染器（如果还没添加）
+        if (!renderer->HasViewProp(deriveds.cutplaneScalarBar)) {
+            renderer->AddActor2D(deriveds.cutplaneScalarBar);
+            std::cout << "[Debug] Added cutplaneScalarBar to renderer" << std::endl;
+        } else {
+            std::cout << "[Debug] cutplaneScalarBar already in renderer" << std::endl;
+        }
+        
+        // 设置可见
+        deriveds.cutplaneScalarBar->SetVisibility(1);
+        std::cout << "[Debug] Set cutplaneScalarBar visibility to 1" << std::endl;
+        std::cout << "[Debug] Showing cutplane ScalarBar" << std::endl;
+    } else {
+        std::cout << "[Debug] cutplaneScalarBar is null!" << std::endl;
+    }
+}
+
+void vtkDisplayWindow::HideCutplaneScalarBar()
+{
+    if (deriveds.cutplaneScalarBar) {
+        // 从渲染器中移除
+        if (renderer->HasViewProp(deriveds.cutplaneScalarBar)) {
+            renderer->RemoveActor2D(deriveds.cutplaneScalarBar);
+        }
+        
+        // 设置不可见
+        deriveds.cutplaneScalarBar->SetVisibility(0);
+        std::cout << "[Debug] Hiding cutplane ScalarBar" << std::endl;
+    }
+}
+
+void vtkDisplayWindow::SetCutplaneColorScheme(int schemeIndex)
+{
+    if (!deriveds.cutplaneLookupTable) {
+        std::cerr << "[Error] Cannot set color scheme: cutplaneLookupTable not found" << std::endl;
+        return;
+    }
+    
+    std::cout << "[Debug] Setting cutplane color scheme to index: " << schemeIndex << std::endl;
+    
+    switch (schemeIndex) {
+        case 0: // Rainbow (彩虹色) - 默认
+            deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+            deriveds.cutplaneLookupTable->SetHueRange(0.6667, 0.0);  // 蓝到红
+            deriveds.cutplaneLookupTable->SetSaturationRange(1.0, 1.0);
+            deriveds.cutplaneLookupTable->SetValueRange(1.0, 1.0);
+            break;
+        case 1: // Viridis
+            // Viridis配色方案：深紫色到黄色
+            deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+            deriveds.cutplaneLookupTable->SetHueRange(0.75, 0.167);  // 紫色到黄色
+            deriveds.cutplaneLookupTable->SetSaturationRange(0.8, 0.9);
+            deriveds.cutplaneLookupTable->SetValueRange(0.2, 0.95);
+            break;
+        case 2: // Gray (灰度)
+            deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+            deriveds.cutplaneLookupTable->SetHueRange(0.0, 0.0);
+            deriveds.cutplaneLookupTable->SetSaturationRange(0.0, 0.0);
+            deriveds.cutplaneLookupTable->SetValueRange(0.0, 1.0);
+            break;
+
+        default:
+            std::cerr << "[Warning] Unknown color scheme index: " << schemeIndex << ", using Rainbow" << std::endl;
+            deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+            deriveds.cutplaneLookupTable->SetHueRange(0.6667, 0.0);
+            deriveds.cutplaneLookupTable->SetSaturationRange(1.0, 1.0);
+            deriveds.cutplaneLookupTable->SetValueRange(1.0, 1.0);
+            break;
+    }
+    
+    // 更新ScalarBar（如果存在）
+    if (deriveds.cutplaneScalarBar) {
+        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+    }
+    
+    std::cout << "[Debug] Cutplane color scheme updated successfully" << std::endl;
 }
