@@ -958,7 +958,7 @@ double* vtkDisplayWindow::GetModelBounds()
 void vtkDisplayWindow::CreatePlanePreview(double value,int currenAxis)
 {
     // 获取模型的边界框
-    std::cout << "[Debug] try to create plane with actual value: " << value << std::endl;
+    std::cout << "[Debug] Preview Location actual value: " << value << std::endl;
 
     double bounds[6];
     if (aesReader.GetTotalGrid())
@@ -991,7 +991,6 @@ void vtkDisplayWindow::CreatePlanePreview(double value,int currenAxis)
             xPlaneSource->SetOrigin(position, bounds[2] - 0.1*yRange, bounds[4] - 0.1*zRange);
             xPlaneSource->SetPoint1(position, bounds[3] + 0.1*yRange, bounds[4] - 0.1*zRange);
             xPlaneSource->SetPoint2(position, bounds[2] - 0.1*yRange, bounds[5] + 0.1*zRange);
-            std::cout << "创建X轴切面，位置: " << position << std::endl;
             break;
 
         case 1: // Y轴 - XZ平面
@@ -1000,7 +999,6 @@ void vtkDisplayWindow::CreatePlanePreview(double value,int currenAxis)
             xPlaneSource->SetOrigin(bounds[0] - 0.1*xRange, position, bounds[4] - 0.1*zRange);
             xPlaneSource->SetPoint1(bounds[1] + 0.1*xRange, position, bounds[4] - 0.1*zRange);
             xPlaneSource->SetPoint2(bounds[0] - 0.1*xRange, position, bounds[5] + 0.1*zRange);
-            std::cout << "创建Y轴切面，位置: " << position << std::endl;
             break;
 
         case 2: // Z轴 - XY平面
@@ -1009,7 +1007,6 @@ void vtkDisplayWindow::CreatePlanePreview(double value,int currenAxis)
             xPlaneSource->SetOrigin(bounds[0] - 0.1*xRange, bounds[2] - 0.1*yRange, position);
             xPlaneSource->SetPoint1(bounds[1] + 0.1*xRange, bounds[2] - 0.1*yRange, position);
             xPlaneSource->SetPoint2(bounds[0] - 0.1*xRange, bounds[3] + 0.1*yRange, position);
-            std::cout << "创建Z轴切面，位置: " << position << std::endl;
             break;
     }
     

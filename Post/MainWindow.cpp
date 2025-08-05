@@ -733,6 +733,13 @@ void MainWindow::InitializeMainWindow()
     connect(ui->MeridionalButton, SIGNAL(clicked()),this, SLOT(MeridionalButtonTriggered()));
     connect(ui->MeridionalcheckBox, SIGNAL(stateChanged(int)),this, SLOT(MeridionalCheckBoxTriggered()));
 
+    //* Set View Control Group
+    QButtonGroup *group_ViewControl = new QButtonGroup(this);
+    group_ViewControl->setExclusive(true);
+    group_ViewControl->addButton(ui->Check_3Dview);
+    group_ViewControl->addButton(ui->Check_DoubleView);
+    group_ViewControl->addButton(ui->Check_Meri);
+
 }
 
 void MainWindow::SetIcons()
@@ -911,4 +918,102 @@ void MainWindow::updateCutplaneColorMapping(double minValue, double maxValue, in
 {
     qtvtkWindow->SetCutplaneColorMapping(minValue, maxValue, numberOfColors);
     ui->vtkBox->renderWindow()->Render();
+}
+
+//* View Control Functions
+void MainWindow::on_Check_3Dview_toggled(bool checked)
+{
+    if (checked)
+    {
+        // 显示3D视图模式
+        // 隐藏Meridional视图
+        if (vtkWidget)
+        {
+            vtkWidget->hide();
+        }
+        
+        // 确保主VTK窗口可见
+        ui->vtkBox->show();
+        ui->vtkBox->renderWindow()->Render();
+        
+        qDebug() << "Switched to 3D View mode";
+    }
+}
+
+void MainWindow::on_Check_DoubleView_toggled(bool checked)
+{
+    if (checked)
+    {
+        // 显示双视图模式（3D + Meridional）
+        // 显示主3D视图
+        ui->vtkBox->show();
+        
+        // 显示Meridional视图
+        if (qtvtkWindow->MeridionalPlaneActor.empty())
+        {
+            // 如果还没有创建Meridional视图，则创建它
+            Meridionalrenderer->SetBackground(1.0, 1.0, 1.0);
+            Meridionalrenderer->SetBackground2(0.529, 0.8078, 0.92157);
+            Meridionalrenderer->SetGradientBackground(true);
+            MeridionalrenderWindow->AddRenderer(Meridionalrenderer);
+            vtkWidget->setRenderWindow(MeridionalrenderWindow);
+            ui->VTKLayout->insertWidget(1, vtkWidget);
+            
+            auto plane = qtvtkWindow->CreateMeridionalPlane(0, 10);
+            for (int i = 0; i < plane.size(); i++)
+            {
+                Meridionalrenderer->AddActor(plane[i]);
+            }
+            MeridionalrenderWindow->Render();
+        }
+        else
+        {
+            // 如果已经创建，则显示
+            vtkWidget->show();
+        }
+        
+        // 渲染两个视图
+        ui->vtkBox->renderWindow()->Render();
+        MeridionalrenderWindow->Render();
+        
+        qDebug() << "Switched to Double View mode";
+    }
+}
+
+void MainWindow::on_Check_Meri_toggled(bool checked)
+{
+    if (checked)
+    {
+        // 显示Meridional视图模式
+        // 隐藏主3D视图
+        ui->vtkBox->hide();
+        
+        // 显示Meridional视图
+        if (qtvtkWindow->MeridionalPlaneActor.empty())
+        {
+            // 如果还没有创建Meridional视图，则创建它
+            Meridionalrenderer->SetBackground(1.0, 1.0, 1.0);
+            Meridionalrenderer->SetBackground2(0.529, 0.8078, 0.92157);
+            Meridionalrenderer->SetGradientBackground(true);
+            MeridionalrenderWindow->AddRenderer(Meridionalrenderer);
+            vtkWidget->setRenderWindow(MeridionalrenderWindow);
+            ui->VTKLayout->insertWidget(1, vtkWidget);
+            
+            auto plane = qtvtkWindow->CreateMeridionalPlane(0, 10);
+            for (int i = 0; i < plane.size(); i++)
+            {
+                Meridionalrenderer->AddActor(plane[i]);
+            }
+            MeridionalrenderWindow->Render();
+        }
+        else
+        {
+            // 如果已经创建，则显示
+            vtkWidget->show();
+        }
+        
+        MeridionalrenderWindow->Render();
+        
+        qDebug() << "Switched to Meridional View mode";
+    }
 }

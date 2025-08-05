@@ -34,6 +34,7 @@
 #include <vtkGlyph2D.h>
 #include <vtkGlyphSource2D.h>
 #include <QVTKOpenGLNativeWidget.h>
+#include <QButtonGroup>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -107,6 +108,12 @@ private slots:
     void AddConstHeightPlane(double height);
     void ChangeMeridionalPlaneFlow(int flow);
     void ChangeConstHeightFlow(int flow);
+
+    //* View Control 
+    void on_Check_3Dview_toggled(bool checked);
+    void on_Check_DoubleView_toggled(bool checked);
+    void on_Check_Meri_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
     vtkDisplayWindow *qtvtkWindow;

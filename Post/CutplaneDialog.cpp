@@ -13,12 +13,11 @@ CutplaneDialog::CutplaneDialog(QWidget *parent): QDialog(parent),ui(new Ui::Cutp
     ui->setupUi(this);
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(setParameters()));
     connect(ui->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeCutplaneNumber(int)));
-    connect(ui->Btn_AddNew, SIGNAL(clicked()), this, SLOT(createSignal()));
+    // connect(ui->Btn_AddNew, SIGNAL(clicked()), this, SLOT(createSignal()));
 
     // 连接新添加的控件信号
     connect(ui->Combo_SLiceLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(onSliceLocationChanged(int)));
     connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
-    connect(ui->Btn_ExtractSlice, SIGNAL(clicked()), this, SLOT(onExtractSliceClicked()));
     connect(ui->Combo_ContourType, SIGNAL(currentIndexChanged(int)), this, SLOT(onColorSchemeChanged(int)));
     
   
@@ -94,21 +93,7 @@ void CutplaneDialog::changeCutplaneNumber(int number)
 
 void CutplaneDialog::setParameters()
 {
-
     std::cout<< "[Debug] CurrentIndex is :"<< ui->comboBox->currentIndex() << std::endl;
-    
-    if (createFlag) {
-        // 创建新切片模式：只创建新切片，不更新现有切片
-        std::cout << "[Debug] Creating new cutplane with origin: (" 
-                  << curOrigin[0] << ", " << curOrigin[1] << ", " << curOrigin[2] 
-                  << ") normal: (" << curNormal[0] << ", " << curNormal[1] << ", " << curNormal[2] << ")" << std::endl;
-        emit(createNewCutplane(curOrigin, curNormal));
-        createFlag = false; // 重置标志
-    } else {
-        // 编辑现有切片模式：更新当前选中的切片
-        std::cout << "[Debug] Updating existing cutplane at index: " << ui->comboBox->currentIndex() << std::endl;
-        emit(finishSetParameters(curOrigin, curNormal, ui->comboBox->currentIndex()));
-    }
     onColorMappingChanged();
 }
 
@@ -155,7 +140,6 @@ void CutplaneDialog::onSliderValueChanged(int value)
     
     updateValueLabel(actualValue);
     setPlanePosition(actualValue);
-    std::cout << "【Debug】emit signal slicelocation";
     emit sliceLocation(actualValue,currentAxis);
 }
 
@@ -270,4 +254,16 @@ void CutplaneDialog::onColorSchemeChanged(int index)
     // 打印当前选择的颜色方案
     QString schemeName = ui->Combo_ContourType->currentText();
     std::cout << "[Debug] Selected color scheme: " << schemeName.toStdString() << std::endl;
+}
+
+void CutplaneDialog::on_Btn_SetPosition_clicked() {
+    std::cout << "[Debug] Updating existing cutplane at index: " << ui->comboBox->currentIndex() << std::endl;
+    emit(finishSetParameters(curOrigin, curNormal, ui->comboBox->currentIndex()));
+}
+
+void CutplaneDialog::on_Btn_AddNew_clicked() {
+    std::cout << "[Debug] Creating new cutplane with origin: ("
+          << curOrigin[0] << ", " << curOrigin[1] << ", " << curOrigin[2]
+          << ") normal: (" << curNormal[0] << ", " << curNormal[1] << ", " << curNormal[2] << ")" << std::endl;
+    emit(createNewCutplane(curOrigin, curNormal));
 }

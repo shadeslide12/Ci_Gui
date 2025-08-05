@@ -6,358 +6,492 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>617</width>
-    <height>582</height>
+    <width>650</width>
+    <height>620</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>0</width>
-    <height>0</height>
+    <width>650</width>
+    <height>620</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>16777215</width>
-    <height>16777215</height>
+    <width>800</width>
+    <height>700</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Slice Details</string>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>440</x>
-     <y>530</y>
-     <width>166</width>
-     <height>24</height>
-    </rect>
+  <property name="styleSheet">
+   <string>QDialog {
+    background-color: #f5f5f5;
+}
+QGroupBox {
+    font-weight: bold;
+    border: 2px solid #cccccc;
+    border-radius: 8px;
+    margin-top: 1ex;
+    padding-top: 10px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px 0 5px;
+}
+QLabel {
+    color: #333333;
+}
+QPushButton {
+    background-color: #5DADE2;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #3498db;
+}
+QPushButton:pressed {
+    background-color: #2980b9;
+}
+QComboBox, QLineEdit {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px;
+    background-color: white;
+}
+QComboBox:focus, QLineEdit:focus {
+    border-color: #2980b9;
+}
+QSlider::groove:horizontal {
+    border: 1px solid #999999;
+    height: 8px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);
+    margin: 2px 0;
+    border-radius: 4px;
+}
+QSlider::handle:horizontal {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
+    border: 1px solid #5c5c5c;
+    width: 18px;
+    margin: -2px 0;
+    border-radius: 9px;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>15</number>
    </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
+   <property name="leftMargin">
+    <number>20</number>
    </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   <property name="topMargin">
+    <number>20</number>
    </property>
-  </widget>
-  <widget class="QLabel" name="lab_ContourType">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>260</y>
-     <width>151</width>
-     <height>16</height>
-    </rect>
+   <property name="rightMargin">
+    <number>20</number>
    </property>
-   <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+   <property name="bottomMargin">
+    <number>20</number>
    </property>
-   <property name="text">
-    <string>Color Map Option :</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="Combo_ContourType">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>300</y>
-     <width>541</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>340</y>
-     <width>251</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>9</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Color Map Distribution Method :</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="Check_Banded">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>340</y>
-     <width>85</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Banded</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="Check_Continuous">
-   <property name="geometry">
-    <rect>
-     <x>420</x>
-     <y>340</y>
-     <width>111</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Continuous</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>390</y>
-     <width>151</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Contours Level :</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_5">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>430</y>
-     <width>57</width>
-     <height>15</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Minium :</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_6">
-   <property name="geometry">
-    <rect>
-     <x>260</x>
-     <y>430</y>
-     <width>57</width>
-     <height>15</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Maxium :</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_7">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>480</y>
-     <width>71</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Numbers :</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="LnEdit_Min">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>430</y>
-     <width>113</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="LnEdit_Max">
-   <property name="geometry">
-    <rect>
-     <x>330</x>
-     <y>430</y>
-     <width>113</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="LnEdit_Numbers">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>470</y>
-     <width>113</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QWidget" name="widget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>58</y>
-     <width>601</width>
-     <height>161</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_SLoaction">
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
+   <item>
+    <widget class="QGroupBox" name="sliceControlGroup">
+     <property name="title">
+      <string>Slice Control</string>
+     </property>
+     <layout class="QGridLayout" name="sliceControlLayout">
+      <property name="leftMargin">
+       <number>20</number>
       </property>
-      <property name="text">
-       <string>Slice Locations</string>
+      <property name="rightMargin">
+       <number>20</number>
       </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QComboBox" name="comboBox">
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-       </font>
+      <property name="spacing">
+       <number>10</number>
       </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
-      <property name="minimumSize">
-       <size>
-        <width>70</width>
-        <height>25</height>
-       </size>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Slice No:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="Btn_AddNew">
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Extract Slices</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QCheckBox" name="checkBox">
+        <property name="text">
+         <string>Show Primary Slice</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_SLoaction">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Slice Locations:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="Combo_SLiceLocation">
+        <item>
+         <property name="text">
+          <string>X-Planes</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Y-Planes</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Z-Planes</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="4">
+       <layout class="QHBoxLayout" name="sliderLayout">
+        <item>
+         <widget class="QSlider" name="horizontalSlider">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_ValueLocation">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>X: 0.0801</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Btn_SetPosition">
+          <property name="text">
+           <string>Set Position</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="mappingGroup">
+     <property name="title">
+      <string>Mapping Variable</string>
+     </property>
+     <layout class="QHBoxLayout" name="mappingLayout">
+      <property name="leftMargin">
+       <number>20</number>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>70</width>
-        <height>25</height>
-       </size>
+      <property name="rightMargin">
+       <number>20</number>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Slice No:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QLabel" name="label_ValueLocation">
-      <property name="text">
-       <string>Value : 0.0000</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QComboBox" name="Combo_SLiceLocation">
       <item>
-       <property name="text">
-        <string>X-Planes</string>
-       </property>
+       <widget class="QLabel" name="lab_MapVariable">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Variable:</string>
+        </property>
+       </widget>
       </item>
       <item>
-       <property name="text">
-        <string>Y-Planes</string>
-       </property>
+       <widget class="QComboBox" name="Combo_SekectMapVariable">
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
       </item>
       <item>
-       <property name="text">
-        <string>Z-Planes</string>
-       </property>
+       <spacer name="mappingSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
-     </widget>
-    </item>
-    <item row="1" column="3">
-     <widget class="QCheckBox" name="checkBox">
-      <property name="text">
-       <string>Show Primary Slice</string>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="colorMapGroup">
+     <property name="title">
+      <string>Color Map Options</string>
+     </property>
+     <layout class="QVBoxLayout" name="colorMapLayout">
+      <property name="leftMargin">
+       <number>20</number>
       </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QSlider" name="horizontalSlider">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+      <property name="rightMargin">
+       <number>20</number>
       </property>
-     </widget>
-    </item>
-    <item row="2" column="3">
-     <widget class="QPushButton" name="Btn_ExtractSlice">
-      <property name="text">
-       <string>Extract Slices</string>
+      <item>
+       <layout class="QHBoxLayout" name="colorSchemeLayout">
+        <item>
+         <widget class="QLabel" name="lab_ContourType">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Color Scheme:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="Combo_ContourType">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="distributionLayout">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Distribution Method:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="Check_Banded">
+          <property name="text">
+           <string>Banded</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="Check_Continuous">
+          <property name="text">
+           <string>Continuous</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="distributionSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="contoursGroup">
+     <property name="title">
+      <string>Contours Level</string>
+     </property>
+     <layout class="QGridLayout" name="contoursLayout">
+      <property name="leftMargin">
+       <number>20</number>
       </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QPushButton" name="Btn_AddNew">
-      <property name="minimumSize">
-       <size>
-        <width>40</width>
-        <height>25</height>
-       </size>
+      <property name="rightMargin">
+       <number>20</number>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>40</width>
-        <height>25</height>
-       </size>
+      <property name="spacing">
+       <number>10</number>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>new</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QLabel" name="lab_MapVariable">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>230</y>
-     <width>151</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Mapping Variable :</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="Combo_SekectMapVariable">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>230</y>
-     <width>171</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Minimum:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="LnEdit_Min">
+        <property name="maximumSize">
+         <size>
+          <width>120</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="inputMask">
+         <string/>
+        </property>
+        <property name="text">
+         <string>0.0</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_6">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Maximum:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLineEdit" name="LnEdit_Max">
+        <property name="maximumSize">
+         <size>
+          <width>120</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>10.0</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Numbers:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="LnEdit_Numbers">
+        <property name="maximumSize">
+         <size>
+          <width>120</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>10</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2" colspan="2">
+       <spacer name="contoursSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections>

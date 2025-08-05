@@ -30,6 +30,8 @@ private slots:
     void onSliderValueChanged(int value);   // 处理滑块值变化
     void onExtractSliceClicked();           // 处理提取切片按钮点击
     void onColorSchemeChanged(int index);   // 处理颜色方案变化
+    void on_Btn_SetPosition_clicked();
+    void on_Btn_AddNew_clicked();
 
 signals:
     void finishSetParameters(double*, double*, int);

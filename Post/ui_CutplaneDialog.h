@@ -16,172 +16,276 @@
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
-#include <QtWidgets/QWidget>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QVBoxLayout>
 
 QT_BEGIN_NAMESPACE
 
 class Ui_CutplaneDialog
 {
 public:
-    QDialogButtonBox *buttonBox;
+    QVBoxLayout *mainLayout;
+    QGroupBox *sliceControlGroup;
+    QGridLayout *sliceControlLayout;
+    QLabel *label;
+    QComboBox *comboBox;
+    QPushButton *Btn_AddNew;
+    QCheckBox *checkBox;
+    QLabel *label_SLoaction;
+    QComboBox *Combo_SLiceLocation;
+    QHBoxLayout *sliderLayout;
+    QSlider *horizontalSlider;
+    QLabel *label_ValueLocation;
+    QPushButton *Btn_SetPosition;
+    QGroupBox *mappingGroup;
+    QHBoxLayout *mappingLayout;
+    QLabel *lab_MapVariable;
+    QComboBox *Combo_SekectMapVariable;
+    QSpacerItem *mappingSpacer;
+    QGroupBox *colorMapGroup;
+    QVBoxLayout *colorMapLayout;
+    QHBoxLayout *colorSchemeLayout;
     QLabel *lab_ContourType;
     QComboBox *Combo_ContourType;
+    QHBoxLayout *distributionLayout;
     QLabel *label_3;
     QCheckBox *Check_Banded;
     QCheckBox *Check_Continuous;
-    QLabel *label_4;
+    QSpacerItem *distributionSpacer;
+    QGroupBox *contoursGroup;
+    QGridLayout *contoursLayout;
     QLabel *label_5;
-    QLabel *label_6;
-    QLabel *label_7;
     QLineEdit *LnEdit_Min;
+    QLabel *label_6;
     QLineEdit *LnEdit_Max;
+    QLabel *label_7;
     QLineEdit *LnEdit_Numbers;
-    QWidget *widget;
-    QGridLayout *gridLayout;
-    QLabel *label_SLoaction;
-    QComboBox *comboBox;
-    QLabel *label;
-    QLabel *label_ValueLocation;
-    QComboBox *Combo_SLiceLocation;
-    QCheckBox *checkBox;
-    QSlider *horizontalSlider;
-    QPushButton *Btn_ExtractSlice;
-    QPushButton *Btn_AddNew;
-    QLabel *lab_MapVariable;
-    QComboBox *Combo_SekectMapVariable;
+    QSpacerItem *contoursSpacer;
+    QSpacerItem *verticalSpacer;
+    QDialogButtonBox *buttonBox;
 
     void setupUi(QDialog *CutplaneDialog)
     {
         if (CutplaneDialog->objectName().isEmpty())
             CutplaneDialog->setObjectName(QString::fromUtf8("CutplaneDialog"));
-        CutplaneDialog->resize(617, 582);
-        CutplaneDialog->setMinimumSize(QSize(0, 0));
-        CutplaneDialog->setMaximumSize(QSize(16777215, 16777215));
-        buttonBox = new QDialogButtonBox(CutplaneDialog);
-        buttonBox->setObjectName(QString::fromUtf8("buttonBox"));
-        buttonBox->setGeometry(QRect(440, 530, 166, 24));
-        buttonBox->setOrientation(Qt::Horizontal);
-        buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-        lab_ContourType = new QLabel(CutplaneDialog);
-        lab_ContourType->setObjectName(QString::fromUtf8("lab_ContourType"));
-        lab_ContourType->setGeometry(QRect(20, 260, 151, 16));
+        CutplaneDialog->resize(650, 620);
+        CutplaneDialog->setMinimumSize(QSize(650, 620));
+        CutplaneDialog->setMaximumSize(QSize(800, 700));
+        mainLayout = new QVBoxLayout(CutplaneDialog);
+        mainLayout->setSpacing(15);
+        mainLayout->setObjectName(QString::fromUtf8("mainLayout"));
+        mainLayout->setContentsMargins(20, 20, 20, 20);
+        sliceControlGroup = new QGroupBox(CutplaneDialog);
+        sliceControlGroup->setObjectName(QString::fromUtf8("sliceControlGroup"));
+        sliceControlLayout = new QGridLayout(sliceControlGroup);
+        sliceControlLayout->setSpacing(10);
+        sliceControlLayout->setObjectName(QString::fromUtf8("sliceControlLayout"));
+        sliceControlLayout->setContentsMargins(20, -1, 20, -1);
+        label = new QLabel(sliceControlGroup);
+        label->setObjectName(QString::fromUtf8("label"));
         QFont font;
-        font.setPointSize(11);
-        lab_ContourType->setFont(font);
-        Combo_ContourType = new QComboBox(CutplaneDialog);
-        Combo_ContourType->setObjectName(QString::fromUtf8("Combo_ContourType"));
-        Combo_ContourType->setGeometry(QRect(20, 300, 541, 23));
-        label_3 = new QLabel(CutplaneDialog);
-        label_3->setObjectName(QString::fromUtf8("label_3"));
-        label_3->setGeometry(QRect(20, 340, 251, 16));
-        QFont font1;
-        font1.setPointSize(9);
-        label_3->setFont(font1);
-        Check_Banded = new QCheckBox(CutplaneDialog);
-        Check_Banded->setObjectName(QString::fromUtf8("Check_Banded"));
-        Check_Banded->setGeometry(QRect(280, 340, 85, 21));
-        Check_Continuous = new QCheckBox(CutplaneDialog);
-        Check_Continuous->setObjectName(QString::fromUtf8("Check_Continuous"));
-        Check_Continuous->setGeometry(QRect(420, 340, 111, 21));
-        label_4 = new QLabel(CutplaneDialog);
-        label_4->setObjectName(QString::fromUtf8("label_4"));
-        label_4->setGeometry(QRect(20, 390, 151, 16));
-        label_4->setFont(font);
-        label_5 = new QLabel(CutplaneDialog);
-        label_5->setObjectName(QString::fromUtf8("label_5"));
-        label_5->setGeometry(QRect(20, 430, 57, 15));
-        label_6 = new QLabel(CutplaneDialog);
-        label_6->setObjectName(QString::fromUtf8("label_6"));
-        label_6->setGeometry(QRect(260, 430, 57, 15));
-        label_7 = new QLabel(CutplaneDialog);
-        label_7->setObjectName(QString::fromUtf8("label_7"));
-        label_7->setGeometry(QRect(20, 480, 71, 16));
-        LnEdit_Min = new QLineEdit(CutplaneDialog);
-        LnEdit_Min->setObjectName(QString::fromUtf8("LnEdit_Min"));
-        LnEdit_Min->setGeometry(QRect(100, 430, 113, 23));
-        LnEdit_Max = new QLineEdit(CutplaneDialog);
-        LnEdit_Max->setObjectName(QString::fromUtf8("LnEdit_Max"));
-        LnEdit_Max->setGeometry(QRect(330, 430, 113, 23));
-        LnEdit_Numbers = new QLineEdit(CutplaneDialog);
-        LnEdit_Numbers->setObjectName(QString::fromUtf8("LnEdit_Numbers"));
-        LnEdit_Numbers->setGeometry(QRect(100, 470, 113, 23));
-        widget = new QWidget(CutplaneDialog);
-        widget->setObjectName(QString::fromUtf8("widget"));
-        widget->setGeometry(QRect(9, 58, 601, 161));
-        gridLayout = new QGridLayout(widget);
-        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-        label_SLoaction = new QLabel(widget);
-        label_SLoaction->setObjectName(QString::fromUtf8("label_SLoaction"));
-        QFont font2;
-        font2.setPointSize(11);
-        font2.setBold(false);
-        font2.setWeight(50);
-        label_SLoaction->setFont(font2);
+        font.setPointSize(10);
+        label->setFont(font);
 
-        gridLayout->addWidget(label_SLoaction, 1, 0, 1, 1);
+        sliceControlLayout->addWidget(label, 0, 0, 1, 1);
 
-        comboBox = new QComboBox(widget);
+        comboBox = new QComboBox(sliceControlGroup);
         comboBox->setObjectName(QString::fromUtf8("comboBox"));
         comboBox->setFont(font);
 
-        gridLayout->addWidget(comboBox, 0, 1, 1, 1);
+        sliceControlLayout->addWidget(comboBox, 0, 1, 1, 1);
 
-        label = new QLabel(widget);
-        label->setObjectName(QString::fromUtf8("label"));
-        label->setMinimumSize(QSize(70, 25));
-        label->setMaximumSize(QSize(70, 25));
-        label->setFont(font);
+        Btn_AddNew = new QPushButton(sliceControlGroup);
+        Btn_AddNew->setObjectName(QString::fromUtf8("Btn_AddNew"));
+        Btn_AddNew->setMinimumSize(QSize(120, 0));
+        Btn_AddNew->setMaximumSize(QSize(60, 30));
 
-        gridLayout->addWidget(label, 0, 0, 1, 1);
+        sliceControlLayout->addWidget(Btn_AddNew, 0, 2, 1, 1);
 
-        label_ValueLocation = new QLabel(widget);
-        label_ValueLocation->setObjectName(QString::fromUtf8("label_ValueLocation"));
+        checkBox = new QCheckBox(sliceControlGroup);
+        checkBox->setObjectName(QString::fromUtf8("checkBox"));
 
-        gridLayout->addWidget(label_ValueLocation, 2, 2, 1, 1);
+        sliceControlLayout->addWidget(checkBox, 0, 3, 1, 1);
 
-        Combo_SLiceLocation = new QComboBox(widget);
+        label_SLoaction = new QLabel(sliceControlGroup);
+        label_SLoaction->setObjectName(QString::fromUtf8("label_SLoaction"));
+        label_SLoaction->setFont(font);
+
+        sliceControlLayout->addWidget(label_SLoaction, 1, 0, 1, 1);
+
+        Combo_SLiceLocation = new QComboBox(sliceControlGroup);
         Combo_SLiceLocation->addItem(QString());
         Combo_SLiceLocation->addItem(QString());
         Combo_SLiceLocation->addItem(QString());
         Combo_SLiceLocation->setObjectName(QString::fromUtf8("Combo_SLiceLocation"));
 
-        gridLayout->addWidget(Combo_SLiceLocation, 1, 1, 1, 1);
+        sliceControlLayout->addWidget(Combo_SLiceLocation, 1, 1, 1, 2);
 
-        checkBox = new QCheckBox(widget);
-        checkBox->setObjectName(QString::fromUtf8("checkBox"));
-
-        gridLayout->addWidget(checkBox, 1, 3, 1, 1);
-
-        horizontalSlider = new QSlider(widget);
+        sliderLayout = new QHBoxLayout();
+        sliderLayout->setObjectName(QString::fromUtf8("sliderLayout"));
+        horizontalSlider = new QSlider(sliceControlGroup);
         horizontalSlider->setObjectName(QString::fromUtf8("horizontalSlider"));
         horizontalSlider->setOrientation(Qt::Horizontal);
 
-        gridLayout->addWidget(horizontalSlider, 2, 1, 1, 1);
+        sliderLayout->addWidget(horizontalSlider);
 
-        Btn_ExtractSlice = new QPushButton(widget);
-        Btn_ExtractSlice->setObjectName(QString::fromUtf8("Btn_ExtractSlice"));
+        label_ValueLocation = new QLabel(sliceControlGroup);
+        label_ValueLocation->setObjectName(QString::fromUtf8("label_ValueLocation"));
+        label_ValueLocation->setMinimumSize(QSize(100, 0));
 
-        gridLayout->addWidget(Btn_ExtractSlice, 2, 3, 1, 1);
+        sliderLayout->addWidget(label_ValueLocation);
 
-        Btn_AddNew = new QPushButton(widget);
-        Btn_AddNew->setObjectName(QString::fromUtf8("Btn_AddNew"));
-        Btn_AddNew->setMinimumSize(QSize(40, 25));
-        Btn_AddNew->setMaximumSize(QSize(40, 25));
-        Btn_AddNew->setFont(font);
+        Btn_SetPosition = new QPushButton(sliceControlGroup);
+        Btn_SetPosition->setObjectName(QString::fromUtf8("Btn_SetPosition"));
 
-        gridLayout->addWidget(Btn_AddNew, 0, 2, 1, 1);
+        sliderLayout->addWidget(Btn_SetPosition);
 
-        lab_MapVariable = new QLabel(CutplaneDialog);
+
+        sliceControlLayout->addLayout(sliderLayout, 2, 0, 1, 4);
+
+
+        mainLayout->addWidget(sliceControlGroup);
+
+        mappingGroup = new QGroupBox(CutplaneDialog);
+        mappingGroup->setObjectName(QString::fromUtf8("mappingGroup"));
+        mappingLayout = new QHBoxLayout(mappingGroup);
+        mappingLayout->setObjectName(QString::fromUtf8("mappingLayout"));
+        mappingLayout->setContentsMargins(20, -1, 20, -1);
+        lab_MapVariable = new QLabel(mappingGroup);
         lab_MapVariable->setObjectName(QString::fromUtf8("lab_MapVariable"));
-        lab_MapVariable->setGeometry(QRect(20, 230, 151, 16));
         lab_MapVariable->setFont(font);
-        Combo_SekectMapVariable = new QComboBox(CutplaneDialog);
+
+        mappingLayout->addWidget(lab_MapVariable);
+
+        Combo_SekectMapVariable = new QComboBox(mappingGroup);
         Combo_SekectMapVariable->setObjectName(QString::fromUtf8("Combo_SekectMapVariable"));
-        Combo_SekectMapVariable->setGeometry(QRect(180, 230, 171, 23));
+        Combo_SekectMapVariable->setMinimumSize(QSize(200, 0));
+
+        mappingLayout->addWidget(Combo_SekectMapVariable);
+
+        mappingSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        mappingLayout->addItem(mappingSpacer);
+
+
+        mainLayout->addWidget(mappingGroup);
+
+        colorMapGroup = new QGroupBox(CutplaneDialog);
+        colorMapGroup->setObjectName(QString::fromUtf8("colorMapGroup"));
+        colorMapLayout = new QVBoxLayout(colorMapGroup);
+        colorMapLayout->setObjectName(QString::fromUtf8("colorMapLayout"));
+        colorMapLayout->setContentsMargins(20, -1, 20, -1);
+        colorSchemeLayout = new QHBoxLayout();
+        colorSchemeLayout->setObjectName(QString::fromUtf8("colorSchemeLayout"));
+        lab_ContourType = new QLabel(colorMapGroup);
+        lab_ContourType->setObjectName(QString::fromUtf8("lab_ContourType"));
+        lab_ContourType->setFont(font);
+
+        colorSchemeLayout->addWidget(lab_ContourType);
+
+        Combo_ContourType = new QComboBox(colorMapGroup);
+        Combo_ContourType->setObjectName(QString::fromUtf8("Combo_ContourType"));
+        Combo_ContourType->setMinimumSize(QSize(300, 0));
+
+        colorSchemeLayout->addWidget(Combo_ContourType);
+
+
+        colorMapLayout->addLayout(colorSchemeLayout);
+
+        distributionLayout = new QHBoxLayout();
+        distributionLayout->setObjectName(QString::fromUtf8("distributionLayout"));
+        label_3 = new QLabel(colorMapGroup);
+        label_3->setObjectName(QString::fromUtf8("label_3"));
+        label_3->setFont(font);
+
+        distributionLayout->addWidget(label_3);
+
+        Check_Banded = new QCheckBox(colorMapGroup);
+        Check_Banded->setObjectName(QString::fromUtf8("Check_Banded"));
+
+        distributionLayout->addWidget(Check_Banded);
+
+        Check_Continuous = new QCheckBox(colorMapGroup);
+        Check_Continuous->setObjectName(QString::fromUtf8("Check_Continuous"));
+
+        distributionLayout->addWidget(Check_Continuous);
+
+        distributionSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        distributionLayout->addItem(distributionSpacer);
+
+
+        colorMapLayout->addLayout(distributionLayout);
+
+
+        mainLayout->addWidget(colorMapGroup);
+
+        contoursGroup = new QGroupBox(CutplaneDialog);
+        contoursGroup->setObjectName(QString::fromUtf8("contoursGroup"));
+        contoursLayout = new QGridLayout(contoursGroup);
+        contoursLayout->setSpacing(10);
+        contoursLayout->setObjectName(QString::fromUtf8("contoursLayout"));
+        contoursLayout->setContentsMargins(20, -1, 20, -1);
+        label_5 = new QLabel(contoursGroup);
+        label_5->setObjectName(QString::fromUtf8("label_5"));
+        label_5->setFont(font);
+
+        contoursLayout->addWidget(label_5, 0, 0, 1, 1);
+
+        LnEdit_Min = new QLineEdit(contoursGroup);
+        LnEdit_Min->setObjectName(QString::fromUtf8("LnEdit_Min"));
+        LnEdit_Min->setMaximumSize(QSize(120, 16777215));
+
+        contoursLayout->addWidget(LnEdit_Min, 0, 1, 1, 1);
+
+        label_6 = new QLabel(contoursGroup);
+        label_6->setObjectName(QString::fromUtf8("label_6"));
+        label_6->setFont(font);
+
+        contoursLayout->addWidget(label_6, 0, 2, 1, 1);
+
+        LnEdit_Max = new QLineEdit(contoursGroup);
+        LnEdit_Max->setObjectName(QString::fromUtf8("LnEdit_Max"));
+        LnEdit_Max->setMaximumSize(QSize(120, 16777215));
+
+        contoursLayout->addWidget(LnEdit_Max, 0, 3, 1, 1);
+
+        label_7 = new QLabel(contoursGroup);
+        label_7->setObjectName(QString::fromUtf8("label_7"));
+        label_7->setFont(font);
+
+        contoursLayout->addWidget(label_7, 1, 0, 1, 1);
+
+        LnEdit_Numbers = new QLineEdit(contoursGroup);
+        LnEdit_Numbers->setObjectName(QString::fromUtf8("LnEdit_Numbers"));
+        LnEdit_Numbers->setMaximumSize(QSize(120, 16777215));
+
+        contoursLayout->addWidget(LnEdit_Numbers, 1, 1, 1, 1);
+
+        contoursSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        contoursLayout->addItem(contoursSpacer, 1, 2, 1, 2);
+
+
+        mainLayout->addWidget(contoursGroup);
+
+        verticalSpacer = new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        mainLayout->addItem(verticalSpacer);
+
+        buttonBox = new QDialogButtonBox(CutplaneDialog);
+        buttonBox->setObjectName(QString::fromUtf8("buttonBox"));
+        buttonBox->setOrientation(Qt::Horizontal);
+        buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+
+        mainLayout->addWidget(buttonBox);
+
 
         retranslateUi(CutplaneDialog);
         QObject::connect(buttonBox, SIGNAL(accepted()), CutplaneDialog, SLOT(accept()));
@@ -193,25 +297,88 @@ public:
     void retranslateUi(QDialog *CutplaneDialog)
     {
         CutplaneDialog->setWindowTitle(QCoreApplication::translate("CutplaneDialog", "Slice Details", nullptr));
-        lab_ContourType->setText(QCoreApplication::translate("CutplaneDialog", "Color Map Option :", nullptr));
-        label_3->setText(QCoreApplication::translate("CutplaneDialog", "Color Map Distribution Method :", nullptr));
-        Check_Banded->setText(QCoreApplication::translate("CutplaneDialog", "Banded", nullptr));
-        Check_Continuous->setText(QCoreApplication::translate("CutplaneDialog", "Continuous", nullptr));
-        label_4->setText(QCoreApplication::translate("CutplaneDialog", "Contours Level :", nullptr));
-        label_5->setText(QCoreApplication::translate("CutplaneDialog", "Minium :", nullptr));
-        label_6->setText(QCoreApplication::translate("CutplaneDialog", "Maxium :", nullptr));
-        label_7->setText(QCoreApplication::translate("CutplaneDialog", "Numbers :", nullptr));
-        label_SLoaction->setText(QCoreApplication::translate("CutplaneDialog", "Slice Locations", nullptr));
+        CutplaneDialog->setStyleSheet(QCoreApplication::translate("CutplaneDialog", "QDialog {\n"
+"    background-color: #f5f5f5;\n"
+"}\n"
+"QGroupBox {\n"
+"    font-weight: bold;\n"
+"    border: 2px solid #cccccc;\n"
+"    border-radius: 8px;\n"
+"    margin-top: 1ex;\n"
+"    padding-top: 10px;\n"
+"}\n"
+"QGroupBox::title {\n"
+"    subcontrol-origin: margin;\n"
+"    left: 10px;\n"
+"    padding: 0 5px 0 5px;\n"
+"}\n"
+"QLabel {\n"
+"    color: #333333;\n"
+"}\n"
+"QPushButton {\n"
+"    background-color: #5DADE2;\n"
+"    border: none;\n"
+"    color: white;\n"
+"    padding: 8px 16px;\n"
+"    border-radius: 4px;\n"
+"    font-weight: bold;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #3498db;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #2980b9;\n"
+"}\n"
+"QComboBox, QLineEdit {\n"
+"    border: 1px solid #ddd;\n"
+"    border-radius: 4px;\n"
+"    padding: 4px;\n"
+"    background-color: white;\n"
+"}\n"
+"QComboBox:focus, QLineEdit:focus {\n"
+"    border-color: #2980b9;\n"
+"}\n"
+"QSlider::groove:horizontal {\n"
+"    border: 1px solid #999999;\n"
+"    height: 8px;\n"
+"    background: qli"
+                        "neargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);\n"
+"    margin: 2px 0;\n"
+"    border-radius: 4px;\n"
+"}\n"
+"QSlider::handle:horizontal {\n"
+"    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);\n"
+"    border: 1px solid #5c5c5c;\n"
+"    width: 18px;\n"
+"    margin: -2px 0;\n"
+"    border-radius: 9px;\n"
+"}", nullptr));
+        sliceControlGroup->setTitle(QCoreApplication::translate("CutplaneDialog", "Slice Control", nullptr));
         label->setText(QCoreApplication::translate("CutplaneDialog", "Slice No:", nullptr));
-        label_ValueLocation->setText(QCoreApplication::translate("CutplaneDialog", "Value : 0.0000", nullptr));
+        Btn_AddNew->setText(QCoreApplication::translate("CutplaneDialog", "Extract Slices", nullptr));
+        checkBox->setText(QCoreApplication::translate("CutplaneDialog", "Show Primary Slice", nullptr));
+        label_SLoaction->setText(QCoreApplication::translate("CutplaneDialog", "Slice Locations:", nullptr));
         Combo_SLiceLocation->setItemText(0, QCoreApplication::translate("CutplaneDialog", "X-Planes", nullptr));
         Combo_SLiceLocation->setItemText(1, QCoreApplication::translate("CutplaneDialog", "Y-Planes", nullptr));
         Combo_SLiceLocation->setItemText(2, QCoreApplication::translate("CutplaneDialog", "Z-Planes", nullptr));
 
-        checkBox->setText(QCoreApplication::translate("CutplaneDialog", "Show Primary Slice", nullptr));
-        Btn_ExtractSlice->setText(QCoreApplication::translate("CutplaneDialog", "Extract Slices", nullptr));
-        Btn_AddNew->setText(QCoreApplication::translate("CutplaneDialog", "new", nullptr));
-        lab_MapVariable->setText(QCoreApplication::translate("CutplaneDialog", "Mapping Variable :", nullptr));
+        label_ValueLocation->setText(QCoreApplication::translate("CutplaneDialog", "X: 0.0801", nullptr));
+        Btn_SetPosition->setText(QCoreApplication::translate("CutplaneDialog", "Set Position", nullptr));
+        mappingGroup->setTitle(QCoreApplication::translate("CutplaneDialog", "Mapping Variable", nullptr));
+        lab_MapVariable->setText(QCoreApplication::translate("CutplaneDialog", "Variable:", nullptr));
+        colorMapGroup->setTitle(QCoreApplication::translate("CutplaneDialog", "Color Map Options", nullptr));
+        lab_ContourType->setText(QCoreApplication::translate("CutplaneDialog", "Color Scheme:", nullptr));
+        label_3->setText(QCoreApplication::translate("CutplaneDialog", "Distribution Method:", nullptr));
+        Check_Banded->setText(QCoreApplication::translate("CutplaneDialog", "Banded", nullptr));
+        Check_Continuous->setText(QCoreApplication::translate("CutplaneDialog", "Continuous", nullptr));
+        contoursGroup->setTitle(QCoreApplication::translate("CutplaneDialog", "Contours Level", nullptr));
+        label_5->setText(QCoreApplication::translate("CutplaneDialog", "Minimum:", nullptr));
+        LnEdit_Min->setInputMask(QString());
+        LnEdit_Min->setText(QCoreApplication::translate("CutplaneDialog", "0.0", nullptr));
+        label_6->setText(QCoreApplication::translate("CutplaneDialog", "Maximum:", nullptr));
+        LnEdit_Max->setText(QCoreApplication::translate("CutplaneDialog", "10.0", nullptr));
+        label_7->setText(QCoreApplication::translate("CutplaneDialog", "Numbers:", nullptr));
+        LnEdit_Numbers->setText(QCoreApplication::translate("CutplaneDialog", "10", nullptr));
     } // retranslateUi
 
 };
