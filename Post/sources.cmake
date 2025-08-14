@@ -12,6 +12,7 @@ list(APPEND QT_POST_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/ScaleFactorDialog.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ConstHeightPlaneDialog.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ConstSettingDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ControlPanel.cpp
 )
 
 list(APPEND QT_POST_MAIN_SRC

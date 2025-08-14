@@ -332,12 +332,18 @@ QSlider::handle:horizontal {
           <property name="text">
            <string>Banded</string>
           </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="Check_Continuous">
           <property name="text">
            <string>Continuous</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -423,7 +429,7 @@ QSlider::handle:horizontal {
          </size>
         </property>
         <property name="text">
-         <string>10.0</string>
+         <string>2.0</string>
         </property>
        </widget>
       </item>

@@ -208,11 +208,13 @@ public:
 
         Check_Banded = new QCheckBox(colorMapGroup);
         Check_Banded->setObjectName(QString::fromUtf8("Check_Banded"));
+        Check_Banded->setChecked(true);
 
         distributionLayout->addWidget(Check_Banded);
 
         Check_Continuous = new QCheckBox(colorMapGroup);
         Check_Continuous->setObjectName(QString::fromUtf8("Check_Continuous"));
+        Check_Continuous->setChecked(false);
 
         distributionLayout->addWidget(Check_Continuous);
 
@@ -376,7 +378,7 @@ public:
         LnEdit_Min->setInputMask(QString());
         LnEdit_Min->setText(QCoreApplication::translate("CutplaneDialog", "0.0", nullptr));
         label_6->setText(QCoreApplication::translate("CutplaneDialog", "Maximum:", nullptr));
-        LnEdit_Max->setText(QCoreApplication::translate("CutplaneDialog", "10.0", nullptr));
+        LnEdit_Max->setText(QCoreApplication::translate("CutplaneDialog", "2.0", nullptr));
         label_7->setText(QCoreApplication::translate("CutplaneDialog", "Numbers:", nullptr));
         LnEdit_Numbers->setText(QCoreApplication::translate("CutplaneDialog", "10", nullptr));
     } // retranslateUi

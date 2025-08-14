@@ -319,7 +319,7 @@ public:
 
         selectBoundaryButton = new QPushButton(scrollAreaWidgetContents_2);
         selectBoundaryButton->setObjectName(QString::fromUtf8("selectBoundaryButton"));
-        selectBoundaryButton->setGeometry(QRect(9, 302, 121, 26));
+        selectBoundaryButton->setGeometry(QRect(9, 302, 131, 26));
         selectBoundaryButton->setFont(font);
         label_4 = new QLabel(scrollAreaWidgetContents_2);
         label_4->setObjectName(QString::fromUtf8("label_4"));
@@ -623,7 +623,7 @@ public:
         vectorCheckBox->setText(QCoreApplication::translate("MainWindow", "Vector", nullptr));
         contourSettingButton->setText(QString());
         vectorSettingButton->setText(QString());
-        selectBoundaryButton->setText(QCoreApplication::translate("MainWindow", "Select Actor..", nullptr));
+        selectBoundaryButton->setText(QCoreApplication::translate("MainWindow", "Control Panel", nullptr));
         label_4->setText(QCoreApplication::translate("MainWindow", "Show derived object", nullptr));
         slicesCheckBox->setText(QCoreApplication::translate("MainWindow", "Slices", nullptr));
         isoSurfaceCheckBox->setText(QCoreApplication::translate("MainWindow", "Iso-Surfaces", nullptr));

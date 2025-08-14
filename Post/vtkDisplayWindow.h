@@ -128,7 +128,7 @@ public:
     void AddNewCutplane();
     void AddNewCutplane(double* origin, double* normal);
     void SetCutplane(int cutplaneNumber, double *origin, double *normal);
-    void SetCutplaneColorMapping(double minValue, double maxValue, int numberOfColors);
+    void SetCutplaneColorMapping(double minValue, double maxValue, int numberOfColors,bool isBanded);
     void UpdateCutplaneColorMapping();
     DerivedObject::CutplaneColorMapping GetCutplaneColorMapping();
     void SetCutplaneColorScheme(int schemeIndex);  // 设置切片颜色方案

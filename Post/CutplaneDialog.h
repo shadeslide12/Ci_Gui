@@ -33,11 +33,15 @@ private slots:
     void on_Btn_SetPosition_clicked();
     void on_Btn_AddNew_clicked();
 
+    void on_Check_Banded_toggled(bool checked);
+    void on_Check_Continuous_toggled(bool checked);
+
+
 signals:
     void finishSetParameters(double*, double*, int);
     void createNewCutplane(double*, double*);
     void sliceLocation(double,int);
-    void colorMappingChanged(double minValue, double maxValue, int numberOfColors);
+    void colorMappingChanged(double minValue, double maxValue, int numberOfColors,bool isBanded);
     void colorSchemeChanged(int schemeIndex);  // 颜色方案变化信号
 
 private:
@@ -59,4 +63,5 @@ private:
     // 根据滑块值设置切面位置
     void setPlanePosition(double value);
     void onColorMappingChanged();
+    bool isBaned = 1;
 };

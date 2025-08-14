@@ -10,6 +10,7 @@
 #include "IsoSurfaceDialog.h"
 #include "CutplaneDialog.h"
 #include "ScaleFactorDialog.h"
+#include "ControlPanel.h"
 #include "ConstHeightPlaneDialog.h"
 #include "MeridionalPlaneDialog.h"
 #include "ConstSettingDialog.h"
@@ -99,7 +100,7 @@ private slots:
     void slicesSettingButtonTriggered();
     void changeCutplane(double*,double*,int);
     void makeNewCutplane(double* origin, double* normal);
-    void updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors);
+    void updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors, bool isBanded);
     void showCutplane(int, bool);
 
     void MeridionalButtonTriggered();
@@ -136,4 +137,5 @@ private:
 
     //* test
     void CreateCutPreview();
+    ControlPanel* controlPanel = nullptr;
 };

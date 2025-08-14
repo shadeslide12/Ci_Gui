@@ -474,7 +474,7 @@
             <rect>
              <x>9</x>
              <y>302</y>
-             <width>121</width>
+             <width>131</width>
              <height>26</height>
             </rect>
            </property>
@@ -486,7 +486,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Select Actor..</string>
+            <string>Control Panel</string>
            </property>
           </widget>
           <widget class="QLabel" name="label_4">

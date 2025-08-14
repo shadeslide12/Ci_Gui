@@ -496,14 +496,15 @@ void MainWindow::createNewVector(int *v)
 
 void MainWindow::selectBoundaryButtonTriggeded()
 {
-    if (selectBoundaryDialog == nullptr)
+    //* Test Control Panel
+    std::cout << "Control Test "<< std::endl;
+    if (controlPanel == nullptr)
     {
-        selectBoundaryDialog = new SelectBoundaryDialog(this);
-        connect(selectBoundaryDialog, SIGNAL(setBoundarys(int,int,bool)), this, SLOT(showBoundaryActor(int,int,bool)));
-        selectBoundaryDialog->setWindowModality(Qt::ApplicationModal);
-        selectBoundaryDialog->setSelectBoundaryDialog(qtvtkWindow->GetBoundaryDatasets());
+        controlPanel = new ControlPanel(this);
+        controlPanel->setupTable(qtvtkWindow->GetBoundaryDatasets());
+        //controlPanel->setWindowModality(Qt::ApplicationModal);
     }
-    selectBoundaryDialog->show();
+    controlPanel->show();
     
 }
 
@@ -663,27 +664,27 @@ void MainWindow::makeNewCutplane(double* origin, double* normal)
     qtvtkWindow->AddNewCutplane(origin, normal);
     
     // 检查selectBoundaryDialog是否为空，如果为空则初始化它
-    if (selectBoundaryDialog == nullptr)
-    {
-        selectBoundaryDialog = new SelectBoundaryDialog(this);
-        connect(selectBoundaryDialog, SIGNAL(setBoundarys(int,int,bool)), this, SLOT(showBoundaryActor(int,int,bool)));
-        connect(selectBoundaryDialog, SIGNAL(setCutplaneVisiable(int, bool)), this, SLOT(showCutplane(int, bool)));
-        selectBoundaryDialog->setWindowModality(Qt::ApplicationModal);
-        
-        // 如果有边界数据，初始化边界列表
-        if (!qtvtkWindow->GetBoundaryDatasets().empty())
-        {
-            selectBoundaryDialog->setSelectBoundaryDialog(qtvtkWindow->GetBoundaryDatasets());
-        }
-        
-        // 初始化切面列表
-        selectBoundaryDialog->setSelectCutplaneItems();
-    }
-    else
-    {
-        // 如果selectBoundaryDialog已存在，只添加新的切面项
-        selectBoundaryDialog->addCutplaneItem();
-    }
+    // if (selectBoundaryDialog == nullptr)
+    // {
+    //     selectBoundaryDialog = new SelectBoundaryDialog(this);
+    //     connect(selectBoundaryDialog, SIGNAL(setBoundarys(int,int,bool)), this, SLOT(showBoundaryActor(int,int,bool)));
+    //     connect(selectBoundaryDialog, SIGNAL(setCutplaneVisiable(int, bool)), this, SLOT(showCutplane(int, bool)));
+    //     selectBoundaryDialog->setWindowModality(Qt::ApplicationModal);
+    //
+    //     // 如果有边界数据，初始化边界列表
+    //     if (!qtvtkWindow->GetBoundaryDatasets().empty())
+    //     {
+    //         selectBoundaryDialog->setSelectBoundaryDialog(qtvtkWindow->GetBoundaryDatasets());
+    //     }
+    //
+    //     // 初始化切面列表
+    //     selectBoundaryDialog->setSelectCutplaneItems();
+    // }
+    // else
+    // {
+    //     // 如果selectBoundaryDialog已存在，只添加新的切面项
+    //     selectBoundaryDialog->addCutplaneItem();
+    // }
     
     cout << "add new cut plane with origin(" << origin[0] << ", " << origin[1] << ", " << origin[2] 
          << ") normal(" << normal[0] << ", " << normal[1] << ", " << normal[2] << ")" << endl;
@@ -914,9 +915,9 @@ void MainWindow::ChangeMeridionalPlaneFlow(int flow)
     MeridionalrenderWindow->Render();
 }
 
-void MainWindow::updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors)
+void MainWindow::updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors,bool isBaned)
 {
-    qtvtkWindow->SetCutplaneColorMapping(minValue, maxValue, numberOfColors);
+    qtvtkWindow->SetCutplaneColorMapping(minValue, maxValue, numberOfColors,isBaned);
     ui->vtkBox->renderWindow()->Render();
 }
 

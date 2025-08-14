@@ -4,6 +4,7 @@
 using std::stod;
 using std::string;
 #include <iostream>
+#include <QButtonGroup>
 using std::cout;
 using std::endl;
 
@@ -40,6 +41,12 @@ CutplaneDialog::CutplaneDialog(QWidget *parent): QDialog(parent),ui(new Ui::Cutp
     ui->horizontalSlider->setValue(50);
 
     updateValueLabel(0.0);
+
+    //* Set Group Of Color Method
+    QButtonGroup *group_ColorMethod = new QButtonGroup(this);
+    group_ColorMethod->setExclusive(true);
+    group_ColorMethod->addButton(ui->Check_Banded);
+    group_ColorMethod->addButton(ui->Check_Continuous);
 }
 
 CutplaneDialog::~CutplaneDialog()
@@ -236,7 +243,7 @@ void CutplaneDialog::onColorMappingChanged()
     }
     
     // 发送颜色映射变化信号（共享给所有cutplane）
-    emit colorMappingChanged(minValue, maxValue, numberOfColors);
+    emit colorMappingChanged(minValue, maxValue, numberOfColors,isBaned);
     
     std::cout << "[Debug] Shared cutplane color mapping changed: range[" 
               << minValue << ", " << maxValue 
@@ -266,4 +273,14 @@ void CutplaneDialog::on_Btn_AddNew_clicked() {
           << curOrigin[0] << ", " << curOrigin[1] << ", " << curOrigin[2]
           << ") normal: (" << curNormal[0] << ", " << curNormal[1] << ", " << curNormal[2] << ")" << std::endl;
     emit(createNewCutplane(curOrigin, curNormal));
+}
+
+void CutplaneDialog::on_Check_Banded_toggled(bool checked){
+    if (checked)
+        isBaned =1 ;
+}
+
+void CutplaneDialog::on_Check_Continuous_toggled(bool checked){
+    if (checked)
+        isBaned =0;
 }

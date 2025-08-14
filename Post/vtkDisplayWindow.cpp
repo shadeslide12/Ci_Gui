@@ -603,7 +603,7 @@ void vtkDisplayWindow::AddNewCutplane(double* origin, double* normal)
         }
         
         deriveds.cutplaneLookupTable = vtkSmartPointer<vtkLookupTable>::New();
-        deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+        deriveds.cutplaneLookupTable->SetNumberOfTableValues(10);
         deriveds.cutplaneLookupTable->SetRange(flows[curFlow].range);
         deriveds.cutplaneLookupTable->SetHueRange(0.6667, 0.0);  // 蓝到红渐变，与主模型一致
         deriveds.cutplaneLookupTable->Build();
@@ -1040,7 +1040,7 @@ void vtkDisplayWindow::HidePlanePreview()
     }
 }
 
-void vtkDisplayWindow::SetCutplaneColorMapping(double minValue, double maxValue, int numberOfColors)
+void vtkDisplayWindow::SetCutplaneColorMapping(double minValue, double maxValue, int numberOfColors,bool isBanded)
 {
     if (!deriveds.cutplaneLookupTable) {
         std::cerr << "No cutplane LookupTable exists" << std::endl;
@@ -1050,9 +1050,11 @@ void vtkDisplayWindow::SetCutplaneColorMapping(double minValue, double maxValue,
     // 更新颜色映射参数
     deriveds.cutplaneColorMapping.minValue = minValue;
     deriveds.cutplaneColorMapping.maxValue = maxValue;
-    deriveds.cutplaneColorMapping.numberOfColors = numberOfColors;
     deriveds.cutplaneColorMapping.useCustomRange = true;
-    
+    if (isBanded)
+        deriveds.cutplaneColorMapping.numberOfColors = numberOfColors;
+    else
+        deriveds.cutplaneColorMapping.numberOfColors = 256;
     // 更新LookupTable
     UpdateCutplaneColorMapping();
 }
