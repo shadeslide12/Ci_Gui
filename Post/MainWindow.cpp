@@ -501,9 +501,14 @@ void MainWindow::selectBoundaryButtonTriggeded()
     if (controlPanel == nullptr)
     {
         controlPanel = new ControlPanel(this);
-        controlPanel->setupTable(qtvtkWindow->GetBoundaryDatasets());
-        //controlPanel->setWindowModality(Qt::ApplicationModal);
+        controlPanel->setWindowModality(Qt::ApplicationModal);
+        
+        connect(controlPanel, SIGNAL(setBoundarys(int,int,bool)), this, SLOT(showBoundaryActor(int,int,bool)));
     }
+    
+    auto boundaryData = qtvtkWindow->GetBoundaryDatasets();
+    controlPanel->setupTable(boundaryData);
+    
     controlPanel->show();
     
 }

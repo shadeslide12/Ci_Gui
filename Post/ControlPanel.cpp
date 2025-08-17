@@ -20,36 +20,31 @@ void ControlPanel::setupTable(std::vector<std::vector<vtkAesReader::Boundary>> b
     ui->dataTable->setColumnWidth(5, 100);   
     ui->dataTable->setColumnWidth(6, 100);   
 
-    // 收集所有的boundary信息
+    //* 收集所有的boundary信息
     QStringList zoneNumbers;
     QStringList boundaryNames;
-    QStringList zoneNames;
     
     int boundaryCount = 0;
     
-    // 遍历所有Zone
+    // 清空之前的索引信息
+    boundaryIndices.clear();
+    
     for (int i = 0; i < boundarys.size(); i++) {
-        // 遍历每个Zone内的所有Boundary
         for (int j = 0; j < boundarys[i].size(); j++) {
             boundaryCount++;
             
-            // Zone Number - 使用连续编号
             zoneNumbers.append(QString("%1*").arg(boundaryCount));
             
-            // Boundary Name - 使用实际的boundary名称（第二层），使用c_str()方法
-            QString boundaryName = QString(boundarys[i][j].name.c_str()).trimmed();
-
-            boundaryNames.append(boundaryName);
-            
-            // Zone Name - 使用Zone名称（第一层），使用c_str()方法
             QString zoneName = QString(boundarys[i][j].zoneName.c_str()).trimmed();
+            QString boundaryName = QString(boundarys[i][j].name.c_str()).trimmed();
+            
+            // 创建zone->boundary格式的名称
+            QString combinedName = QString("%1->%2").arg(zoneName).arg(boundaryName);
 
-            zoneNames.append(zoneName);
-
-            // 在循环中添加调试输出
-            std::cout << "Zone " << i << ", Boundary " << j 
-            << ": name='" << boundarys[i][j].name 
-            << "', zoneName='" << boundarys[i][j].zoneName << "'" << std::endl;
+            boundaryNames.append(combinedName);
+            
+            // 存储boundary索引信息
+            boundaryIndices.push_back(std::make_pair(i, j));
         }
     }
     
@@ -58,32 +53,38 @@ void ControlPanel::setupTable(std::vector<std::vector<vtkAesReader::Boundary>> b
     
     // 填充表格
     for (int row = 0; row < boundaryCount; ++row) {
-        // Zone Number
+        //* Set Zone Number
         QTableWidgetItem* zoneNumItem = new QTableWidgetItem(zoneNumbers[row]);
         zoneNumItem->setTextAlignment(Qt::AlignCenter);
         ui->dataTable->setItem(row, 0, zoneNumItem);
         
-        // Zone Name - 显示实际的boundary名称
+        //* Set Zone Name 
         QTableWidgetItem* zoneNameItem = new QTableWidgetItem(boundaryNames[row]);
         ui->dataTable->setItem(row, 1, zoneNameItem);
         
-        // Group Number
+        //* Set Group Number
         QTableWidgetItem* groupNumItem = new QTableWidgetItem("Main Model");
         groupNumItem->setTextAlignment(Qt::AlignCenter);
         ui->dataTable->setItem(row, 2, groupNumItem);
         
-        // Show Zone (复选框)
-        ui->dataTable->setCellWidget(row, 3, createCheckBoxWidget(true));
+        QWidget* checkBoxWidget = createCheckBoxWidget(true);
+        QCheckBox* checkBox = checkBoxWidget->findChild<QCheckBox*>();
+        if (checkBox) {
+            // 设置复选框的属性，用于识别对应的boundary
+            checkBox->setProperty("boundaryRow", row);
+            connect(checkBox, &QCheckBox::toggled, this, &ControlPanel::onShowZoneCheckBoxToggled);
+        }
+        ui->dataTable->setCellWidget(row, 3, checkBoxWidget);
         
-        // Contour Mode (下拉框)
+        //* Set Contour Mode 
         ui->dataTable->setCellWidget(row, 4, createComboBoxWidget());
         
-        // Transculency
+        //* Set Transculency
         QTableWidgetItem* transculencyItem = new QTableWidgetItem("0.5");
         transculencyItem->setTextAlignment(Qt::AlignCenter);
         ui->dataTable->setItem(row, 5, transculencyItem);
         
-        // Zone Delete (按钮)
+        //* Set Delete Button
         ui->dataTable->setCellWidget(row, 6, createDeleteButtonWidget());
     }
 }
@@ -130,4 +131,24 @@ QWidget* ControlPanel::createDeleteButtonWidget()
     layout->setContentsMargins(0, 0, 0, 0);
     
     return widget;
+}
+
+void ControlPanel::onShowZoneCheckBoxToggled(bool checked)
+{
+    // 获取发送信号的复选框
+    QCheckBox* checkBox = qobject_cast<QCheckBox*>(sender());
+    if (!checkBox) return;
+    
+    // 获取对应的boundary行号
+    int row = checkBox->property("boundaryRow").toInt();
+    
+    // 检查行号是否有效
+    if (row < 0 || row >= boundaryIndices.size()) return;
+    
+    // 获取对应的mesh和boundary索引
+    int meshNumber = boundaryIndices[row].first;
+    int boundaryNumber = boundaryIndices[row].second;
+    
+    // 发送信号控制boundary可见性
+    emit setBoundarys(meshNumber, boundaryNumber, checked);
 }
