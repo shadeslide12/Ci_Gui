@@ -672,34 +672,17 @@ void vtkDisplayWindow::RemoveCutplane(int number)
     deriveds.cutplaneActors[number]->VisibilityOff();
 }
 
-void vtkDisplayWindow::SetActorTransparancy(bool flag)
+void vtkDisplayWindow::SetActorTransparancy(double opacity)
 {
-    if (flag)
+    for (auto &x : boundarys)
     {
-        for (auto &x : boundarys)
+        for (auto &y : x)
         {
-            for (auto &y : x)
-            {
-                y.contourActor->GetProperty()->SetOpacity(0.5);
-                y.shadeActor->GetProperty()->SetOpacity(0.5);
-            }
+            y.contourActor->GetProperty()->SetOpacity(opacity);
+            y.shadeActor->GetProperty()->SetOpacity(opacity);
         }
-        vtkObject::GlobalWarningDisplayOff();
-        cout << "there are some opengl warnings ignored. maybe fix sometimes." << endl;
     }
-    else
-    {
-        for (auto &x : boundarys)
-        {
-            for (auto &y : x)
-            {
-                y.contourActor->GetProperty()->SetOpacity(1);  
-                y.shadeActor->GetProperty()->SetOpacity(1);
-            }
-        }
-        vtkObject::GlobalWarningDisplayOn();
-
-    }
+    std::cout<< "[Debug] SetActorTransparancy "<<std::endl;
 }
 
 void vtkDisplayWindow::SetActorLighting(bool flag)

@@ -511,7 +511,7 @@ void MainWindow::selectBoundaryButtonTriggeded()
         connect(controlPanel, &ControlPanel::setBoundarys, this, &MainWindow::showBoundaryActor);
         // 连接ControlPanel的cutplane控制信号到MainWindow的槽函数
         connect(controlPanel, &ControlPanel::setCutplaneVisiable, this, &MainWindow::showCutplane);
-        connect(controlPanel, &ControlPanel::mainModelTranscluencyChanged, qtvtkWindow, &vtkDisplayWindow::SetActorTransparancy);
+        connect(controlPanel, &ControlPanel::mainModelTranscluencyChanged, this, &vtkDisplayWindow::setMainModelTransparency);
 
     }
     

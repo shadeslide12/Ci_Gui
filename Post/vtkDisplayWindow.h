@@ -137,7 +137,7 @@ public:
     void AddCutplane(int number);
     void RemoveCutplane(int number);    
 
-    void SetActorTransparancy(bool);
+    void SetActorTransparancy(double opacity);
     void SetActorLighting(bool);
 
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> GetRenderWindow(){return renderWindow;}

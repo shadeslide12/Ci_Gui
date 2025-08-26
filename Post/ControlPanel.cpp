@@ -28,6 +28,8 @@ void ControlPanel::setupTable(std::vector<std::vector<vtkAesReader::Boundary>> b
     
     // 清空之前的索引信息
     boundaryIndices.clear();
+    cutplaneInfos.clear();
+    rowTypes.clear();
     
     for (int i = 0; i < boundarys.size(); i++) {
         for (int j = 0; j < boundarys[i].size(); j++) {
@@ -45,6 +47,7 @@ void ControlPanel::setupTable(std::vector<std::vector<vtkAesReader::Boundary>> b
             
             // 存储boundary索引信息
             boundaryIndices.push_back(std::make_pair(i, j));
+            rowTypes.push_back(BOUNDARY);
         }
     }
     
@@ -79,10 +82,23 @@ void ControlPanel::setupTable(std::vector<std::vector<vtkAesReader::Boundary>> b
         //* Set Contour Mode 
         ui->dataTable->setCellWidget(row, 4, createComboBoxWidget());
         
-        //* Set Transculency
-        QTableWidgetItem* transculencyItem = new QTableWidgetItem("0.5");
-        transculencyItem->setTextAlignment(Qt::AlignCenter);
-        ui->dataTable->setItem(row, 5, transculencyItem);
+        //* Set Transculency - 为Main Model行创建可编辑的SpinBox
+        QWidget* transculencyWidget = new QWidget();
+        QHBoxLayout* transLayout = new QHBoxLayout(transculencyWidget);
+        QDoubleSpinBox* transSpinBox = new QDoubleSpinBox();
+        transSpinBox->setRange(0.0, 1.0);
+        transSpinBox->setSingleStep(0.1);
+        transSpinBox->setValue(1.0);
+        transSpinBox->setDecimals(1);
+        
+        // 连接透明度变化信号
+        connect(transSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
+                this, &ControlPanel::onMainModelTranscluencyChanged);
+        
+        transLayout->addWidget(transSpinBox);
+        transLayout->setAlignment(Qt::AlignCenter);
+        transLayout->setContentsMargins(0, 0, 0, 0);
+        ui->dataTable->setCellWidget(row, 5, transculencyWidget);
         
         //* Set Delete Button
         ui->dataTable->setCellWidget(row, 6, createDeleteButtonWidget());
@@ -139,16 +155,95 @@ void ControlPanel::onShowZoneCheckBoxToggled(bool checked)
     QCheckBox* checkBox = qobject_cast<QCheckBox*>(sender());
     if (!checkBox) return;
     
-    // 获取对应的boundary行号
+    // 获取对应的行号
     int row = checkBox->property("boundaryRow").toInt();
     
     // 检查行号是否有效
-    if (row < 0 || row >= boundaryIndices.size()) return;
+    if (row < 0 || row >= rowTypes.size()) return;
     
-    // 获取对应的mesh和boundary索引
-    int meshNumber = boundaryIndices[row].first;
-    int boundaryNumber = boundaryIndices[row].second;
+    // 根据行类型发送不同的信号
+    if (rowTypes[row] == BOUNDARY) {
+        // 处理boundary
+        if (row >= boundaryIndices.size()) return;
+        
+        int meshNumber = boundaryIndices[row].first;
+        int boundaryNumber = boundaryIndices[row].second;
+        
+        // 发送信号控制boundary可见性
+        emit setBoundarys(meshNumber, boundaryNumber, checked);
+    }
+    else if (rowTypes[row] == CUTPLANE) {
+        // 处理cutplane
+        int cutplaneIndex = row - boundaryIndices.size(); // cutplane在boundary之后
+        if (cutplaneIndex < 0 || cutplaneIndex >= cutplaneInfos.size()) return;
+        
+        int cutplaneNumber = cutplaneInfos[cutplaneIndex].index;
+        
+        // 发送信号控制cutplane可见性
+        emit setCutplaneVisiable(cutplaneNumber, checked);
+    }
+}
+
+void ControlPanel::addCutplaneToTable(int cutplaneIndex, double* origin, double* normal)
+{
+    // 存储cutplane信息
+    CutplaneInfo cutplaneInfo;
+    cutplaneInfo.index = cutplaneIndex;
+    for (int i = 0; i < 3; i++) {
+        cutplaneInfo.origin[i] = origin[i];
+        cutplaneInfo.normal[i] = normal[i];
+    }
+    cutplaneInfos.push_back(cutplaneInfo);
     
-    // 发送信号控制boundary可见性
-    emit setBoundarys(meshNumber, boundaryNumber, checked);
+    // 获取当前行数
+    int currentRowCount = ui->dataTable->rowCount();
+    int newRow = currentRowCount;
+    
+    // 增加一行
+    ui->dataTable->setRowCount(currentRowCount + 1);
+    rowTypes.push_back(CUTPLANE);
+    
+    // 填充cutplane行数据
+    //* Set Zone Number
+    QString cutplaneNumber = QString("S%1*").arg(cutplaneIndex + 1);
+    QTableWidgetItem* zoneNumItem = new QTableWidgetItem(cutplaneNumber);
+    zoneNumItem->setTextAlignment(Qt::AlignCenter);
+    ui->dataTable->setItem(newRow, 0, zoneNumItem);
+    
+    //* Set Zone Name (cutplane信息)
+    QString cutplaneName = QString("Slice_%1").arg(cutplaneIndex + 1);
+    QTableWidgetItem* zoneNameItem = new QTableWidgetItem(cutplaneName);
+    ui->dataTable->setItem(newRow, 1, zoneNameItem);
+    
+    //* Set Group Type
+    QTableWidgetItem* groupNumItem = new QTableWidgetItem("Slice");
+    groupNumItem->setTextAlignment(Qt::AlignCenter);
+    ui->dataTable->setItem(newRow, 2, groupNumItem);
+    
+    //* Set Show Zone checkbox
+    QWidget* checkBoxWidget = createCheckBoxWidget(true);
+    QCheckBox* checkBox = checkBoxWidget->findChild<QCheckBox*>();
+    if (checkBox) {
+        checkBox->setProperty("boundaryRow", newRow);
+        connect(checkBox, &QCheckBox::toggled, this, &ControlPanel::onShowZoneCheckBoxToggled);
+    }
+    ui->dataTable->setCellWidget(newRow, 3, checkBoxWidget);
+    
+    //* Set Contour Mode
+    ui->dataTable->setCellWidget(newRow, 4, createComboBoxWidget());
+    
+    //* Set Transculency
+    QTableWidgetItem* transculencyItem = new QTableWidgetItem("1.0");
+    transculencyItem->setTextAlignment(Qt::AlignCenter);
+    ui->dataTable->setItem(newRow, 5, transculencyItem);
+    
+    //* Set Delete Button
+    ui->dataTable->setCellWidget(newRow, 6, createDeleteButtonWidget());
+}
+
+
+void ControlPanel::onMainModelTranscluencyChanged(double value)
+{
+    // 发送透明度变化信号
+    emit mainModelTranscluencyChanged(value);
 }
