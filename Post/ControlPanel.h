@@ -30,18 +30,23 @@ signals:
     void setCutplaneVisiable(int cutplaneNumber, bool flag);
     // 发送Main Model透明度变化信号
     void mainModelTranscluencyChanged(double value);
+    // 发送slice删除信号
+    void sliceDeleteRequested(int cutplaneIndex);
 
 private slots:
     // 处理复选框状态变化
     void onShowZoneCheckBoxToggled(bool checked);
     // 处理Main Model透明度变更
     void onMainModelTranscluencyChanged(double value);
+    // 处理slice删除
+    void onSliceDeleteClicked();
 
 private:
     Ui::ControlPanel *ui;
     QWidget* createCheckBoxWidget(bool checked);
     QWidget* createComboBoxWidget();
     QWidget* createDeleteButtonWidget();
+    void removeCutplaneFromTable(int cutplaneIndex);
     
     // 存储boundary索引信息
     std::vector<std::pair<int, int>> boundaryIndices;  // 存储(meshIndex, boundaryIndex)对

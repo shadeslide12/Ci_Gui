@@ -512,6 +512,8 @@ void MainWindow::selectBoundaryButtonTriggeded()
         // 连接ControlPanel的cutplane控制信号到MainWindow的槽函数
         connect(controlPanel, &ControlPanel::setCutplaneVisiable, this, &MainWindow::showCutplane);
         connect(controlPanel, &ControlPanel::mainModelTranscluencyChanged, qtvtkWindow, &vtkDisplayWindow::SetActorTransparancy);
+        // 连接ControlPanel的slice删除信号到MainWindow的删除函数
+        connect(controlPanel, &ControlPanel::sliceDeleteRequested, this, &MainWindow::deleteSlice, Qt::QueuedConnection);
 
     }
     
@@ -1024,4 +1026,13 @@ void MainWindow::on_Check_Meri_toggled(bool checked)
         
         qDebug() << "Switched to Meridional View mode";
     }
+}
+
+void MainWindow::deleteSlice(int cutplaneIndex)
+{
+    // 调用vtkDisplayWindow删除cutplane
+    qtvtkWindow->DeleteCutplane(cutplaneIndex);
+    
+    // 重新渲染
+    ui->vtkBox->renderWindow()->Render();
 }

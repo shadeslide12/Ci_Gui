@@ -156,9 +156,9 @@ void ControlPanel::onShowZoneCheckBoxToggled(bool checked)
     if (!checkBox) return;
     
     // 获取对应的行号
-    int row = checkBox->property("boundaryRow").toInt();
+    int    row = checkBox->property("boundaryRow").toInt();
     
-    // 检查行号是否有效
+     // 检查行号是否有效
     if (row < 0 || row >= rowTypes.size()) return;
     
     // 根据行类型发送不同的信号
@@ -237,13 +237,95 @@ void ControlPanel::addCutplaneToTable(int cutplaneIndex, double* origin, double*
     transculencyItem->setTextAlignment(Qt::AlignCenter);
     ui->dataTable->setItem(newRow, 5, transculencyItem);
     
-    //* Set Delete Button
-    ui->dataTable->setCellWidget(newRow, 6, createDeleteButtonWidget());
+    //* Set Delete Button - 只为slice行连接删除功能
+    QWidget* deleteWidget = createDeleteButtonWidget();
+    QPushButton* deleteButton = deleteWidget->findChild<QPushButton*>();
+    if (deleteButton) {
+        // 设置按钮属性，用于识别对应的cutplane
+        deleteButton->setProperty("cutplaneIndex", cutplaneIndex);
+        connect(deleteButton, &QPushButton::clicked, this, &ControlPanel::onSliceDeleteClicked);
+    }
+    ui->dataTable->setCellWidget(newRow, 6, deleteWidget);
 }
-
 
 void ControlPanel::onMainModelTranscluencyChanged(double value)
 {
     // 发送透明度变化信号
     emit mainModelTranscluencyChanged(value);
+}
+
+void ControlPanel::onSliceDeleteClicked()
+{
+    // 获取发送信号的按钮
+    QPushButton* button = qobject_cast<QPushButton*>(sender());
+    if (!button) return;
+    
+    // 获取对应的cutplane索引
+    int cutplaneIndex = button->property("cutplaneIndex").toInt();
+    
+    // 发送删除请求信号
+    emit sliceDeleteRequested(cutplaneIndex);
+    
+    // 从ControlPanel表格中删除对应行
+    removeCutplaneFromTable(cutplaneIndex);
+}
+
+void ControlPanel::removeCutplaneFromTable(int cutplaneIndex)
+{
+    // 找到对应的行号
+    int rowToRemove = -1;
+    int cutplaneCount = 0;
+    
+    for (int i = 0; i < rowTypes.size(); i++) {
+        if (rowTypes[i] == CUTPLANE) {
+            if (cutplaneInfos[cutplaneCount].index == cutplaneIndex) {
+                rowToRemove = i;
+                break;
+            }
+            cutplaneCount++;
+        }
+    }
+    
+    // 如果找到对应的行，则删除
+    if (rowToRemove != -1) {
+        // 从表格中删除行
+        ui->dataTable->removeRow(rowToRemove);
+        
+        // 从rowTypes中删除对应项
+        rowTypes.erase(rowTypes.begin() + rowToRemove);
+        
+        // 从cutplaneInfos中删除对应项
+        int cutplaneInfoIndex = rowToRemove - boundaryIndices.size();
+        if (cutplaneInfoIndex >= 0 && cutplaneInfoIndex < cutplaneInfos.size()) {
+            cutplaneInfos.erase(cutplaneInfos.begin() + cutplaneInfoIndex);
+        }
+        
+        // 更新后续cutplane行的索引和显示名称
+        int newCutplaneNumber = 1; // 重新编号从1开始
+        for (int i = 0; i < rowTypes.size(); i++) {
+            if (rowTypes[i] == CUTPLANE) {
+                int currentCutplaneInfoIndex = i - boundaryIndices.size();
+                if (currentCutplaneInfoIndex >= 0 && currentCutplaneInfoIndex < cutplaneInfos.size()) {
+                    // 更新cutplaneInfo中的索引
+                    cutplaneInfos[currentCutplaneInfoIndex].index = newCutplaneNumber - 1; // 内部索引从0开始
+                    
+                    // 更新Zone Number (S1*, S2*, S3*...)
+                    QString newZoneNumber = QString("S%1*").arg(newCutplaneNumber);
+                    QTableWidgetItem* zoneNumberItem = ui->dataTable->item(i, 0);
+                    if (zoneNumberItem) {
+                        zoneNumberItem->setText(newZoneNumber);
+                    }
+                    
+                    // 更新Zone Name (Slice_1, Slice_2, Slice_3...)
+                    QString newZoneName = QString("Slice_%1").arg(newCutplaneNumber);
+                    QTableWidgetItem* zoneNameItem = ui->dataTable->item(i, 1);
+                    if (zoneNameItem) {
+                        zoneNameItem->setText(newZoneName);
+                    }
+                    
+                    newCutplaneNumber++;
+                }
+            }
+        }
+    }
 }

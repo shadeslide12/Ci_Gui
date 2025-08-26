@@ -89,6 +89,7 @@ private slots:
 
     void selectBoundaryButtonTriggeded();
     void showBoundaryActor(int,int,bool);
+    void deleteSlice(int cutplaneIndex);
 
     void isoSurfaceCheckBoxTriggered();
     void isoSurfaceSettingButtonTriggered();

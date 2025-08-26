@@ -1199,3 +1199,19 @@ void vtkDisplayWindow::SetCutplaneColorScheme(int schemeIndex)
     
     std::cout << "[Debug] Cutplane color scheme updated successfully" << std::endl;
 }
+
+void vtkDisplayWindow::DeleteCutplane(int cutplaneIndex)
+{
+    // 检查索引是否有效
+    if (cutplaneIndex < 0 || cutplaneIndex >= deriveds.cutplanes.size()) {
+        return;
+    }
+    
+    // 从渲染器中移除actor
+    renderer->RemoveActor(deriveds.cutplaneActors[cutplaneIndex]);
+    
+    // 从容器中删除对应的元素
+    deriveds.cutplanes.erase(deriveds.cutplanes.begin() + cutplaneIndex);
+    deriveds.cutters.erase(deriveds.cutters.begin() + cutplaneIndex);
+    deriveds.cutplaneActors.erase(deriveds.cutplaneActors.begin() + cutplaneIndex);
+}

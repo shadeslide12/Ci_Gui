@@ -135,7 +135,8 @@ public:
     void AddCutplaneActors();
     void RemoveCutplaneActors();
     void AddCutplane(int number);
-    void RemoveCutplane(int number);    
+    void RemoveCutplane(int number);
+    void DeleteCutplane(int cutplaneIndex);  
 
     void SetActorTransparancy(double opacity);
     void SetActorLighting(bool);
