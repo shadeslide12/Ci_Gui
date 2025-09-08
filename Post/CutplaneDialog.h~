@@ -11,15 +11,6 @@ namespace Ui {
 class CutplaneDialog;
 }
 
-struct FlowData
-{
-    std::vector<double> datas;
-    std::string name;
-    double range[2];
-    vtkSmartPointer<vtkScalarBarActor> scalarBar;
-    double boundaryRange[2];
-};
-
 class CutplaneDialog: public QDialog
 {
     Q_OBJECT
@@ -30,9 +21,7 @@ public:
 
     void setCutplaneDialog(std::vector<vtkSmartPointer<vtkPlane>> planes);
     void setModelBounds(double* bounds);
-    void setFlowVariables(const std::vector<vtkAesReader::FlowData>& flows, int currentFlowNumber);
-    void updateRangeFromCurrentVariable();
-    void setMappingControlEnabled(bool enabled);
+    void setFlowVariables(const std::vector<vtkAesReader::FlowData>& flows, int currentFlowNumber = 0);
 
 private slots:
     void setParameters();
@@ -82,5 +71,6 @@ private:
     // 根据滑块值设置切面位置
     void setPlanePosition(double value);
     void onColorMappingChanged();
+    void updateRangeFromCurrentVariable(); // 根据当前变量更新范围值
     bool isBaned = 1;
 };

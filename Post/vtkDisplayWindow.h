@@ -132,11 +132,13 @@ public:
     void UpdateCutplaneColorMapping();
     DerivedObject::CutplaneColorMapping GetCutplaneColorMapping();
     void SetCutplaneColorScheme(int schemeIndex);  // 设置切片颜色方案
+    void SetCutplaneVariable(int flowNumber);      // 设置切片显示的变量
     void AddCutplaneActors();
     void RemoveCutplaneActors();
     void AddCutplane(int number);
     void RemoveCutplane(int number);
     void DeleteCutplane(int cutplaneIndex);  
+    void SetSliceContourMode(const QString &mode); // 设置slice颜色映射模式
 
     void SetActorTransparancy(double opacity);
     void SetActorLighting(bool);

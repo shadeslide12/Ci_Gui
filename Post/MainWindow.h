@@ -122,7 +122,7 @@ private:
     SelectBoundaryDialog *selectBoundaryDialog = nullptr;
     ColorBarDialog *colorBarDialog = nullptr;
     IsoSurfaceDialog *isoSurfaceDialog = nullptr;
-    CutplaneDialog *curPlaneDialog = nullptr;
+    CutplaneDialog *cutPlaneDialog = nullptr;
     ScaleFactorDialog *scaleFactorDialog = nullptr;
 
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> MeridionalrenderWindow= vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();

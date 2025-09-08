@@ -513,8 +513,21 @@ void MainWindow::selectBoundaryButtonTriggeded()
         connect(controlPanel, &ControlPanel::setCutplaneVisiable, this, &MainWindow::showCutplane);
         connect(controlPanel, &ControlPanel::mainModelTranscluencyChanged, qtvtkWindow, &vtkDisplayWindow::SetActorTransparancy);
         // 连接ControlPanel的slice删除信号到MainWindow的删除函数
-        connect(controlPanel, &ControlPanel::sliceDeleteRequested, this, &MainWindow::deleteSlice, Qt::QueuedConnection);
-
+        connect(controlPanel, &ControlPanel::sliceDeleteRequested, this, &MainWindow::deleteSlice);
+        // 连接ControlPanel的slice contour mode信号到vtkDisplayWindow
+        connect(controlPanel, &ControlPanel::sliceContourModeChanged, qtvtkWindow, &vtkDisplayWindow::SetSliceContourMode);
+        
+        // 连接slice contour mode信号到CutplaneDialog的UI控件启用/禁用
+        connect(controlPanel, &ControlPanel::sliceContourModeChanged, [this](const QString& mode) {
+            if (cutPlaneDialog) {
+                bool enableMapping = (mode == "isolated");
+                cutPlaneDialog->setMappingControlEnabled(enableMapping);
+            }
+        });
+        
+        connect(controlPanel, &ControlPanel::sliceContourModeChanged, [this]() {
+            ui->vtkBox->renderWindow()->Render();
+        });
     }
     
     controlPanel->show();
@@ -643,6 +656,9 @@ void MainWindow::slicesSettingButtonTriggered()
         cutplaneDialog->setModelBounds(bounds);
     }
     
+    // 设置流场变量数据
+    cutplaneDialog->setFlowVariables(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber());
+    
     cutplaneDialog->setAttribute(Qt::WA_DeleteOnClose);
     cutplaneDialog->setWindowModality(Qt::ApplicationModal);
     connect(cutplaneDialog, SIGNAL(finishSetParameters(double*,double*,int)),this, SLOT(changeCutplane(double*,double*,int)));
@@ -650,6 +666,12 @@ void MainWindow::slicesSettingButtonTriggered()
     connect(cutplaneDialog, &CutplaneDialog::colorMappingChanged, this, &MainWindow::updateCutplaneColorMapping);
     connect(cutplaneDialog, &CutplaneDialog::colorSchemeChanged, [this](int index){
         qtvtkWindow->SetCutplaneColorScheme(index);
+        ui->vtkBox->renderWindow()->Render();
+    });
+    
+    // 连接变量选择变化信号
+    connect(cutplaneDialog, &CutplaneDialog::variableSelectionChanged, [this](int flowNumber){
+        qtvtkWindow->SetCutplaneVariable(flowNumber);
         ui->vtkBox->renderWindow()->Render();
     });
     //* test

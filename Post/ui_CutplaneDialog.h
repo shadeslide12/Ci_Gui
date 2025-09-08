@@ -24,13 +24,14 @@
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 
 class Ui_CutplaneDialog
 {
 public:
-    QVBoxLayout *mainLayout;
+    QVBoxLayout *verticalLayout_2;
     QGroupBox *sliceControlGroup;
     QGridLayout *sliceControlLayout;
     QLabel *label;
@@ -43,6 +44,8 @@ public:
     QSlider *horizontalSlider;
     QLabel *label_ValueLocation;
     QPushButton *Btn_SetPosition;
+    QWidget *MappingControl;
+    QVBoxLayout *verticalLayout;
     QGroupBox *mappingGroup;
     QHBoxLayout *mappingLayout;
     QLabel *lab_MapVariable;
@@ -77,10 +80,8 @@ public:
         CutplaneDialog->resize(650, 620);
         CutplaneDialog->setMinimumSize(QSize(650, 620));
         CutplaneDialog->setMaximumSize(QSize(800, 700));
-        mainLayout = new QVBoxLayout(CutplaneDialog);
-        mainLayout->setSpacing(15);
-        mainLayout->setObjectName(QString::fromUtf8("mainLayout"));
-        mainLayout->setContentsMargins(20, 20, 20, 20);
+        verticalLayout_2 = new QVBoxLayout(CutplaneDialog);
+        verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         sliceControlGroup = new QGroupBox(CutplaneDialog);
         sliceControlGroup->setObjectName(QString::fromUtf8("sliceControlGroup"));
         sliceControlLayout = new QGridLayout(sliceControlGroup);
@@ -150,9 +151,15 @@ public:
         sliceControlLayout->addLayout(sliderLayout, 2, 0, 1, 4);
 
 
-        mainLayout->addWidget(sliceControlGroup);
+        verticalLayout_2->addWidget(sliceControlGroup);
 
-        mappingGroup = new QGroupBox(CutplaneDialog);
+        MappingControl = new QWidget(CutplaneDialog);
+        MappingControl->setObjectName(QString::fromUtf8("MappingControl"));
+        verticalLayout = new QVBoxLayout(MappingControl);
+        verticalLayout->setSpacing(25);
+        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+        verticalLayout->setContentsMargins(-1, 20, -1, -1);
+        mappingGroup = new QGroupBox(MappingControl);
         mappingGroup->setObjectName(QString::fromUtf8("mappingGroup"));
         mappingLayout = new QHBoxLayout(mappingGroup);
         mappingLayout->setObjectName(QString::fromUtf8("mappingLayout"));
@@ -174,9 +181,9 @@ public:
         mappingLayout->addItem(mappingSpacer);
 
 
-        mainLayout->addWidget(mappingGroup);
+        verticalLayout->addWidget(mappingGroup);
 
-        colorMapGroup = new QGroupBox(CutplaneDialog);
+        colorMapGroup = new QGroupBox(MappingControl);
         colorMapGroup->setObjectName(QString::fromUtf8("colorMapGroup"));
         colorMapLayout = new QVBoxLayout(colorMapGroup);
         colorMapLayout->setObjectName(QString::fromUtf8("colorMapLayout"));
@@ -226,9 +233,9 @@ public:
         colorMapLayout->addLayout(distributionLayout);
 
 
-        mainLayout->addWidget(colorMapGroup);
+        verticalLayout->addWidget(colorMapGroup);
 
-        contoursGroup = new QGroupBox(CutplaneDialog);
+        contoursGroup = new QGroupBox(MappingControl);
         contoursGroup->setObjectName(QString::fromUtf8("contoursGroup"));
         contoursLayout = new QGridLayout(contoursGroup);
         contoursLayout->setSpacing(10);
@@ -275,18 +282,21 @@ public:
         contoursLayout->addItem(contoursSpacer, 1, 2, 1, 2);
 
 
-        mainLayout->addWidget(contoursGroup);
+        verticalLayout->addWidget(contoursGroup);
 
-        verticalSpacer = new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        mainLayout->addItem(verticalSpacer);
+        verticalLayout_2->addWidget(MappingControl);
+
+        verticalSpacer = new QSpacerItem(20, 65, QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+        verticalLayout_2->addItem(verticalSpacer);
 
         buttonBox = new QDialogButtonBox(CutplaneDialog);
         buttonBox->setObjectName(QString::fromUtf8("buttonBox"));
         buttonBox->setOrientation(Qt::Horizontal);
         buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
 
-        mainLayout->addWidget(buttonBox);
+        verticalLayout_2->addWidget(buttonBox);
 
 
         retranslateUi(CutplaneDialog);

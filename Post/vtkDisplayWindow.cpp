@@ -1200,6 +1200,49 @@ void vtkDisplayWindow::SetCutplaneColorScheme(int schemeIndex)
     std::cout << "[Debug] Cutplane color scheme updated successfully" << std::endl;
 }
 
+void vtkDisplayWindow::SetCutplaneVariable(int flowNumber)
+{
+    if (flowNumber < 0 || flowNumber >= static_cast<int>(aesReader.GetFlows().size())) {
+        std::cerr << "[Error] Invalid flow number: " << flowNumber << std::endl;
+        return;
+    }
+    
+    std::cout << "[Debug] Setting cutplane variable to flow number: " << flowNumber 
+              << " (" << aesReader.GetFlows()[flowNumber].name << ")" << std::endl;
+    
+    // 更新所有切片的标量数据
+    for (auto& cutplaneActor : deriveds.cutplaneActors) {
+        if (cutplaneActor) {
+            // 设置活动标量数据
+            cutplaneActor->GetMapper()->GetInput()->GetPointData()->SetActiveScalars(
+                aesReader.GetFlows()[flowNumber].name.c_str());
+            
+            // 更新标量范围
+            cutplaneActor->GetMapper()->SetScalarRange(
+                aesReader.GetFlows()[flowNumber].range[0],
+                aesReader.GetFlows()[flowNumber].range[1]);
+            
+            // 设置查找表
+            if (deriveds.cutplaneLookupTable) {
+                deriveds.cutplaneLookupTable->SetRange(
+                    aesReader.GetFlows()[flowNumber].range[0],
+                    aesReader.GetFlows()[flowNumber].range[1]);
+                cutplaneActor->GetMapper()->SetLookupTable(deriveds.cutplaneLookupTable);
+            }
+            
+            cutplaneActor->GetMapper()->Update();
+        }
+    }
+    
+    // 更新标量条（如果存在）
+    if (deriveds.cutplaneScalarBar && deriveds.cutplaneLookupTable) {
+        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+        deriveds.cutplaneScalarBar->SetTitle(aesReader.GetFlows()[flowNumber].name.c_str());
+    }
+    
+    std::cout << "[Debug] Cutplane variable updated successfully" << std::endl;
+}
+
 void vtkDisplayWindow::DeleteCutplane(int cutplaneIndex)
 {
     // 检查索引是否有效
@@ -1214,4 +1257,69 @@ void vtkDisplayWindow::DeleteCutplane(int cutplaneIndex)
     deriveds.cutplanes.erase(deriveds.cutplanes.begin() + cutplaneIndex);
     deriveds.cutters.erase(deriveds.cutters.begin() + cutplaneIndex);
     deriveds.cutplaneActors.erase(deriveds.cutplaneActors.begin() + cutplaneIndex);
+}
+
+void vtkDisplayWindow::SetSliceContourMode(const QString &mode)
+{
+    if (deriveds.cutplaneActors.empty()) {
+        std::cout << "[Debug] No cutplanes to update" << std::endl;
+        return;
+    }
+    
+    vtkSmartPointer<vtkLookupTable> targetLookupTable;
+    
+    if (mode == "sync with main") {
+        // 使用主模型的颜色映射和变量
+        std::cout <<"[Debug] Sync CurFLow is :"<<curFlow<<std::endl;
+        auto flows = aesReader.GetFlows();
+        if (curFlow >= 0 && curFlow < flows.size()) {
+            vtkScalarsToColors* scalarColors = flows[curFlow].scalarBar->GetLookupTable();
+            targetLookupTable = vtkLookupTable::SafeDownCast(scalarColors);
+            
+            if (targetLookupTable) {
+                std::cout << "[Debug] Switching slices to sync with main model (flow: " 
+                          << flows[curFlow].name << ")" << std::endl;
+                
+                // 同步变量类型 - 更新所有切片的标量数据
+                for (auto& cutplaneActor : deriveds.cutplaneActors) {
+                    if (cutplaneActor) {
+                        // 设置与主模型相同的标量变量
+                        cutplaneActor->GetMapper()->GetInput()->GetPointData()->SetActiveScalars(
+                            flows[curFlow].name.c_str());
+                        std::cout << "[Debug] Synced cutplane variable to: " << flows[curFlow].name << std::endl;
+                    }
+                }
+                
+                // 隐藏切片的scalar bar（与主模型共享）
+                HideCutplaneScalarBar();
+            } else {
+                std::cout << "[Error] Failed to cast LookupTable from main model" << std::endl;
+                return;
+            }
+        } else {
+            std::cout << "[Error] Invalid curFlow index: " << curFlow << std::endl;
+            return;
+        }
+    } else if (mode == "isolated") {
+        // 使用独立的颜色映射
+        targetLookupTable = deriveds.cutplaneLookupTable;
+        std::cout << "[Debug] Switching slices to isolated color mapping" << std::endl;
+        
+        // 显示切片的scalar bar（独立模式）
+        ShowCutplaneScalarBar();
+    } else {
+        std::cout << "[Warning] Unknown contour mode: " << mode.toStdString() << std::endl;
+        return;
+    }
+    
+    // 更新所有cutplane的颜色映射
+    for (int i = 0; i < deriveds.cutplaneActors.size(); i++) {
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::SafeDownCast(
+            deriveds.cutplaneActors[i]->GetMapper());
+        if (mapper && targetLookupTable) {
+            mapper->SetLookupTable(targetLookupTable);
+            mapper->SetScalarRange(targetLookupTable->GetRange());
+            std::cout << "[Debug] Updated cutplane " << i << " color mapping" << std::endl;
+        }
+    }
 }

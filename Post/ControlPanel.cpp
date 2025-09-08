@@ -229,8 +229,16 @@ void ControlPanel::addCutplaneToTable(int cutplaneIndex, double* origin, double*
     }
     ui->dataTable->setCellWidget(newRow, 3, checkBoxWidget);
     
-    //* Set Contour Mode
-    ui->dataTable->setCellWidget(newRow, 4, createComboBoxWidget());
+    //* Set Contour Mode - 只为slice行连接响应函数
+    QWidget* comboWidget = createComboBoxWidget();
+    QComboBox* comboBox = comboWidget->findChild<QComboBox*>();
+    if (comboBox) {
+        // 设置属性，用于识别对应的cutplane
+        comboBox->setProperty("cutplaneIndex", cutplaneIndex);
+        connect(comboBox, QOverload<const QString &>::of(&QComboBox::currentTextChanged), 
+                this, &ControlPanel::onSliceContourModeChanged);
+    }
+    ui->dataTable->setCellWidget(newRow, 4, comboWidget);
     
     //* Set Transculency
     QTableWidgetItem* transculencyItem = new QTableWidgetItem("1.0");
@@ -324,6 +332,57 @@ void ControlPanel::removeCutplaneFromTable(int cutplaneIndex)
                     }
                     
                     newCutplaneNumber++;
+                }
+            }
+        }
+    }
+}
+
+void ControlPanel::onSliceContourModeChanged(const QString &text)
+{
+    // 获取发送信号的下拉框
+    QComboBox* comboBox = qobject_cast<QComboBox*>(sender());
+    if (!comboBox) return;
+    
+    // 获取对应的cutplane索引
+    int cutplaneIndex = comboBox->property("cutplaneIndex").toInt();
+    
+    // 输出调试信息
+    std::cout << "[Debug] Slice " << cutplaneIndex + 1 << " contour mode changed to: " << text.toStdString() << std::endl;
+    
+    // 发送contour mode变化信号
+    emit sliceContourModeChanged(text);
+    
+    // 同步更新其他slice行的contour mode
+    syncSliceContourMode(text, cutplaneIndex);
+}
+
+void ControlPanel::syncSliceContourMode(const QString &text, int excludeCutplaneIndex)
+{
+    // 遍历所有行，找到slice行
+    for (int i = 0; i < rowTypes.size(); i++) {
+        if (rowTypes[i] == CUTPLANE) {
+            // 计算当前slice的cutplaneIndex
+            int currentCutplaneInfoIndex = i - boundaryIndices.size();
+            if (currentCutplaneInfoIndex >= 0 && currentCutplaneInfoIndex < cutplaneInfos.size()) {
+                int currentCutplaneIndex = cutplaneInfos[currentCutplaneInfoIndex].index;
+                
+                // 跳过触发变化的slice
+                if (currentCutplaneIndex == excludeCutplaneIndex) continue;
+                
+                // 获取对应的下拉框
+                QWidget* comboWidget = ui->dataTable->cellWidget(i, 4);
+                if (comboWidget) {
+                    QComboBox* comboBox = comboWidget->findChild<QComboBox*>();
+                    if (comboBox) {
+                        // 临时阻塞信号，避免触发响应函数
+                        comboBox->blockSignals(true);
+                        comboBox->setCurrentText(text);
+                        comboBox->blockSignals(false);
+                        
+                        std::cout << "[Debug] Synced Slice " << currentCutplaneIndex + 1 
+                                  << " contour mode to: " << text.toStdString() << std::endl;
+                    }
                 }
             }
         }

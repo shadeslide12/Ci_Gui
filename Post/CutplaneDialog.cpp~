@@ -347,7 +347,6 @@ void CutplaneDialog::updateRangeFromCurrentVariable()
 void CutplaneDialog::setMappingControlEnabled(bool enabled)
 {
     // 启用/禁用MappingControl widget及其所有子控件
-    std::cout << "[Debug] Setting mapping control enabled to " << enabled << std::endl;
     switch (enabled) {
         case true:
             ui->MappingControl->setEnabled(1);

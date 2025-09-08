@@ -32,6 +32,8 @@ signals:
     void mainModelTranscluencyChanged(double value);
     // 发送slice删除信号
     void sliceDeleteRequested(int cutplaneIndex);
+    // 发送slice contour mode变化信号
+    void sliceContourModeChanged(const QString &mode);
 
 private slots:
     // 处理复选框状态变化
@@ -40,6 +42,8 @@ private slots:
     void onMainModelTranscluencyChanged(double value);
     // 处理slice删除
     void onSliceDeleteClicked();
+    // 处理Contour Mode变化
+    void onSliceContourModeChanged(const QString &text);
 
 private:
     Ui::ControlPanel *ui;
@@ -47,6 +51,7 @@ private:
     QWidget* createComboBoxWidget();
     QWidget* createDeleteButtonWidget();
     void removeCutplaneFromTable(int cutplaneIndex);
+    void syncSliceContourMode(const QString &text, int excludeCutplaneIndex);
     
     // 存储boundary索引信息
     std::vector<std::pair<int, int>> boundaryIndices;  // 存储(meshIndex, boundaryIndex)对
