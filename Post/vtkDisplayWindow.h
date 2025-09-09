@@ -141,6 +141,8 @@ public:
     void SetSliceContourMode(const QString &mode); // 设置slice颜色映射模式
 
     void SetActorTransparancy(double opacity);
+    void SetBoundaryTransparency(int meshNumber, int boundaryNumber, double opacity);
+    void SetSliceTransparency(int sliceNumber, double opacity);
     void SetActorLighting(bool);
 
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> GetRenderWindow(){return renderWindow;}

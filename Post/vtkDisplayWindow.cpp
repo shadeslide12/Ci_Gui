@@ -685,6 +685,51 @@ void vtkDisplayWindow::SetActorTransparancy(double opacity)
     std::cout<< "[Debug] SetActorTransparancy "<<std::endl;
 }
 
+void vtkDisplayWindow::SetBoundaryTransparency(int meshNumber, int boundaryNumber, double opacity)
+{
+    // 检查索引有效性
+    if (meshNumber < 0 || meshNumber >= boundarys.size()) {
+        std::cout << "[Error] Invalid meshNumber: " << meshNumber << std::endl;
+        return;
+    }
+    
+    if (boundaryNumber < 0 || boundaryNumber >= boundarys[meshNumber].size()) {
+        std::cout << "[Error] Invalid boundaryNumber: " << boundaryNumber << std::endl;
+        return;
+    }
+    
+    // 设置指定boundary的透明度
+    BasicObject& boundary = boundarys[meshNumber][boundaryNumber];
+    if (boundary.contourActor) {
+        boundary.contourActor->GetProperty()->SetOpacity(opacity);
+    }
+    if (boundary.shadeActor) {
+        boundary.shadeActor->GetProperty()->SetOpacity(opacity);
+    }
+    renderWindow->Render();
+    std::cout << "[Debug] SetBoundaryTransparency: mesh=" << meshNumber 
+              << ", boundary=" << boundaryNumber << ", opacity=" << opacity << std::endl;
+}
+
+void vtkDisplayWindow::SetSliceTransparency(int sliceNumber, double opacity)
+{
+    // 检查索引有效性
+    if (sliceNumber < 0 || sliceNumber >= deriveds.cutplaneActors.size()) {
+        std::cout << "[Error] Invalid sliceNumber: " << sliceNumber << std::endl;
+        return;
+    }
+    
+    // 设置指定slice的透明度
+    if (deriveds.cutplaneActors[sliceNumber]) {
+        deriveds.cutplaneActors[sliceNumber]->GetProperty()->SetOpacity(opacity);
+    }
+
+    renderWindow->Render();
+
+    std::cout << "[Debug] SetSliceTransparency: slice=" << sliceNumber 
+              << ", opacity=" << opacity << std::endl;
+}
+
 void vtkDisplayWindow::SetActorLighting(bool flag)
 {
     if (flag)
@@ -1090,7 +1135,8 @@ void vtkDisplayWindow::InitializeCutplaneScalarBar()
     if (!deriveds.cutplaneScalarBar) {
         deriveds.cutplaneScalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
         deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
-        deriveds.cutplaneScalarBar->SetTitle("Slice");
+        std::string title = std::string("Slice  ") + "rho";
+        deriveds.cutplaneScalarBar->SetTitle(title.c_str());
         deriveds.cutplaneScalarBar->SetNumberOfLabels(10);
         
         // 设置位置 - 水平显示在窗口中下方（避免被截断）
@@ -1101,9 +1147,11 @@ void vtkDisplayWindow::InitializeCutplaneScalarBar()
         deriveds.cutplaneScalarBar->SetHeight(0.06); // 高度占窗口6%
         
         // 设置字体 - 更小的字体
-        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(10);
-        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(8);
-        
+        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(12);
+        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetColor(0,0,0);
+        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(9);
+        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetColor(0,0,0);
+
         // 确保可见性
         deriveds.cutplaneScalarBar->SetVisibility(1);
         
@@ -1237,7 +1285,8 @@ void vtkDisplayWindow::SetCutplaneVariable(int flowNumber)
     // 更新标量条（如果存在）
     if (deriveds.cutplaneScalarBar && deriveds.cutplaneLookupTable) {
         deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
-        deriveds.cutplaneScalarBar->SetTitle(aesReader.GetFlows()[flowNumber].name.c_str());
+        std::string title = "Slice  " + aesReader.GetFlows()[flowNumber].name;
+        deriveds.cutplaneScalarBar->SetTitle(title.c_str());
     }
     
     std::cout << "[Debug] Cutplane variable updated successfully" << std::endl;

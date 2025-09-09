@@ -82,23 +82,16 @@ void ControlPanel::setupTable(std::vector<std::vector<vtkAesReader::Boundary>> b
         //* Set Contour Mode 
         ui->dataTable->setCellWidget(row, 4, createComboBoxWidget());
         
-        //* Set Transculency - 为Main Model行创建可编辑的SpinBox
-        QWidget* transculencyWidget = new QWidget();
-        QHBoxLayout* transLayout = new QHBoxLayout(transculencyWidget);
-        QDoubleSpinBox* transSpinBox = new QDoubleSpinBox();
-        transSpinBox->setRange(0.0, 1.0);
-        transSpinBox->setSingleStep(0.1);
-        transSpinBox->setValue(1.0);
-        transSpinBox->setDecimals(1);
-        
-        // 连接透明度变化信号
-        connect(transSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
-                this, &ControlPanel::onMainModelTranscluencyChanged);
-        
-        transLayout->addWidget(transSpinBox);
-        transLayout->setAlignment(Qt::AlignCenter);
-        transLayout->setContentsMargins(0, 0, 0, 0);
-        ui->dataTable->setCellWidget(row, 5, transculencyWidget);
+        //* Set Transparency - 为boundary行创建透明度控件
+        QWidget* transparencyWidget = createTransparencyWidget(1.0);
+        QDoubleSpinBox* transSpinBox = transparencyWidget->findChild<QDoubleSpinBox*>();
+        if (transSpinBox) {
+            // 设置属性，用于识别对应的boundary
+            transSpinBox->setProperty("boundaryRow", row);
+            connect(transSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
+                    this, &ControlPanel::onBoundaryTransparencyChanged);
+        }
+        ui->dataTable->setCellWidget(row, 5, transparencyWidget);
         
         //* Set Delete Button
         ui->dataTable->setCellWidget(row, 6, createDeleteButtonWidget());
@@ -130,6 +123,24 @@ QWidget* ControlPanel::createComboBoxWidget()
     comboBox->setCurrentIndex(0);
     
     layout->addWidget(comboBox);
+    layout->setAlignment(Qt::AlignCenter);
+    layout->setContentsMargins(0, 0, 0, 0);
+    
+    return widget;
+}
+
+QWidget* ControlPanel::createTransparencyWidget(double value)
+{
+    QWidget* widget = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+    QDoubleSpinBox* spinBox = new QDoubleSpinBox();
+    
+    spinBox->setRange(0.0, 1.0);
+    spinBox->setSingleStep(0.1);
+    spinBox->setValue(value);
+    spinBox->setDecimals(1);
+    
+    layout->addWidget(spinBox);
     layout->setAlignment(Qt::AlignCenter);
     layout->setContentsMargins(0, 0, 0, 0);
     
@@ -240,10 +251,16 @@ void ControlPanel::addCutplaneToTable(int cutplaneIndex, double* origin, double*
     }
     ui->dataTable->setCellWidget(newRow, 4, comboWidget);
     
-    //* Set Transculency
-    QTableWidgetItem* transculencyItem = new QTableWidgetItem("1.0");
-    transculencyItem->setTextAlignment(Qt::AlignCenter);
-    ui->dataTable->setItem(newRow, 5, transculencyItem);
+    //* Set Transparency - 为slice行创建透明度控件
+    QWidget* transparencyWidget = createTransparencyWidget(1.0);
+    QDoubleSpinBox* transSpinBox = transparencyWidget->findChild<QDoubleSpinBox*>();
+    if (transSpinBox) {
+        // 设置属性，用于识别对应的slice
+        transSpinBox->setProperty("sliceIndex", cutplaneIndex);
+        connect(transSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
+                this, &ControlPanel::onSliceTransparencyChanged);
+    }
+    ui->dataTable->setCellWidget(newRow, 5, transparencyWidget);
     
     //* Set Delete Button - 只为slice行连接删除功能
     QWidget* deleteWidget = createDeleteButtonWidget();
@@ -256,10 +273,58 @@ void ControlPanel::addCutplaneToTable(int cutplaneIndex, double* origin, double*
     ui->dataTable->setCellWidget(newRow, 6, deleteWidget);
 }
 
-void ControlPanel::onMainModelTranscluencyChanged(double value)
+void ControlPanel::onBoundaryTransparencyChanged(double value)
 {
-    // 发送透明度变化信号
-    emit mainModelTranscluencyChanged(value);
+    // 获取发送信号的SpinBox
+    QDoubleSpinBox* spinBox = qobject_cast<QDoubleSpinBox*>(sender());
+    if (!spinBox) return;
+    
+    // 获取对应的行号
+    int row = spinBox->property("boundaryRow").toInt();
+    
+    // 检查行号是否有效
+    if (row < 0 || row >= boundaryIndices.size()) return;
+    
+    int meshNumber = boundaryIndices[row].first;
+    int boundaryNumber = boundaryIndices[row].second;
+    
+    // 发送boundary透明度变化信号
+    emit boundaryTransparencyChanged(meshNumber, boundaryNumber, value);
+    
+    std::cout << "[Debug] Boundary transparency changed: mesh=" << meshNumber 
+              << ", boundary=" << boundaryNumber << ", value=" << value << std::endl;
+}
+
+void ControlPanel::onSliceTransparencyChanged(double value)
+{
+    // 获取发送信号的SpinBox
+    QDoubleSpinBox* spinBox = qobject_cast<QDoubleSpinBox*>(sender());
+    if (!spinBox) return;
+    
+    // 获取对应的slice索引
+    int sliceIndex = spinBox->property("sliceIndex").toInt();
+    
+    // 发送slice透明度变化信号
+    emit sliceTransparencyChanged(sliceIndex, value);
+    
+    std::cout << "[Debug] Slice transparency changed: slice=" << sliceIndex 
+              << ", value=" << value << std::endl;
+}
+
+void ControlPanel::setTransparencyControlsEnabled(bool enabled)
+{
+    // 遍历所有行，启用/禁用Transparency列的控件
+    for (int row = 0; row < ui->dataTable->rowCount(); row++) {
+        QWidget* transparencyWidget = ui->dataTable->cellWidget(row, 5); // Transparency列是第5列
+        if (transparencyWidget) {
+            QDoubleSpinBox* spinBox = transparencyWidget->findChild<QDoubleSpinBox*>();
+            if (spinBox) {
+                spinBox->setEnabled(enabled);
+            }
+        }
+    }
+    
+    std::cout << "[Debug] Transparency controls enabled: " << (enabled ? "true" : "false") << std::endl;
 }
 
 void ControlPanel::onSliceDeleteClicked()

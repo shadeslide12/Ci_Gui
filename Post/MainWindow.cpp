@@ -511,7 +511,10 @@ void MainWindow::selectBoundaryButtonTriggeded()
         connect(controlPanel, &ControlPanel::setBoundarys, this, &MainWindow::showBoundaryActor);
         // 连接ControlPanel的cutplane控制信号到MainWindow的槽函数
         connect(controlPanel, &ControlPanel::setCutplaneVisiable, this, &MainWindow::showCutplane);
-        connect(controlPanel, &ControlPanel::mainModelTranscluencyChanged, qtvtkWindow, &vtkDisplayWindow::SetActorTransparancy);
+        // 连接ControlPanel的boundary透明度信号到vtkDisplayWindow
+        connect(controlPanel, &ControlPanel::boundaryTransparencyChanged, qtvtkWindow, &vtkDisplayWindow::SetBoundaryTransparency);
+        // 连接ControlPanel的slice透明度信号到vtkDisplayWindow
+        connect(controlPanel, &ControlPanel::sliceTransparencyChanged, qtvtkWindow, &vtkDisplayWindow::SetSliceTransparency);
         // 连接ControlPanel的slice删除信号到MainWindow的删除函数
         connect(controlPanel, &ControlPanel::sliceDeleteRequested, this, &MainWindow::deleteSlice);
         // 连接ControlPanel的slice contour mode信号到vtkDisplayWindow
@@ -528,8 +531,10 @@ void MainWindow::selectBoundaryButtonTriggeded()
         connect(controlPanel, &ControlPanel::sliceContourModeChanged, [this]() {
             ui->vtkBox->renderWindow()->Render();
         });
+        
     }
-    
+
+    controlPanel->setTransparencyControlsEnabled(ui->transparancyCheckBox->isChecked());
     controlPanel->show();
     
 }
@@ -717,14 +722,22 @@ void MainWindow::makeNewCutplane(double* origin, double* normal)
 
 void MainWindow::transparancyCheckBoxTriggered()
 {
-    if (ui->transparancyCheckBox->isChecked()) {
-        qtvtkWindow->SetActorTransparancy(0.5);
+    bool isChecked = ui->transparancyCheckBox->isChecked();
+    
+    if (isChecked) {
+        // qtvtkWindow->SetActorTransparancy(0.5);
         vtkObject::GlobalWarningDisplayOff();
     }
     else {
         qtvtkWindow->SetActorTransparancy(1.0);
         vtkObject::GlobalWarningDisplayOn();
     }
+    
+    // 控制ControlPanel中透明度控件的启用/禁用状态
+    if (controlPanel) {
+        controlPanel->setTransparencyControlsEnabled(isChecked);
+    }
+    
     ui->vtkBox->renderWindow()->Render();
 }
 
