@@ -14,6 +14,7 @@
 #include "ConstHeightPlaneDialog.h"
 #include "MeridionalPlaneDialog.h"
 #include "ConstSettingDialog.h"
+#include "ProbePanel.h"
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkInteractorStyleTrackballCamera.h>
@@ -36,6 +37,8 @@
 #include <vtkGlyphSource2D.h>
 #include <QVTKOpenGLNativeWidget.h>
 #include <QButtonGroup>
+#include <QSplitter>
+#include <QLabel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -54,6 +57,10 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    
+    // 更新探测面板数据
+    void UpdateProbePanel(const std::string& coordinates, 
+                          const std::vector<std::pair<std::string, double>>& data);
 
 private slots:
     void on_actionLoadMesh_triggered();
@@ -110,11 +117,17 @@ private slots:
     void AddConstHeightPlane(double height);
     void ChangeMeridionalPlaneFlow(int flow);
     void ChangeConstHeightFlow(int flow);
+    
+    void onProbePanelClosed();
 
     //* View Control 
     void on_Check_3Dview_toggled(bool checked);
-    void on_Check_DoubleView_toggled(bool checked);
+    void on_Check_ThreeView_toggled(bool checked);
     void on_Check_Meri_toggled(bool checked);
+    void on_Check_BladeToBlade_toggled(bool checked);
+    
+    //* Background Control
+    void on_CBtn_BackGround_currentTextChanged(const QString &text);
 
 private:
     Ui::MainWindow *ui;
@@ -125,15 +138,50 @@ private:
     CutplaneDialog *cutPlaneDialog = nullptr;
     ScaleFactorDialog *scaleFactorDialog = nullptr;
 
+    // Meridional视图相关
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> MeridionalrenderWindow= vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
     vtkSmartPointer<vtkRenderer> Meridionalrenderer= vtkSmartPointer<vtkRenderer>::New();
     QVTKOpenGLNativeWidget *vtkWidget= new QVTKOpenGLNativeWidget(this);
+    
+    // Blade-to-Blade视图相关
+    vtkSmartPointer<vtkGenericOpenGLRenderWindow> BladeToBladerenderWindow= vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+    vtkSmartPointer<vtkRenderer> BladeToBladerenderer= vtkSmartPointer<vtkRenderer>::New();
+    QVTKOpenGLNativeWidget *bladeToBladevtkWidget= new QVTKOpenGLNativeWidget(this);
+    
+    // 视图标题标签
+    QLabel *mainViewLabel = nullptr;
+    QLabel *meridionalViewLabel = nullptr;
+    QLabel *bladeToBladeViewLabel = nullptr;
+
+    // 视图布局管理
+    QSplitter *mainSplitter = nullptr;
+    QWidget *rightPanel = nullptr;
+    QVBoxLayout *rightLayout = nullptr;
+
+    // 视图容器
+    QWidget *mainViewContainer = nullptr;
+    QWidget *meridionalViewContainer = nullptr;
+    QWidget *bladeToBladeViewContainer = nullptr;
+    
+    // 探测面板
+    ProbePanel *probePanel = nullptr;
 
     void InitializeMainWindow();
     void SetIcons();
     void SetvtkBox();
     void ResetScrollArea();
     void DisableScrollArea();
+    
+    // 视图管理辅助方法
+    void SetupMeridionalView();
+    void SetupBladeToBladeView();
+    void SetViewBackground(vtkSmartPointer<vtkRenderer> renderer, const QString &style);
+    void HideAllViews();
+    void ShowMainView();
+    void ShowMeridionalView();
+    void ShowBladeToBladeView();
+    void CreateViewLabels();
+    void UpdateViewLabels();
 
 
     //* test

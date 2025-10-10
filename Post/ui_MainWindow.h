@@ -13,6 +13,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -108,7 +109,10 @@ public:
     QLabel *label_3;
     QCheckBox *Check_3Dview;
     QCheckBox *Check_Meri;
-    QCheckBox *Check_DoubleView;
+    QCheckBox *Check_BladeToBlade;
+    QLabel *label_7;
+    QComboBox *CBtn_BackGround;
+    QCheckBox *Check_ThreeView;
     QVBoxLayout *VTKLayout;
     QVTKOpenGLNativeWidget *vtkBox;
     QMenuBar *menubar;
@@ -516,10 +520,28 @@ public:
         Check_Meri->setObjectName(QString::fromUtf8("Check_Meri"));
         Check_Meri->setGeometry(QRect(130, 710, 101, 21));
         Check_Meri->setFont(font1);
-        Check_DoubleView = new QCheckBox(scrollAreaWidgetContents_2);
-        Check_DoubleView->setObjectName(QString::fromUtf8("Check_DoubleView"));
-        Check_DoubleView->setGeometry(QRect(10, 740, 121, 21));
-        Check_DoubleView->setFont(font1);
+        Check_BladeToBlade = new QCheckBox(scrollAreaWidgetContents_2);
+        Check_BladeToBlade->setObjectName(QString::fromUtf8("Check_BladeToBlade"));
+        Check_BladeToBlade->setGeometry(QRect(10, 740, 121, 21));
+        Check_BladeToBlade->setFont(font1);
+        label_7 = new QLabel(scrollAreaWidgetContents_2);
+        label_7->setObjectName(QString::fromUtf8("label_7"));
+        label_7->setGeometry(QRect(10, 770, 91, 21));
+        label_7->setFont(font1);
+        CBtn_BackGround = new QComboBox(scrollAreaWidgetContents_2);
+        CBtn_BackGround->addItem(QString());
+        CBtn_BackGround->addItem(QString());
+        CBtn_BackGround->setObjectName(QString::fromUtf8("CBtn_BackGround"));
+        CBtn_BackGround->setGeometry(QRect(120, 770, 91, 21));
+        QFont font2;
+        font2.setPointSize(9);
+        font2.setBold(true);
+        font2.setWeight(75);
+        CBtn_BackGround->setFont(font2);
+        Check_ThreeView = new QCheckBox(scrollAreaWidgetContents_2);
+        Check_ThreeView->setObjectName(QString::fromUtf8("Check_ThreeView"));
+        Check_ThreeView->setGeometry(QRect(131, 740, 121, 21));
+        Check_ThreeView->setFont(font1);
         scrollArea->setWidget(scrollAreaWidgetContents_2);
 
         horizontalLayout_3->addWidget(scrollArea);
@@ -541,17 +563,17 @@ public:
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
         menubar->setGeometry(QRect(0, 0, 1666, 24));
-        QFont font2;
-        font2.setPointSize(12);
-        font2.setBold(true);
-        font2.setWeight(75);
-        menubar->setFont(font2);
+        QFont font3;
+        font3.setPointSize(12);
+        font3.setBold(true);
+        font3.setWeight(75);
+        menubar->setFont(font3);
         menuFile = new QMenu(menubar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
-        menuFile->setFont(font2);
+        menuFile->setFont(font3);
         menuTools = new QMenu(menubar);
         menuTools->setObjectName(QString::fromUtf8("menuTools"));
-        menuTools->setFont(font2);
+        menuTools->setFont(font3);
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
@@ -644,7 +666,12 @@ public:
         label_3->setText(QCoreApplication::translate("MainWindow", "View Control", nullptr));
         Check_3Dview->setText(QCoreApplication::translate("MainWindow", "3D View", nullptr));
         Check_Meri->setText(QCoreApplication::translate("MainWindow", "Meridional", nullptr));
-        Check_DoubleView->setText(QCoreApplication::translate("MainWindow", "Double View", nullptr));
+        Check_BladeToBlade->setText(QCoreApplication::translate("MainWindow", "Blade-Blade", nullptr));
+        label_7->setText(QCoreApplication::translate("MainWindow", "BackGround", nullptr));
+        CBtn_BackGround->setItemText(0, QCoreApplication::translate("MainWindow", "Sky Blue", nullptr));
+        CBtn_BackGround->setItemText(1, QCoreApplication::translate("MainWindow", "White", nullptr));
+
+        Check_ThreeView->setText(QCoreApplication::translate("MainWindow", "Three View", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "&File", nullptr));
         menuTools->setTitle(QCoreApplication::translate("MainWindow", "&Tools", nullptr));
         toolBar->setWindowTitle(QCoreApplication::translate("MainWindow", "toolBar", nullptr));

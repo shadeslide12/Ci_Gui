@@ -144,6 +144,7 @@ public:
     void SetBoundaryTransparency(int meshNumber, int boundaryNumber, double opacity);
     void SetSliceTransparency(int sliceNumber, double opacity);
     void SetActorLighting(bool);
+    void SetBackgroundStyle(const QString &style);  // 设置背景样式
 
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> GetRenderWindow(){return renderWindow;}
     std::vector<vtkAesReader::FlowData> GetFlows(){return aesReader.GetFlows();}

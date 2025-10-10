@@ -706,7 +706,17 @@ void vtkDisplayWindow::SetBoundaryTransparency(int meshNumber, int boundaryNumbe
     if (boundary.shadeActor) {
         boundary.shadeActor->GetProperty()->SetOpacity(opacity);
     }
-    renderWindow->Render();
+
+    if (boundary.meshActor) {
+        boundary.meshActor->GetProperty()->SetOpacity(opacity);
+    }
+    if (boundary.edgeActor) {
+        boundary.edgeActor->GetProperty()->SetOpacity(opacity);
+    }
+    if (boundary.velocityActor) {
+        boundary.velocityActor->GetProperty()->SetOpacity(opacity);
+    }
+    
     std::cout << "[Debug] SetBoundaryTransparency: mesh=" << meshNumber 
               << ", boundary=" << boundaryNumber << ", opacity=" << opacity << std::endl;
 }
@@ -768,6 +778,23 @@ void vtkDisplayWindow::SetBackground()
     renderer->SetBackground2(0.529, 0.8078, 0.92157);
     renderer->SetGradientBackground(true);
 
+}
+
+void vtkDisplayWindow::SetBackgroundStyle(const QString &style)
+{
+    if (style == "Sky Blue") {
+        // 天蓝色渐变背景 (默认)
+        renderer->SetBackground(1.0, 1.0, 1.0);           // 白色
+        renderer->SetBackground2(0.529, 0.8078, 0.92157); // 天蓝色
+        renderer->SetGradientBackground(true);
+    } else if (style == "White") {
+        // 纯白色背景
+        renderer->SetBackground(1.0, 1.0, 1.0);           // 白色
+        renderer->SetGradientBackground(false);
+    }
+    
+    // 刷新渲染窗口
+    renderWindow->Render();
 }
 
 std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane(double minRange, double maxRange)
