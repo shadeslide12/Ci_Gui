@@ -345,6 +345,20 @@ void MainWindow::on_actionAddPointInformation_triggered()
 
 }
 
+void MainWindow::on_actionExport_Picture_triggered()
+{
+    ExportPicDialog dialog(this);
+    
+    // 传递三个视图的渲染窗口
+    dialog.setRenderWindows(
+        ui->vtkBox->renderWindow(),           // 3D 主视图
+        MeridionalrenderWindow,                // Meridional 视图
+        BladeToBladerenderWindow               // Blade-to-Blade 视图
+    );
+    
+    dialog.exec();
+}
+
 void MainWindow::xoyViewTriggered()
 {
     qtvtkWindow->xoyViewRender();
@@ -565,11 +579,10 @@ void MainWindow::selectBoundaryButtonTriggeded()
             ui->vtkBox->renderWindow()->Render();
         });
         
-
+        // 设置透明度控件的初始状态，与transparancyCheckBox保持一致
         controlPanel->setTransparencyControlsEnabled(ui->transparancyCheckBox->isChecked());
     }
-
-    controlPanel->setTransparencyControlsEnabled(ui->transparancyCheckBox->isChecked());
+    
     controlPanel->show();
     
 }
@@ -757,7 +770,6 @@ void MainWindow::makeNewCutplane(double* origin, double* normal)
 
 void MainWindow::transparancyCheckBoxTriggered()
 {
-
     static bool firstTimeEnabled = true; // 跟踪是否是第一次启用透明度
     bool isChecked = ui->transparancyCheckBox->isChecked();
     
@@ -767,7 +779,6 @@ void MainWindow::transparancyCheckBoxTriggered()
             qtvtkWindow->SetActorTransparancy(0.5);
             firstTimeEnabled = false; // 标记已经执行过第一次设置
         }
-
         vtkObject::GlobalWarningDisplayOff();
     }
     else {

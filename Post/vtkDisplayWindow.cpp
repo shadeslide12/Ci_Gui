@@ -706,7 +706,6 @@ void vtkDisplayWindow::SetBoundaryTransparency(int meshNumber, int boundaryNumbe
     if (boundary.shadeActor) {
         boundary.shadeActor->GetProperty()->SetOpacity(opacity);
     }
-
     if (boundary.meshActor) {
         boundary.meshActor->GetProperty()->SetOpacity(opacity);
     }
@@ -733,9 +732,7 @@ void vtkDisplayWindow::SetSliceTransparency(int sliceNumber, double opacity)
     if (deriveds.cutplaneActors[sliceNumber]) {
         deriveds.cutplaneActors[sliceNumber]->GetProperty()->SetOpacity(opacity);
     }
-
-    renderWindow->Render();
-
+    
     std::cout << "[Debug] SetSliceTransparency: slice=" << sliceNumber 
               << ", opacity=" << opacity << std::endl;
 }
@@ -1162,8 +1159,7 @@ void vtkDisplayWindow::InitializeCutplaneScalarBar()
     if (!deriveds.cutplaneScalarBar) {
         deriveds.cutplaneScalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
         deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
-        std::string title = std::string("Slice  ") + "rho";
-        deriveds.cutplaneScalarBar->SetTitle(title.c_str());
+        deriveds.cutplaneScalarBar->SetTitle("Slice");
         deriveds.cutplaneScalarBar->SetNumberOfLabels(10);
         
         // 设置位置 - 水平显示在窗口中下方（避免被截断）
@@ -1174,11 +1170,9 @@ void vtkDisplayWindow::InitializeCutplaneScalarBar()
         deriveds.cutplaneScalarBar->SetHeight(0.06); // 高度占窗口6%
         
         // 设置字体 - 更小的字体
-        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(12);
-        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetColor(0,0,0);
-        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(9);
-        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetColor(0,0,0);
-
+        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(10);
+        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(8);
+        
         // 确保可见性
         deriveds.cutplaneScalarBar->SetVisibility(1);
         
@@ -1312,8 +1306,7 @@ void vtkDisplayWindow::SetCutplaneVariable(int flowNumber)
     // 更新标量条（如果存在）
     if (deriveds.cutplaneScalarBar && deriveds.cutplaneLookupTable) {
         deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
-        std::string title = "Slice  " + aesReader.GetFlows()[flowNumber].name;
-        deriveds.cutplaneScalarBar->SetTitle(title.c_str());
+        deriveds.cutplaneScalarBar->SetTitle(aesReader.GetFlows()[flowNumber].name.c_str());
     }
     
     std::cout << "[Debug] Cutplane variable updated successfully" << std::endl;

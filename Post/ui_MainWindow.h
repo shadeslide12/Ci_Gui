@@ -43,6 +43,7 @@ public:
     QAction *actionAddPointInformation;
     QAction *actionCalculatorFunction;
     QAction *actionNewWindow;
+    QAction *actionExport_Picture;
     QWidget *centralwidget;
     QHBoxLayout *horizontalLayout_2;
     QWidget *widget_2;
@@ -154,6 +155,8 @@ public:
         actionCalculatorFunction->setObjectName(QString::fromUtf8("actionCalculatorFunction"));
         actionNewWindow = new QAction(MainWindow);
         actionNewWindow->setObjectName(QString::fromUtf8("actionNewWindow"));
+        actionExport_Picture = new QAction(MainWindow);
+        actionExport_Picture->setObjectName(QString::fromUtf8("actionExport_Picture"));
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         horizontalLayout_2 = new QHBoxLayout(centralwidget);
@@ -586,6 +589,7 @@ public:
         menubar->addAction(menuTools->menuAction());
         menuFile->addAction(actionLoadMesh);
         menuFile->addAction(actionUpdateFlow);
+        menuFile->addAction(actionExport_Picture);
         toolBar->addAction(actionNewWindow);
         toolBar->addAction(actionOpenFile);
         toolBar->addAction(actionAddScalarBarActor);
@@ -620,7 +624,7 @@ public:
 #if QT_CONFIG(tooltip)
         actionAddOutlineActor->setToolTip(QCoreApplication::translate("MainWindow", "add outline", nullptr));
 #endif // QT_CONFIG(tooltip)
-        actionAddPointInformation->setText(QCoreApplication::translate("MainWindow", "AddPointInformation", nullptr));
+        actionAddPointInformation->setText(QCoreApplication::translate("MainWindow", "Probe Data", nullptr));
 #if QT_CONFIG(tooltip)
         actionAddPointInformation->setToolTip(QCoreApplication::translate("MainWindow", "add point attribute information", nullptr));
 #endif // QT_CONFIG(tooltip)
@@ -632,6 +636,7 @@ public:
 #if QT_CONFIG(tooltip)
         actionNewWindow->setToolTip(QCoreApplication::translate("MainWindow", "create a new window", nullptr));
 #endif // QT_CONFIG(tooltip)
+        actionExport_Picture->setText(QCoreApplication::translate("MainWindow", "Export Picture", nullptr));
         label_5->setText(QCoreApplication::translate("MainWindow", "Orientation view", nullptr));
         xoyView->setText(QString());
         xozView->setText(QString());

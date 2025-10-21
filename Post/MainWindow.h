@@ -15,6 +15,7 @@
 #include "MeridionalPlaneDialog.h"
 #include "ConstSettingDialog.h"
 #include "ProbePanel.h"
+#include "ExportPicDialog.h"
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkInteractorStyleTrackballCamera.h>
@@ -71,6 +72,7 @@ private slots:
     void on_actionAddAxisActor_triggered();
     void on_actionAddOutlineActor_triggered();
     void on_actionAddPointInformation_triggered();
+    void on_actionExport_Picture_triggered();
     void on_ConstHeightCheckBox_toggled(bool trigger);
 
     void xoyViewTriggered();
