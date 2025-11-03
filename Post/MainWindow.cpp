@@ -1,0 +1,1434 @@
+#include "MainWindow.h"
+#include "ui_MainWindow.h"
+#include <QDebug>
+#include <vtkProperty.h>
+#include <vtkSphereSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkArrayCalculator.h>
+#include <vtkGlyph2D.h>
+#include <vtkGlyphSource2D.h>
+#include <QVTKOpenGLNativeWidget.h>
+#include <QButtonGroup>
+#include <QSplitter>
+#include <QLabel>
+#include <vtkInteractorStyleImage.h>
+#include <QFileDialog>
+
+#include <vtkRendererCollection.h>
+
+using std::string; using std::vector;
+
+// 前向声明
+class MainWindow;
+
+namespace
+{
+    class MouseInteractorStyle: public vtkInteractorStyleTrackballCamera
+    {
+    public:
+        static MouseInteractorStyle* New();
+        vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
+        MouseInteractorStyle() 
+        {
+            initialize();
+        }
+        
+        // 设置MainWindow指针
+        void SetMainWindow(MainWindow* window) { mainWindow = window; }
+
+        virtual void OnLeftButtonDown() override
+        {
+            vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+            
+            if (!isAddTextActor) return;
+            
+            int *pos = this->Interactor->GetEventPosition();
+
+            cellPicker->Pick(pos[0], pos[1], 0, this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+            propPicker->Pick(pos[0], pos[1], 0, this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+
+            if (propPicker->GetActor() != nullptr && propPicker->GetActor() != pointActor)
+            {
+                auto boundaryData = propPicker->GetActor()->GetMapper()->GetInput();
+                auto pos = boundaryData->GetPoint(cellPicker->GetPointId());
+                
+                // 构建坐标字符串（用于侧边栏）
+                std::string coordStr = "x: " + std::to_string(pos[0]) + 
+                                      "\ny: " + std::to_string(pos[1]) + 
+                                      "\nz: " + std::to_string(pos[2]);
+                
+                // 收集所有物理量数据
+                std::vector<std::pair<std::string, double>> probeData;
+                for (int i = 0; i < parameterNames.size(); i++)
+                {
+                    std::string varName = boundaryData->GetPointData()->GetArray(parameterNames[i].c_str())->GetName();
+                    double value = boundaryData->GetPointData()->
+                        GetArray(parameterNames[i].c_str())->GetComponent(cellPicker->GetPointId(), 0);
+                    probeData.push_back({varName, value});
+                }
+                
+                // 更新侧边栏
+                if (mainWindow != nullptr)
+                {
+                    mainWindow->UpdateProbePanel(coordStr, probeData);
+                }
+                vtkSmartPointer<vtkPointLocator> locate = vtkSmartPointer<vtkPointLocator>::New();
+                locate->SetDataSet(boundaryData);
+                vtkSmartPointer<vtkIdList> idlist = vtkSmartPointer<vtkIdList>::New();
+                locate->FindClosestNPoints(2, pos, idlist);
+                
+                vtkSmartPointer<vtkMath> math = vtkSmartPointer<vtkMath>::New();
+                double point1[3];
+                boundaryData->GetPoint(idlist[0].GetId(0), point1);
+                double point2[3];
+                boundaryData->GetPoint(idlist[0].GetId(1), point2);
+                double dis = sqrt(math->Distance2BetweenPoints(point1, point2)) / 3;
+            
+                auto displayPoint =  vtkSmartPointer<vtkSphereSource>::New();
+                displayPoint->SetCenter(pos);
+                displayPoint->SetRadius(dis);
+
+                auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+
+                mapper->SetInputConnection(displayPoint->GetOutputPort());
+                this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(pointActor);
+                pointActor->SetMapper(mapper);
+                this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(pointActor);
+            }
+
+            vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+        }
+        
+        void initialize()
+        {
+            textActor = vtkSmartPointer<vtkTextActor>::New();
+            textActor->SetInput("please select a point");
+            textActor->GetProperty()->SetColor(0.0,0,0);
+            textActor->GetTextProperty()->BoldOn();
+            textActor->GetTextProperty()->SetFontSize(18);
+
+            pointActor = vtkSmartPointer<vtkActor>::New();
+            pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+            pointActor->VisibilityOff();
+
+        }
+
+        vtkSmartPointer<vtkTextActor> textActor = nullptr;
+        vtkSmartPointer<vtkActor> pointActor = nullptr;
+        std::vector<std::string> parameterNames = {"rho", "u", "v", "w", "P", "tb1"};
+        bool isAddTextActor = false;
+        
+        vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
+        vtkSmartPointer<vtkPropPicker> propPicker = vtkSmartPointer<vtkPropPicker>::New();
+        
+        MainWindow* mainWindow = nullptr;  // 指向MainWindow的指针
+
+        vtkSmartPointer<vtkActor> streamLineActor = vtkSmartPointer<vtkActor>::New();
+        vtkSmartPointer<vtkActor> glyphActor = vtkSmartPointer<vtkActor>::New();
+        vtkDataSet *meshDataSet = nullptr;
+        bool hasPoint1Set = false;
+        bool hasPoint2Set = false;
+        double streamLinePoint1[3];
+        double streamLinePoint2[3];
+        bool readyToCreateStreamLine = false;
+    };
+    vtkStandardNewMacro(MouseInteractorStyle);
+}
+
+static ::MouseInteractorStyle* style = nullptr;
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    InitializeMainWindow();
+
+}
+
+MainWindow::~MainWindow()
+{
+
+    delete qtvtkWindow;
+    delete ui;
+}
+
+void MainWindow::on_actionLoadMesh_triggered()
+{
+    QString filename = QFileDialog::getOpenFileName(this,"Open File","./",tr("*.grid.hdf"));
+    if (filename.length() == 0) 
+    {
+        cout << "Error choose aes file, please check and try it agian!" << endl;
+        return;
+    }
+    else
+    {
+        cout << "reading aes grid file " << filename.toStdString() << endl << "please waiting for few seconds!" << endl;
+        
+        // 在加载新模型前清除之前的视图
+        ResetViewsAndRenderers();
+        
+        on_actionNewWindow_triggered();
+
+        qtvtkWindow->ReadAesFile(filename.toStdString());
+        ui->vtkBox->renderWindow()->Render();
+    }
+    ResetScrollArea();
+    cout << "End Load Mesh" << endl;
+    double* bounds = qtvtkWindow->GetModelBounds();
+    if (bounds != nullptr) {
+        qDebug() << "Outline在X轴上的范围：" << "最小值 = " << bounds[0] << ", 最大值 = " << bounds[1];
+    }
+}
+
+void MainWindow::on_actionUpdateFlow_triggered()
+{
+    if (!qtvtkWindow->HasGrid())
+    {
+        cout << "there is no grid file, please add a grid file first." << endl;
+        return;
+    }
+    QString filename = QFileDialog::getOpenFileName(this,"Open File","./",tr("*.hdf"));
+    if (filename.length() == 0 || filename.toStdString().find("flow") == std::string::npos) 
+    {
+        cout << "Error choose flow file, please check and try it agian!" << endl;
+        return;
+    }
+    qtvtkWindow->UpdateFlow(filename.toStdString());
+    disconnect(ui->vectorCheckBox, SIGNAL(stateChanged(int)), this, SLOT(vectorCheckBoxTriggered()));
+    ui->vectorCheckBox->setCheckState(Qt::Unchecked);
+    connect(ui->vectorCheckBox, SIGNAL(stateChanged(int)), this, SLOT(vectorCheckBoxTriggered()));
+    ui->vtkBox->renderWindow()->Render();
+    cout << "End Update Flow" << endl;
+}
+
+void MainWindow::on_actionNewWindow_triggered()
+{
+    if (!qtvtkWindow->HasGrid()) 
+    {
+        cout << "the VTK Box is initialized." << endl;
+        return;
+    }
+    cout << "Initialize the VTK Box" << endl;
+    vtkDisplayWindow *newWindow = new vtkDisplayWindow();
+    ui->vtkBox->setRenderWindow(newWindow->GetRenderWindow());
+    delete qtvtkWindow;
+    qtvtkWindow = newWindow;
+    ui->vtkBox->renderWindow()->Render();
+    if (selectBoundaryDialog != nullptr)
+    {
+        delete selectBoundaryDialog;
+        selectBoundaryDialog = nullptr;
+    }
+    DisableScrollArea();
+}
+
+void MainWindow::on_actionOpenFile_triggered()
+{
+    QString filename = QFileDialog::getOpenFileName(this,"Open File","./",tr("*.hdf"));
+    if (filename.length() == 0 || (filename.toStdString().find("flow") == std::string::npos &&
+     filename.toStdString().find("grid") == std::string::npos))
+    {
+        cout << "Error choose flow file, please check and try it agian!" << endl;
+        return;
+    }
+    if (filename.toStdString().find("flow") != std::string::npos)
+    {
+        if (!qtvtkWindow->HasGrid())
+        {
+            cout << "there is no grid file, please add a grid file first." << endl;
+            return;
+        }
+        qtvtkWindow->UpdateFlow(filename.toStdString());
+        disconnect(ui->vectorCheckBox, SIGNAL(stateChanged(int)), this, SLOT(vectorCheckBoxTriggered()));
+        ui->vectorCheckBox->setCheckState(Qt::Unchecked);
+        connect(ui->vectorCheckBox, SIGNAL(stateChanged(int)), this, SLOT(vectorCheckBoxTriggered()));
+
+        ui->vtkBox->renderWindow()->Render();
+        cout << "End Update Flow" << endl;
+    }
+    else if (filename.toStdString().find("grid") != std::string::npos)
+    {
+        cout << "reading aes grid file " << filename.toStdString() << endl << "please waiting for few seconds!" << endl;
+        
+        // 在加载新模型前清除之前的视图
+        ResetViewsAndRenderers();
+        
+        on_actionNewWindow_triggered();
+        qtvtkWindow->ReadAesFile(filename.toStdString());
+        ui->vtkBox->renderWindow()->Render();
+        ResetScrollArea();
+        cout << "End Load Mesh" << endl;
+    }
+}
+
+void MainWindow::on_actionAddScalarBarActor_triggered()
+{
+    if (!qtvtkWindow->HasGrid())
+    {
+        cout << "there is no grid file, please add a grid file first." << endl;
+        return;
+    }
+    if (qtvtkWindow->IsScalarBarWidgetActive())
+    {
+        qtvtkWindow->InActivateScalarBarWidget();
+    }
+    else if (!qtvtkWindow->IsScalarBarWidgetActive())
+    {
+        qtvtkWindow->ActivateScalarBarWidget();
+    }
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::on_actionAddAxisActor_triggered()
+{
+    if (!qtvtkWindow->HasGrid())
+    {
+        cout << "there is no grid file, please add a grid file first." << endl;
+        return;
+    }
+    if (qtvtkWindow->IsAxiesWidgetActive())
+    {
+        qtvtkWindow->InActivateAxiesWidget();
+    }
+    else qtvtkWindow->ActivateAxiesWidget();
+    ui->vtkBox->renderWindow()->Render();    
+}
+
+void MainWindow::on_actionAddOutlineActor_triggered()
+{
+    if (!qtvtkWindow->HasGrid())
+    {
+        cout << "there is no grid file, please add a grid file first." << endl;
+        return;
+    }
+    if (qtvtkWindow->IsOutlineActorVisiable())
+    {
+        qtvtkWindow->InVisiableOutlineActor();
+    }
+    else qtvtkWindow->VisiableOutlineActor();
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::on_actionAddPointInformation_triggered()
+{
+    if (!qtvtkWindow->HasGrid())
+    {
+        cout << "there is no grid file, please add a grid file first." << endl;
+        return;
+    }
+    if (::style == nullptr)
+    {
+        ::style = new MouseInteractorStyle();
+        ::style->SetMainWindow(this);  // 设置MainWindow指针
+        cout << "initialize mouse interactor style" << endl;
+        ui->vtkBox->interactor()->SetInteractorStyle(::style);
+    }
+    if (!::style->isAddTextActor)
+    {
+        // 不再添加 textActor 到渲染器，因为信息显示在侧边栏
+        // ui->vtkBox->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor2D(::style->textActor);
+        ::style->isAddTextActor = true;
+        ::style->pointActor->VisibilityOn();
+        
+        // 显示探测面板
+        if (probePanel) {
+            probePanel->show();
+            probePanel->ClearData();
+        }
+        
+        ui->vtkBox->renderWindow()->Render();
+        return;
+    }
+    if (::style->isAddTextActor && probePanel && probePanel->isVisible())
+    {
+        // 隐藏点信息功能
+        ::style->pointActor->VisibilityOff();
+        
+        // 隐藏探测面板
+        probePanel->hide();
+    }
+    else
+    {
+        // 显示点信息功能
+        ::style->pointActor->VisibilityOff();
+        
+        // 显示探测面板
+        if (probePanel) {
+            probePanel->show();
+            probePanel->ClearData();
+        }
+    }
+    ui->vtkBox->renderWindow()->Render();
+
+}
+
+void MainWindow::on_actionExport_Picture_triggered()
+{
+    ExportPicDialog dialog(this);
+    
+    // 传递三个视图的渲染窗口
+    dialog.setRenderWindows(
+        ui->vtkBox->renderWindow(),           // 3D 主视图
+        MeridionalrenderWindow,                // Meridional 视图
+        BladeToBladerenderWindow               // Blade-to-Blade 视图
+    );
+    
+    dialog.exec();
+}
+
+void MainWindow::xoyViewTriggered()
+{
+    qtvtkWindow->xoyViewRender();
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::xozViewTriggered()
+{
+    qtvtkWindow->xozViewRender();
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::yozViewTriggered()
+{
+    qtvtkWindow->yozViewRender();
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::xyzViewTriggered()
+{
+    qtvtkWindow->xyzViewRender();
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::meshCheckBoxTriggered()
+{
+    if (!qtvtkWindow->HasGrid()) 
+    {
+        cout << "there is no grid file, please add a grid file first." << endl;
+        return;
+    }
+    if (ui->meshCheckBox->isChecked())
+    {
+        qtvtkWindow->AddMeshActor();
+    }
+    else qtvtkWindow->RemoveMeshActor();
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::contourCheckBoxTriggered()
+{
+    if (!qtvtkWindow->HasGrid()) 
+    {
+        cout << "there is no grid file, please add a grid file first." << endl;
+        return;
+    }
+    if (ui->contourCheckBox->isChecked())
+    {
+        qtvtkWindow->AddContourActor();
+        if (ui->shadeCheckBox->isChecked())
+        {
+            qtvtkWindow->RemoveShadeActor();
+        }
+    }
+    else 
+    {
+        qtvtkWindow->RemoveContourActor();
+        if (ui->shadeCheckBox->isChecked())
+        {
+            qtvtkWindow->AddShadeActor();
+        }
+    }
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::shadeCheckBoxTriggered()
+{
+    if (!qtvtkWindow->HasGrid()) 
+    {
+        cout << "there is no grid file, please add a grid file first." << endl;
+        return;
+    }
+    if (ui->shadeCheckBox->isChecked())
+    {
+        if (!ui->contourCheckBox->isChecked())
+        {
+            qtvtkWindow->AddShadeActor();
+        }
+    }
+    else qtvtkWindow->RemoveShadeActor();
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::edgeCheckBoxTriggered()
+{
+    if (!qtvtkWindow->HasGrid()) 
+    {
+        cout << "there is no grid file, please add a grid file first." << endl;
+        return;
+    }
+    if (ui->edgeCheckBox->isChecked())
+    {
+        qtvtkWindow->AddEdgeActor();
+        if (qtvtkWindow->IsOutlineActorVisiable())
+        {
+            qtvtkWindow->InVisiableOutlineActor();
+        }
+    }
+    else 
+    {
+        qtvtkWindow->RemoveEdgeActor();
+        if (!qtvtkWindow->IsOutlineActorVisiable())
+        {
+            qtvtkWindow->VisiableOutlineActor();
+        }
+    }
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::vectorCheckBoxTriggered()
+{
+    if (!qtvtkWindow->HasVector())
+    {
+        cout << "create vector, please wait." << endl;
+        qtvtkWindow->CreateVelocityActor();
+        qtvtkWindow->AddVelocityActor();
+    }
+    else
+    {
+        if (ui->vectorCheckBox->checkState() == Qt::Checked)
+        {
+            qtvtkWindow->AddVelocityActor();
+        }
+        else qtvtkWindow->RemoveVelocityActor();
+    }
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::contourSettingButtonTriggered()
+{
+    colorBarDialog = new ColorBarDialog(this);
+    colorBarDialog->setColorBarDialog(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber());
+    connect(colorBarDialog,SIGNAL(finishSetParameters(double,double,int,int,double,double)),this, SLOT(setColorBar(double,double,int,int,double,double)));
+    colorBarDialog->setAttribute(Qt::WA_DeleteOnClose);
+    colorBarDialog->setWindowModality(Qt::ApplicationModal);
+    colorBarDialog->show();
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::setColorBar(double m, double M, int number, int flowNumber, double width, double height)
+{
+    qtvtkWindow->SetScalarBar(m,M,number,flowNumber);
+    qtvtkWindow->SetScalarBarSize(width, height);
+    ui->vtkBox->renderWindow()->Render();
+
+    auto plane = qtvtkWindow->ChangeMeridionalFlow(m, M, flowNumber);
+    Meridionalrenderer->RemoveAllViewProps();
+    for(int i = 0; i < plane.size(); i++)
+    {
+        Meridionalrenderer->AddActor(plane[i]);
+    }
+    MeridionalrenderWindow->Render();
+}
+
+void MainWindow::vectorSettingButtonTriggered()
+{
+    if (!qtvtkWindow->HasVector())
+    {
+        cout << "please add vector first" << endl;
+        return;
+    }
+    scaleFactorDialog = new ScaleFactorDialog(this);
+    scaleFactorDialog->setAttribute(Qt::WA_DeleteOnClose);
+    scaleFactorDialog->setWindowModality(Qt::ApplicationModal);
+    scaleFactorDialog->SetScaleTextEdit(qtvtkWindow->GetScaleFactor());
+    scaleFactorDialog->SetVectorComponentsComboBox(qtvtkWindow->GetFlows(),qtvtkWindow->GetVectorComponentsNumber());
+    connect(scaleFactorDialog, SIGNAL(SetScaleFactor(double)), this, SLOT(setVectorScaleFactor(double)));
+    connect(scaleFactorDialog, SIGNAL(ChangeVectorComponentsNumber(int *)), this, SLOT(createNewVector(int *)));
+    scaleFactorDialog->show();
+}
+
+void MainWindow::setVectorScaleFactor(double s)
+{
+    qtvtkWindow->SetVectorScaleFactor(s);
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::createNewVector(int *v)
+{
+    qtvtkWindow->CreateVelocityActor(v[0], v[1], v[2]);
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::selectBoundaryButtonTriggeded()
+{
+    //* Test Control Panel
+    std::cout << "Control Test "<< std::endl;
+    if (controlPanel == nullptr)
+    {
+        controlPanel = new ControlPanel(this);
+        controlPanel->setWindowModality(Qt::NonModal);
+        
+        // 获取boundary数据并传递给ControlPanel
+        auto boundaryData = qtvtkWindow->GetBoundaryDatasets();
+        controlPanel->setupTable(boundaryData);
+        
+        // 连接ControlPanel的boundary控制信号到MainWindow的槽函数
+        connect(controlPanel, &ControlPanel::setBoundarys, this, &MainWindow::showBoundaryActor);
+        // 连接ControlPanel的cutplane控制信号到MainWindow的槽函数
+        connect(controlPanel, &ControlPanel::setCutplaneVisiable, this, &MainWindow::showCutplane);
+        // 连接ControlPanel的boundary透明度信号到vtkDisplayWindow
+        connect(controlPanel, &ControlPanel::boundaryTransparencyChanged, qtvtkWindow, &vtkDisplayWindow::SetBoundaryTransparency);
+        // 连接ControlPanel的slice透明度信号到vtkDisplayWindow
+        connect(controlPanel, &ControlPanel::sliceTransparencyChanged, qtvtkWindow, &vtkDisplayWindow::SetSliceTransparency);
+        // 连接ControlPanel的slice删除信号到MainWindow的删除函数
+        connect(controlPanel, &ControlPanel::sliceDeleteRequested, this, &MainWindow::deleteSlice);
+        // 连接ControlPanel的slice contour mode信号到vtkDisplayWindow
+        connect(controlPanel, &ControlPanel::sliceContourModeChanged, qtvtkWindow, &vtkDisplayWindow::SetSliceContourMode);
+        
+        // 连接slice contour mode信号到CutplaneDialog的UI控件启用/禁用
+        connect(controlPanel, &ControlPanel::sliceContourModeChanged, [this](const QString& mode) {
+            if (cutPlaneDialog) {
+                bool enableMapping = (mode == "isolated");
+                cutPlaneDialog->setMappingControlEnabled(enableMapping);
+            }
+        });
+        
+        connect(controlPanel, &ControlPanel::sliceContourModeChanged, [this]() {
+            ui->vtkBox->renderWindow()->Render();
+        });
+        
+        // 设置透明度控件的初始状态，与transparancyCheckBox保持一致
+        controlPanel->setTransparencyControlsEnabled(ui->transparancyCheckBox->isChecked());
+    }
+    
+    controlPanel->show();
+    
+}
+
+void MainWindow::showBoundaryActor(int meshNumber, int boundaryNumber, bool flag)
+{
+    if (flag) qtvtkWindow->VisiableBoundaryActor(meshNumber, boundaryNumber);
+    else
+    {
+        qtvtkWindow->InVisiableBoundaryActor(meshNumber, boundaryNumber);
+    }
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::isoSurfaceCheckBoxTriggered()
+{
+    if (!qtvtkWindow->HasIsoSurface())
+    {
+        qtvtkWindow->CreateIsoSurfaceActor();
+        qtvtkWindow->AddIsoSurfaceActor();
+        ui->vtkBox->renderWindow()->Render();
+        return;
+    }
+
+    if (ui->isoSurfaceCheckBox->isChecked())
+    {
+        qtvtkWindow->AddIsoSurfaceActor();
+    }
+    else qtvtkWindow->RemoveIsoSurfaceActor();
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::isoSurfaceSettingButtonTriggered()
+{
+    if (!qtvtkWindow->HasIsoSurface()) 
+    {
+        cout << "please add isosurface actor first" << endl;
+        return;
+    }
+    if (!ui->isoSurfaceCheckBox->isChecked())
+    {
+        cout << "please show isosurface first" << endl;
+        return;
+    }
+    IsoSurfaceDialog* isoSurfaceDialog = new IsoSurfaceDialog(this);
+    isoSurfaceDialog->setAttribute(Qt::WA_DeleteOnClose);
+    isoSurfaceDialog->setWindowModality(Qt::ApplicationModal);
+    isoSurfaceDialog->setIsoSurfaceDialog(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber() , qtvtkWindow->GetIsoSurfaceFloodNumber(), 
+    qtvtkWindow->GetDeriveds().contourFilter->GetValue(0));
+    connect(isoSurfaceDialog, SIGNAL(changeFloodParameter(int)), this, SLOT(changeFloodNumber(int)));
+    connect(isoSurfaceDialog, SIGNAL(changeFlowParameter(int)), this, SLOT(isoSurfaceChangeFlowNumber(int)));
+    connect(isoSurfaceDialog, SIGNAL(changeIsoSurfaceValue(double)), this, SLOT(isoSurfaceValueChanged(double)));
+    isoSurfaceDialog->show();
+
+}
+
+void MainWindow::changeFloodNumber(int number)
+{
+    qtvtkWindow->ChangeFloodNumber(number);
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::isoSurfaceChangeFlowNumber(int number)
+{
+    qtvtkWindow->IsoSurfaceChangeFlowNumber(number);
+    changeFloodNumber(number);
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::isoSurfaceValueChanged(double value)
+{
+    qtvtkWindow->SetIsoSurfaceValue(value);
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::slicesCheckBoxTriggered()
+{
+    if (!qtvtkWindow->HasCutplane())
+    {
+        cout << "test" << endl;
+        qtvtkWindow->AddNewCutplane();
+
+        if (controlPanel != nullptr) {
+            // 获取当前cutplane的数量作为索引
+            int cutplaneIndex = qtvtkWindow->GetPlanes().size() - 1; // 新添加的cutplane索引
+            double origin[3] = {0.0, 0.0, 0.0};
+            double normal[3] = {1.0, 0.0, 0.0};
+            controlPanel->addCutplaneToTable(cutplaneIndex, origin, normal);
+        }
+        // 第一次创建cutplane时也要显示ScalarBar
+        if (ui->slicesCheckBox->isChecked()) {
+            qtvtkWindow->ShowCutplaneScalarBar();
+        }
+
+        cout << "add a simple cutplane" << endl;
+        ui->vtkBox->renderWindow()->Render();
+        return;
+    }
+    if (ui->slicesCheckBox->isChecked())
+    {
+        qtvtkWindow->AddCutplaneActors();
+        qtvtkWindow->ShowCutplaneScalarBar();
+    }
+    else 
+    {
+        qtvtkWindow->RemoveCutplaneActors();
+        qtvtkWindow->HideCutplaneScalarBar();
+    }
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::slicesSettingButtonTriggered()
+{
+    if (ui->slicesCheckBox->checkState() == Qt::Unchecked)
+    {
+        cout << "please add slices actor first" << endl;
+        return;
+    }
+    CutplaneDialog *cutplaneDialog = new CutplaneDialog(this);
+    cutplaneDialog->setCutplaneDialog(qtvtkWindow->GetPlanes());
+
+    double* bounds = qtvtkWindow->GetModelBounds();
+    if (bounds != nullptr) {
+        cutplaneDialog->setModelBounds(bounds);
+    }
+    
+    // 设置流场变量数据
+    cutplaneDialog->setFlowVariables(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber());
+    
+    cutplaneDialog->setAttribute(Qt::WA_DeleteOnClose);
+    cutplaneDialog->setWindowModality(Qt::ApplicationModal);
+    connect(cutplaneDialog, SIGNAL(finishSetParameters(double*,double*,int)),this, SLOT(changeCutplane(double*,double*,int)));
+    connect(cutplaneDialog, &CutplaneDialog::createNewCutplane, this, &MainWindow::makeNewCutplane);
+    connect(cutplaneDialog, &CutplaneDialog::colorMappingChanged, this, &MainWindow::updateCutplaneColorMapping);
+    connect(cutplaneDialog, &CutplaneDialog::colorSchemeChanged, [this](int index){
+        qtvtkWindow->SetCutplaneColorScheme(index);
+        ui->vtkBox->renderWindow()->Render();
+    });
+    
+    // 连接变量选择变化信号
+    connect(cutplaneDialog, &CutplaneDialog::variableSelectionChanged, [this](int flowNumber){
+        qtvtkWindow->SetCutplaneVariable(flowNumber);
+        ui->vtkBox->renderWindow()->Render();
+    });
+    //* test
+    connect(cutplaneDialog, &CutplaneDialog::sliceLocation,
+            [this](double value,int axis) {
+                if (qtvtkWindow) {
+                    qtvtkWindow->CreatePlanePreview(value,axis);
+                    ui->vtkBox->renderWindow()->Render();
+                }
+            });
+
+    connect(cutplaneDialog, &QDialog::finished,
+        [this]() {
+            if (qtvtkWindow) {
+                qtvtkWindow->HidePlanePreview();
+            }
+        });
+
+    cutplaneDialog->show();
+}
+
+void MainWindow::changeCutplane(double* origin, double *normal, int cutplaneNumber)
+{
+    // cout << origin[0] << " " << origin[1] << " " << origin[2] << endl;
+    // cout << normal[0] << " " << normal[1] << " " << normal[2] << endl;
+    qtvtkWindow->SetCutplane(cutplaneNumber, origin,normal);
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::makeNewCutplane(double* origin, double* normal)
+{
+    qtvtkWindow->AddNewCutplane(origin, normal);
+
+    if (controlPanel != nullptr) {
+        int cutplaneIndex = qtvtkWindow->GetPlanes().size() - 1; // 新添加的cutplane索引
+        controlPanel->addCutplaneToTable(cutplaneIndex, origin, normal);
+    }
+    
+    cout << "add new cut plane with origin(" << origin[0] << ", " << origin[1] << ", " << origin[2] 
+         << ") normal(" << normal[0] << ", " << normal[1] << ", " << normal[2] << ")" << endl;
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::transparancyCheckBoxTriggered()
+{
+    static bool firstTimeEnabled = true; // 跟踪是否是第一次启用透明度
+    bool isChecked = ui->transparancyCheckBox->isChecked();
+    
+    if (isChecked) {
+        // 只在第一次勾选时设置全局透明度为0.5
+        if (firstTimeEnabled) {
+            qtvtkWindow->SetActorTransparancy(0.5);
+            firstTimeEnabled = false; // 标记已经执行过第一次设置
+        }
+        vtkObject::GlobalWarningDisplayOff();
+    }
+    else {
+        qtvtkWindow->SetActorTransparancy(1.0);
+        vtkObject::GlobalWarningDisplayOn();
+    }
+    
+    // 控制ControlPanel中透明度控件的启用/禁用状态
+    if (controlPanel) {
+        controlPanel->setTransparencyControlsEnabled(isChecked);
+    }
+    
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::lightingCheckBoxTriggered()
+{
+    qtvtkWindow->SetActorLighting(ui->lightingCheckBox->isChecked());
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::showCutplane(int number, bool flag)
+{
+    if (flag) qtvtkWindow->AddCutplane(number);
+    else
+    {
+        qtvtkWindow->RemoveCutplane(number);
+    }
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::InitializeMainWindow()
+{
+    SetIcons();
+    SetvtkBox();
+
+    connect(ui->xoyView, SIGNAL(clicked()), this, SLOT(xoyViewTriggered()));
+    connect(ui->xozView, SIGNAL(clicked()), this, SLOT(xozViewTriggered()));
+    connect(ui->yozView, SIGNAL(clicked()), this, SLOT(yozViewTriggered()));
+    connect(ui->xyzView, SIGNAL(clicked()), this, SLOT(xyzViewTriggered()));
+
+    connect(ui->contourSettingButton, SIGNAL(clicked()), this, SLOT(contourSettingButtonTriggered()));
+    connect(ui->vectorSettingButton, SIGNAL(clicked()), this, SLOT(vectorSettingButtonTriggered()));
+    connect(ui->selectBoundaryButton, SIGNAL(clicked()), this, SLOT(selectBoundaryButtonTriggeded()));
+    connect(ui->IsoSurfaceSettingButton, SIGNAL(clicked()), this, SLOT(isoSurfaceSettingButtonTriggered()));
+    connect(ui->addSliceButton, SIGNAL(clicked()), this, SLOT(slicesSettingButtonTriggered()));
+
+    connect(ui->ConstHeightpushButton, SIGNAL(clicked()),this,SLOT(ConstHeightButtonTriggered()));
+//    connect(ui->ConstHeightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(ConstHeightCheckBoxTriggered()));
+    connect(ui->MeridionalButton, SIGNAL(clicked()),this, SLOT(MeridionalButtonTriggered()));
+    connect(ui->MeridionalcheckBox, SIGNAL(stateChanged(int)),this, SLOT(MeridionalCheckBoxTriggered()));
+    
+    // Blade-to-Blade connection
+    connect(ui->BladeToBladePlaneButton, SIGNAL(clicked()), this, SLOT(BladeToBladePlaneButtonTriggered()));
+
+    //* Set View Control    // 创建主分割器
+    mainSplitter = new QSplitter(Qt::Horizontal, this);
+
+    // 创建左侧容器（用于3D视图）
+    mainViewContainer = new QWidget(mainSplitter);
+    QVBoxLayout *mainViewLayout = new QVBoxLayout(mainViewContainer);
+    mainViewLayout->setContentsMargins(0, 0, 0, 0);
+    mainViewLayout->addWidget(ui->vtkBox);
+    mainSplitter->addWidget(mainViewContainer);
+
+    // 创建右侧面板（用于Meridional和Blade-to-Blade视图）
+    rightPanel = new QWidget(mainSplitter);
+    rightLayout = new QVBoxLayout(rightPanel);
+    rightLayout->setContentsMargins(0, 0, 0, 0);
+
+    // 创建Meridional视图容器
+    meridionalViewContainer = new QWidget(rightPanel);
+    QVBoxLayout *meridionalLayout = new QVBoxLayout(meridionalViewContainer);
+    meridionalLayout->setContentsMargins(0, 0, 0, 0);
+    meridionalLayout->addWidget(vtkWidget);
+    
+    // 为Meridional视图设置2D交互样式（禁止旋转）
+    MeridionalrenderWindow->AddRenderer(Meridionalrenderer);
+    vtkWidget->setRenderWindow(MeridionalrenderWindow);
+    vtkSmartPointer<vtkInteractorStyleImage> meridionalStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
+    if (MeridionalrenderWindow->GetInteractor())
+    {
+        MeridionalrenderWindow->GetInteractor()->SetInteractorStyle(meridionalStyle);
+    }
+    
+    rightLayout->addWidget(meridionalViewContainer);
+
+    // 创建Blade-to-Blade视图容器
+    bladeToBladeViewContainer = new QWidget(rightPanel);
+    QVBoxLayout *bladeLayout = new QVBoxLayout(bladeToBladeViewContainer);
+    bladeLayout->setContentsMargins(0, 0, 0, 0);
+    bladeLayout->addWidget(bladeToBladevtkWidget);
+    rightLayout->addWidget(bladeToBladeViewContainer);
+
+    mainSplitter->addWidget(rightPanel);
+
+    // 设置分割器初始比例
+    mainSplitter->setSizes(QList<int>() << 800 << 400);
+
+    // 创建探测面板（放在最右侧）
+    probePanel = new ProbePanel(this);
+    probePanel->setMinimumWidth(300);
+    probePanel->setMaximumWidth(500);
+    probePanel->hide();  // 初始隐藏
+    
+    // 连接面板关闭信号
+    connect(probePanel, &ProbePanel::panelClosed, this, &MainWindow::onProbePanelClosed);
+    
+    // 创建外层水平分割器，包含mainSplitter和probePanel
+    QSplitter *outerSplitter = new QSplitter(Qt::Horizontal, this);
+    outerSplitter->addWidget(mainSplitter);
+    outerSplitter->addWidget(probePanel);
+    outerSplitter->setStretchFactor(0, 1);  // mainSplitter可伸缩
+    outerSplitter->setStretchFactor(1, 0);  // probePanel固定大小
+    
+    // 将外层分割器添加到主布局中
+    ui->VTKLayout->addWidget(outerSplitter);
+
+    // 初始化视图状态
+    ui->Check_3Dview->setChecked(true);
+    on_Check_3Dview_toggled(true);
+
+    QButtonGroup *group_ViewControl = new QButtonGroup(this);
+    group_ViewControl->setExclusive(true);
+    group_ViewControl->addButton(ui->Check_3Dview);
+    group_ViewControl->addButton(ui->Check_ThreeView);
+    group_ViewControl->addButton(ui->Check_Meri);
+    group_ViewControl->addButton(ui->Check_BladeToBlade);
+
+}
+
+void MainWindow::SetIcons()
+{
+    const string iconPath = ":/PostIcons/";
+
+    //Orientation view buttons's icon
+    ui->xoyView->setIcon(QIcon((iconPath+"xoy.png").c_str()));
+    ui->xozView->setIcon(QIcon((iconPath+"xoz.png").c_str()));
+    ui->yozView->setIcon(QIcon((iconPath+"yoz.png").c_str()));
+    ui->xyzView->setIcon(QIcon((iconPath+"xyz.png").c_str()));
+
+    ui->xoyView->setIconSize(ui->xoyView->sizeHint());
+    ui->xozView->setIconSize(ui->xozView->sizeHint());
+    ui->yozView->setIconSize(ui->yozView->sizeHint());
+    ui->xyzView->setIconSize(ui->xyzView->sizeHint());
+
+    ui->contourSettingButton->setIcon(QIcon((iconPath+"contour.png").c_str()));
+    ui->vectorSettingButton->setIcon(QIcon((iconPath+"vector.png").c_str()));
+    ui->IsoSurfaceSettingButton->setIcon(QIcon((iconPath+"isoSurface.png").c_str()));
+    ui->addSliceButton->setIcon(QIcon((iconPath+"cutplane.png").c_str()));
+    ui->addStreamLineButton->setIcon(QIcon((iconPath+"streamline.png").c_str()));
+
+    ui->contourSettingButton->setIconSize(ui->contourSettingButton->sizeHint());
+    ui->vectorSettingButton->setIconSize(ui->vectorSettingButton->sizeHint());
+    ui->IsoSurfaceSettingButton->setIconSize(ui->IsoSurfaceSettingButton->sizeHint());
+    ui->addSliceButton->setIconSize(ui->addSliceButton->sizeHint());
+    ui->addStreamLineButton->setIconSize(ui->addStreamLineButton->sizeHint());
+
+    //toolBar's icons
+    ui->toolBar->setIconSize(QSize(40,40));
+    ui->toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    ui->actionOpenFile->setIcon(QIcon((iconPath+"open.png").c_str()));
+    ui->actionAddAxisActor->setIcon(QIcon((iconPath+"orient_axes.png").c_str()));
+    ui->actionAddScalarBarActor->setIcon(QIcon((iconPath+"colorbar.png").c_str()));
+    ui->actionAddOutlineActor->setIcon(QIcon((iconPath+"boundbox.png").c_str()));
+    ui->actionAddPointInformation->setIcon(QIcon((iconPath+"text.png").c_str()));
+    ui->actionCalculatorFunction->setIcon(QIcon((iconPath+"calculator.png").c_str()));
+    ui->actionNewWindow->setIcon(QIcon((iconPath+"newwindow.png").c_str()));
+    QIcon checkedIcon((iconPath+"open.png").c_str());
+}
+
+void MainWindow::SetvtkBox()
+{
+    qtvtkWindow = new vtkDisplayWindow();
+    ui->vtkBox->setRenderWindow(qtvtkWindow->GetRenderWindow());
+    ui->vtkBox->renderWindow()->Render();
+}
+
+void MainWindow::ResetScrollArea()
+{
+    ui->edgeCheckBox->setCheckState(Qt::Unchecked);
+    ui->meshCheckBox->setCheckState(Qt::Unchecked);
+    ui->shadeCheckBox->setCheckState(Qt::Checked);
+    ui->contourCheckBox->setCheckState(Qt::Checked);
+    ui->vectorCheckBox->setCheckState(Qt::Unchecked);
+    ui->slicesCheckBox->setCheckState(Qt::Unchecked);
+    ui->transparancyCheckBox->setCheckState(Qt::Unchecked);
+    ui->lightingCheckBox->setCheckState(Qt::Checked);
+
+    connect(ui->meshCheckBox, SIGNAL(stateChanged(int)), this, SLOT(meshCheckBoxTriggered()));
+    connect(ui->contourCheckBox, SIGNAL(stateChanged(int)), this, SLOT(contourCheckBoxTriggered()));
+    connect(ui->shadeCheckBox, SIGNAL(stateChanged(int)), this, SLOT(shadeCheckBoxTriggered()));
+    connect(ui->edgeCheckBox, SIGNAL(stateChanged(int)), this, SLOT(edgeCheckBoxTriggered()));
+    connect(ui->vectorCheckBox, SIGNAL(stateChanged(int)), this, SLOT(vectorCheckBoxTriggered()));
+
+    ui->isoSurfaceCheckBox->setCheckState(Qt::Unchecked);
+
+    connect(ui->isoSurfaceCheckBox, SIGNAL(stateChanged(int)), this, SLOT(isoSurfaceCheckBoxTriggered()));
+    connect(ui->slicesCheckBox, SIGNAL(stateChanged(int)), this, SLOT(slicesCheckBoxTriggered()));
+
+    connect(ui->transparancyCheckBox, SIGNAL(stateChanged(int)), this, SLOT(transparancyCheckBoxTriggered()));
+    connect(ui->lightingCheckBox, SIGNAL(stateChanged(int)), this, SLOT(lightingCheckBoxTriggered()));
+
+    ui->scrollArea->setEnabled(true);
+}
+
+void MainWindow::DisableScrollArea()
+{
+    disconnect(ui->meshCheckBox, SIGNAL(stateChanged(int)), this, SLOT(meshCheckBoxTriggered()));
+    disconnect(ui->contourCheckBox, SIGNAL(stateChanged(int)), this, SLOT(contourCheckBoxTriggered()));
+    disconnect(ui->shadeCheckBox, SIGNAL(stateChanged(int)), this, SLOT(shadeCheckBoxTriggered()));
+    disconnect(ui->edgeCheckBox, SIGNAL(stateChanged(int)), this, SLOT(edgeCheckBoxTriggered()));
+    disconnect(ui->vectorCheckBox, SIGNAL(stateChanged(int)), this, SLOT(vectorCheckBoxTriggered()));
+    
+    disconnect(ui->isoSurfaceCheckBox, SIGNAL(stateChanged(int)), this, SLOT(isoSurfaceCheckBoxTriggered()));
+    disconnect(ui->slicesCheckBox, SIGNAL(stateChanged(int)), this, SLOT(slicesCheckBoxTriggered()));
+
+    disconnect(ui->transparancyCheckBox, SIGNAL(stateChanged(int)), this, SLOT(transparancyCheckBoxTriggered()));
+    disconnect(ui->lightingCheckBox, SIGNAL(stateChanged(int)), this, SLOT(lightingCheckBoxTriggered()));
+
+    ui->scrollArea->setEnabled(false);
+}
+
+
+void MainWindow::MeridionalButtonTriggered()
+{
+    MeridionalPlaneDialog * meridionalPlaneDialog = new MeridionalPlaneDialog(this);
+    meridionalPlaneDialog->show();
+    meridionalPlaneDialog->setDialog(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber());
+    connect(meridionalPlaneDialog, SIGNAL(finishSetMeiridonalFlow(int)),this, SLOT(ChangeMeridionalPlaneFlow(int)));
+}
+
+void MainWindow::MeridionalCheckBoxTriggered()
+{
+    if(ui->MeridionalcheckBox->isChecked())
+    {
+        if(qtvtkWindow->MeridionalPlaneActor.empty())
+        {
+            MeridionalrenderWindow->Render();
+        }
+        else{
+            vtkWidget->show();
+        }
+    }
+    else{
+        vtkWidget->hide();
+    }
+}
+
+void MainWindow::on_ConstHeightCheckBox_toggled(bool trigger)
+{
+    if (trigger) {
+        ConstHeightPlaneDialog *constheightdialog = new ConstHeightPlaneDialog(this);
+        constheightdialog->show();
+        connect(constheightdialog, SIGNAL(finishSetParameters(double)), this, SLOT(AddConstHeightPlane(double)));
+    }
+    else
+    {
+        qtvtkWindow->RemoveConstHeight();
+        ui->vtkBox->renderWindow()->Render();
+    }
+}
+
+void MainWindow::ConstHeightButtonTriggered()
+{
+    ConstSettingDialog * settingDialog = new ConstSettingDialog(this);
+    settingDialog->setConstSettingDialog(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber());
+    settingDialog->show();
+    connect(settingDialog,SIGNAL(finishSetHeight(double)),this, SLOT(AddConstHeightPlane(double)));
+    connect(settingDialog,SIGNAL(finishSetFlow(int)),this, SLOT(ChangeConstHeightFlow(int)));
+}
+void MainWindow::AddConstHeightPlane(double height)
+{
+    qtvtkWindow->CreateConstHeight(height);
+}
+
+void MainWindow::ChangeConstHeightFlow(int flow)
+{
+    qtvtkWindow->ChangeConstHeightFlow(flow);
+}
+
+void MainWindow::BladeToBladePlaneButtonTriggered()
+{
+    BladeToBladePlaneDialog *bladeDialog = new BladeToBladePlaneDialog(this);
+    bladeDialog->show();
+    connect(bladeDialog, SIGNAL(finishSetParameters(double)), this, SLOT(AddBladeToBladePlane(double)));
+}
+
+void MainWindow::AddBladeToBladePlane(double span)
+{
+    qDebug() << "[B2B] Creating blade-to-blade plane at span =" << span;
+    
+    // Create blade-to-blade plane and add to BladeToBladerenderer
+    auto actors = qtvtkWindow->CreateBladeToBladePlane(span);
+    
+    qDebug() << "[B2B] Number of actors created:" << actors.size();
+    
+    if (actors.empty()) {
+        qDebug() << "[B2B] ERROR: No actors created! Check if node_radius field exists.";
+        return;
+    }
+    
+    for (int i = 0; i < actors.size(); i++)
+    {
+        BladeToBladerenderer->AddActor(actors[i]);
+        qDebug() << "[B2B] Added actor" << i << "to BladeToBladerenderer";
+    }
+    
+    qDebug() << "[B2B] Rendering BladeToBladerenderWindow...";
+    BladeToBladerenderWindow->Render();
+    qDebug() << "[B2B] Done!";
+}
+
+void MainWindow::ChangeBladeToBladePlaneFlow(int flow)
+{
+    // Remove old actors
+    BladeToBladerenderer->RemoveAllViewProps();
+    
+    // Create new actors with updated flow variable
+    auto actors = qtvtkWindow->ChangeBladeToBladePlaneFlow(flow);
+    for (int i = 0; i < actors.size(); i++)
+    {
+        BladeToBladerenderer->AddActor(actors[i]);
+    }
+    BladeToBladerenderWindow->Render();
+}
+
+void MainWindow::ChangeMeridionalPlaneFlow(int flow)
+{
+    auto plane = qtvtkWindow->ChangeMeridionalFlow(0, 1, flow);
+    Meridionalrenderer->RemoveAllViewProps();
+    for(int i = 0; i < plane.size(); i++)
+    {
+        Meridionalrenderer->AddActor(plane[i]);
+    }
+    MeridionalrenderWindow->Render();
+}
+
+void MainWindow::updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors,bool isBaned)
+{
+    qtvtkWindow->SetCutplaneColorMapping(minValue, maxValue, numberOfColors,isBaned);
+    ui->vtkBox->renderWindow()->Render();
+}
+
+//* View Control Functions
+void MainWindow::on_Check_3Dview_toggled(bool checked)
+{
+    if (checked)
+    {
+        mainViewContainer->show();
+        rightPanel->hide();
+
+        // 重新计算分割器大小
+        mainSplitter->setSizes(QList<int>() << this->width() << 0);
+
+        UpdateViewLabels();
+        qDebug() << "Switched to 3D View mode";
+    }
+}
+
+void MainWindow::on_Check_ThreeView_toggled(bool checked)
+{
+    if (checked)
+    {
+        // Setup views before showing them
+        SetupMeridionalView();
+        SetupBladeToBladeView();
+
+        mainViewContainer->show();
+        rightPanel->show();
+
+        // Ensure sub-views are visible
+        meridionalViewContainer->show();
+        bladeToBladeViewContainer->show();
+
+        // Adjust splitter sizes
+        mainSplitter->setSizes(QList<int>() << (this->width() * 0.6) << (this->width() * 0.4));
+
+        // Render all windows
+        ui->vtkBox->renderWindow()->Render();
+        MeridionalrenderWindow->Render();
+        BladeToBladerenderWindow->Render();
+
+        UpdateViewLabels();
+        qDebug() << "Switched to Three View mode";
+    }
+}
+
+void MainWindow::on_Check_Meri_toggled(bool checked)
+{
+    if (checked)
+    {
+        SetupMeridionalView();
+
+        mainViewContainer->hide();
+        rightPanel->show();
+
+        // Only show the Meridional view
+        meridionalViewContainer->show();
+        bladeToBladeViewContainer->hide();
+
+        // Adjust splitter sizes
+        mainSplitter->setSizes(QList<int>() << 0 << this->width());
+
+        MeridionalrenderWindow->Render();
+        UpdateViewLabels();
+        qDebug() << "Switched to Meridional View mode";
+    }
+}
+
+void MainWindow::on_Check_BladeToBlade_toggled(bool checked)
+{
+    if (checked)
+    {
+        SetupBladeToBladeView();
+
+        mainViewContainer->hide();
+        rightPanel->show();
+
+        // Only show the Blade-to-Blade view
+        meridionalViewContainer->hide();
+        bladeToBladeViewContainer->show();
+
+        // Adjust splitter sizes
+        mainSplitter->setSizes(QList<int>() << 0 << this->width());
+
+        BladeToBladerenderWindow->Render();
+        UpdateViewLabels();
+        qDebug() << "Switched to Blade-to-Blade View mode";
+    }
+}
+
+void MainWindow::deleteSlice(int cutplaneIndex)
+{
+    // 调用vtkDisplayWindow删除cutplane
+    qtvtkWindow->DeleteCutplane(cutplaneIndex);
+    
+    // 重新渲染
+    ui->vtkBox->renderWindow()->Render();
+}
+
+//* Background Control Functions
+void MainWindow::on_CBtn_BackGround_currentTextChanged(const QString &text)
+{
+    if (!qtvtkWindow->HasGrid())
+    {
+        return;
+    }
+    
+    // 设置主VTK窗口的背景
+    qtvtkWindow->SetBackgroundStyle(text);
+    
+    // 设置Meridional视图背景
+    SetViewBackground(Meridionalrenderer, text);
+    MeridionalrenderWindow->Render();
+    
+    // 设置Blade-to-Blade视图背景
+    SetViewBackground(BladeToBladerenderer, text);
+    BladeToBladerenderWindow->Render();
+}
+
+// 视图管理辅助方法实现
+void MainWindow::SetupMeridionalView()
+{
+    if (qtvtkWindow->MeridionalPlaneActor.empty())
+    {
+        // 设置背景
+        SetViewBackground(Meridionalrenderer, ui->CBtn_BackGround->currentText());
+        MeridionalrenderWindow->AddRenderer(Meridionalrenderer);
+        vtkWidget->setRenderWindow(MeridionalrenderWindow);
+        
+        // 设置2D交互样式，禁止旋转，只允许平移和缩放
+        vtkSmartPointer<vtkInteractorStyleImage> imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
+        if (MeridionalrenderWindow->GetInteractor())
+        {
+            MeridionalrenderWindow->GetInteractor()->SetInteractorStyle(imageStyle);
+        }
+        
+        // 创建Meridional平面
+        auto plane = qtvtkWindow->CreateMeridionalPlane(0, 10);
+        for (int i = 0; i < plane.size(); i++)
+        {
+            Meridionalrenderer->AddActor(plane[i]);
+        }
+        MeridionalrenderWindow->Render();
+    }
+}
+
+void MainWindow::SetupBladeToBladeView()
+{
+    // 设置背景
+    SetViewBackground(BladeToBladerenderer, ui->CBtn_BackGround->currentText());
+    BladeToBladerenderWindow->AddRenderer(BladeToBladerenderer);
+    bladeToBladevtkWidget->setRenderWindow(BladeToBladerenderWindow);
+    
+    // TODO: 这里将来添加Blade-to-Blade的具体内容
+    // 目前只是一个空的渲染窗口
+    BladeToBladerenderWindow->Render();
+}
+
+void MainWindow::SetViewBackground(vtkSmartPointer<vtkRenderer> renderer, const QString &style)
+{
+    if (style == "Sky Blue") {
+        renderer->SetBackground(1.0, 1.0, 1.0);
+        renderer->SetBackground2(0.529, 0.8078, 0.92157);
+        renderer->SetGradientBackground(true);
+    } else if (style == "White") {
+        renderer->SetBackground(1.0, 1.0, 1.0);
+        renderer->SetGradientBackground(false);
+    }
+}
+
+void MainWindow::HideAllViews()
+{
+    ui->vtkBox->hide();
+    vtkWidget->hide();
+    bladeToBladevtkWidget->hide();
+}
+
+void MainWindow::ShowMainView()
+{
+    ui->vtkBox->show();
+}
+
+void MainWindow::ShowMeridionalView()
+{
+    SetupMeridionalView();
+    vtkWidget->show();
+}
+
+void MainWindow::ShowBladeToBladeView()
+{
+    SetupBladeToBladeView();
+    bladeToBladevtkWidget->show();
+}
+
+void MainWindow::CreateViewLabels()
+{
+    // 创建主视图标签
+    if (!mainViewLabel) {
+        mainViewLabel = new QLabel("3D View", this);
+        mainViewLabel->setAlignment(Qt::AlignCenter);
+        mainViewLabel->setStyleSheet("QLabel { background-color: rgba(70, 130, 180, 0.8); color: white; font-weight: bold; padding: 4px; border-radius: 4px; }");
+        mainViewLabel->hide();
+    }
+    
+    // 创建Meridional视图标签
+    if (!meridionalViewLabel) {
+        meridionalViewLabel = new QLabel("Meridional View", this);
+        meridionalViewLabel->setAlignment(Qt::AlignCenter);
+        meridionalViewLabel->setStyleSheet("QLabel { background-color: rgba(70, 130, 180, 0.8); color: white; font-weight: bold; padding: 4px; border-radius: 4px; }");
+        meridionalViewLabel->hide();
+    }
+    
+    // 创建Blade-to-Blade视图标签
+    if (!bladeToBladeViewLabel) {
+        bladeToBladeViewLabel = new QLabel("Blade-to-Blade View", this);
+        bladeToBladeViewLabel->setAlignment(Qt::AlignCenter);
+        bladeToBladeViewLabel->setStyleSheet("QLabel { background-color: rgba(70, 130, 180, 0.8); color: white; font-weight: bold; padding: 4px; border-radius: 4px; }");
+        bladeToBladeViewLabel->hide();
+    }
+}
+
+void MainWindow::UpdateViewLabels()
+{
+    CreateViewLabels();
+
+    // --- Main View Label ---
+    mainViewLabel->setParent(mainViewContainer);
+    mainViewLabel->setGeometry(10, 10, 100, 25);
+    mainViewLabel->setVisible(mainViewContainer->isVisible());
+    if(mainViewContainer->isVisible()) mainViewLabel->raise();
+
+    // --- Meridional View Label ---
+    meridionalViewLabel->setParent(meridionalViewContainer);
+    meridionalViewLabel->setGeometry(10, 10, 120, 25);
+    meridionalViewLabel->setVisible(meridionalViewContainer->isVisible());
+    if(meridionalViewContainer->isVisible()) meridionalViewLabel->raise();
+
+    // --- Blade-to-Blade View Label ---
+    bladeToBladeViewLabel->setParent(bladeToBladeViewContainer);
+    bladeToBladeViewLabel->setGeometry(10, 10, 140, 25);
+    bladeToBladeViewLabel->setVisible(bladeToBladeViewContainer->isVisible());
+    if(bladeToBladeViewContainer->isVisible()) bladeToBladeViewLabel->raise();
+}
+
+//* Probe Panel Functions
+void MainWindow::UpdateProbePanel(const std::string& coordinates, 
+                                   const std::vector<std::pair<std::string, double>>& data)
+{
+    if (probePanel) {
+        probePanel->UpdateProbeData(coordinates, data);
+    }
+}
+
+void MainWindow::onProbePanelClosed()
+{
+    // 当用户点击探测面板的关闭按钮时，同步关闭探测功能
+    if (::style && ::style->isAddTextActor) {
+        ::style->pointActor->VisibilityOff();
+        ui->vtkBox->renderWindow()->Render();
+        qDebug() << "Probe panel closed, probe mode disabled";
+    }
+}
+
+void MainWindow::ResetViewsAndRenderers()
+{
+    cout << "Resetting all views and renderers to clear previous model..." << endl;
+    
+    // 清除Meridional View中的所有actors
+    if (Meridionalrenderer) {
+        Meridionalrenderer->RemoveAllViewProps();
+        if (MeridionalrenderWindow) {
+            MeridionalrenderWindow->Render();
+        }
+    }
+    
+    // 清除Blade-to-Blade View中的所有actors
+    if (BladeToBladerenderer) {
+        BladeToBladerenderer->RemoveAllViewProps();
+        if (BladeToBladerenderWindow) {
+            BladeToBladerenderWindow->Render();
+        }
+    }
+    
+    // 重置Meridional和Blade-to-Blade复选框状态
+    if (ui->MeridionalcheckBox) {
+        disconnect(ui->MeridionalcheckBox, SIGNAL(stateChanged(int)), this, SLOT(MeridionalCheckBoxTriggered()));
+        ui->MeridionalcheckBox->setCheckState(Qt::Unchecked);
+        connect(ui->MeridionalcheckBox, SIGNAL(stateChanged(int)), this, SLOT(MeridionalCheckBoxTriggered()));
+    }
+    
+    cout << "Views and renderers reset completed." << endl;
+}
