@@ -55,24 +55,6 @@
     <string>Span (height %):</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>60</y>
-     <width>280</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>8</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>0.0 = hub, 1.0 = shroud</string>
-   </property>
-  </widget>
  </widget>
  <resources/>
  <connections/>

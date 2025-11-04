@@ -15,6 +15,7 @@
 #include <QFileDialog>
 
 #include <vtkRendererCollection.h>
+#include <vtkCamera.h>
 
 using std::string; using std::vector;
 
@@ -1096,7 +1097,7 @@ void MainWindow::AddBladeToBladePlane(double span)
     qDebug() << "[B2B] Number of actors created:" << actors.size();
     
     if (actors.empty()) {
-        qDebug() << "[B2B] ERROR: No actors created! Check if node_radius field exists.";
+        qDebug() << "[B2B] ERROR: No actors created! Check console for details.";
         return;
     }
     
@@ -1105,6 +1106,16 @@ void MainWindow::AddBladeToBladePlane(double span)
         BladeToBladerenderer->AddActor(actors[i]);
         qDebug() << "[B2B] Added actor" << i << "to BladeToBladerenderer";
     }
+    
+    // Setup 2D camera for flat view
+    vtkCamera* camera = BladeToBladerenderer->GetActiveCamera();
+    camera->SetPosition(0, 0, 10);
+    camera->SetFocalPoint(0, 0, 0);
+    camera->SetViewUp(0, 1, 0);
+    camera->ParallelProjectionOn();
+    
+    // Reset camera to fit the 2D unwrapped surface
+    BladeToBladerenderer->ResetCamera();
     
     qDebug() << "[B2B] Rendering BladeToBladerenderWindow...";
     BladeToBladerenderWindow->Render();
@@ -1293,8 +1304,24 @@ void MainWindow::SetupBladeToBladeView()
     BladeToBladerenderWindow->AddRenderer(BladeToBladerenderer);
     bladeToBladevtkWidget->setRenderWindow(BladeToBladerenderWindow);
     
-    // TODO: 这里将来添加Blade-to-Blade的具体内容
-    // 目前只是一个空的渲染窗口
+    qDebug() << "[B2B Setup] Setting up Blade-to-Blade view";
+    
+    // Setup 2D camera (top view, looking down Z-axis)
+    vtkCamera* camera = BladeToBladerenderer->GetActiveCamera();
+    camera->SetPosition(0, 0, 10);       // Position camera above
+    camera->SetFocalPoint(0, 0, 0);      // Look at Z=0 plane
+    camera->SetViewUp(0, 1, 0);          // Y-axis points up
+    camera->ParallelProjectionOn();      // Parallel projection for 2D
+    
+    // Restore any existing B2B planes if they exist
+    if (!qtvtkWindow->BladeToBladePlaneActor.empty()) {
+        qDebug() << "[B2B Setup] Restoring" << qtvtkWindow->BladeToBladePlaneActor.size() << "existing B2B planes";
+        for (int i = 0; i < qtvtkWindow->BladeToBladePlaneActor.size(); i++) {
+            BladeToBladerenderer->AddActor(qtvtkWindow->BladeToBladePlaneActor[i]);
+        }
+        BladeToBladerenderer->ResetCamera();
+    }
+    
     BladeToBladerenderWindow->Render();
 }
 
