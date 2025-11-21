@@ -802,9 +802,9 @@ void vtkDisplayWindow::SetBackground()
     // renderWindow->SetMultiSamples(1);
     // renderWindow->SetAlphaBitPlanes(1);
 
-    renderer->SetBackground(1.0,1.0,1.0);
-    renderer->SetBackground2(0.529, 0.8078, 0.92157);
-    renderer->SetGradientBackground(true);
+
+    renderer->SetBackground(1.0, 1.0, 1.0);
+    renderer->SetGradientBackground(false);
 
 }
 

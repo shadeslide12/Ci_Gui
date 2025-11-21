@@ -16,7 +16,7 @@
 #include "ConstSettingDialog.h"
 #include "BladeToBladePlaneDialog.h"
 #include "ProbePanel.h"
-#include "ExportPicDialog.h"
+#include "exportPicDialog.h"
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkInteractorStyleTrackballCamera.h>
@@ -139,6 +139,9 @@ private slots:
     
     //* Background Control
     void on_CBtn_BackGround_currentTextChanged(const QString &text);
+    
+    //* Turbo Initialize
+    void on_Btn_TurboInitial_clicked();
 
 private:
     Ui::MainWindow *ui;

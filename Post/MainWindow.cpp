@@ -13,13 +13,16 @@
 #include <QLabel>
 #include <vtkInteractorStyleImage.h>
 #include <QFileDialog>
+#include <QFile>
+#include <QHBoxLayout>
+#include <QToolBar>
+#include <QMessageBox>
 
 #include <vtkRendererCollection.h>
 #include <vtkCamera.h>
 
 using std::string; using std::vector;
 
-// 前向声明
 class MainWindow;
 
 namespace
@@ -34,7 +37,6 @@ namespace
             initialize();
         }
         
-        // 设置MainWindow指针
         void SetMainWindow(MainWindow* window) { mainWindow = window; }
 
         virtual void OnLeftButtonDown() override
@@ -53,12 +55,11 @@ namespace
                 auto boundaryData = propPicker->GetActor()->GetMapper()->GetInput();
                 auto pos = boundaryData->GetPoint(cellPicker->GetPointId());
                 
-                // 构建坐标字符串（用于侧边栏）
+                //* Variable Name in Probe Widget Tab
                 std::string coordStr = "x: " + std::to_string(pos[0]) + 
                                       "\ny: " + std::to_string(pos[1]) + 
                                       "\nz: " + std::to_string(pos[2]);
                 
-                // 收集所有物理量数据
                 std::vector<std::pair<std::string, double>> probeData;
                 for (int i = 0; i < parameterNames.size(); i++)
                 {
@@ -68,7 +69,7 @@ namespace
                     probeData.push_back({varName, value});
                 }
                 
-                // 更新侧边栏
+                //* Updating 
                 if (mainWindow != nullptr)
                 {
                     mainWindow->UpdateProbePanel(coordStr, probeData);
@@ -122,7 +123,7 @@ namespace
         vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
         vtkSmartPointer<vtkPropPicker> propPicker = vtkSmartPointer<vtkPropPicker>::New();
         
-        MainWindow* mainWindow = nullptr;  // 指向MainWindow的指针
+        MainWindow* mainWindow = nullptr;  
 
         vtkSmartPointer<vtkActor> streamLineActor = vtkSmartPointer<vtkActor>::New();
         vtkSmartPointer<vtkActor> glyphActor = vtkSmartPointer<vtkActor>::New();
@@ -143,6 +144,42 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    
+    //* Load Qss file
+    QFile styleFile("post.qss");
+    if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        this->setStyleSheet(styleSheet);
+        styleFile.close();
+        qDebug() << "qss file loaded;";
+    } else {
+        qDebug() << "qss file not found";
+    }
+    if (menuBar()) {
+        menuBar()->setStyleSheet(
+            "QMenuBar {"
+            "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,"
+            "                                stop:0 #5a9fd4, stop:1 #4a8fc4);"
+            "    border-bottom: 2px solid #3d87c2;"
+            "    padding: 3px;"
+            "    color: white;"
+            "}"
+            "QMenuBar::item {"
+            "    padding: 5px 10px;"
+            "    background-color: transparent;"
+            "    color: white;"
+            "    font-weight: bold;"
+            "}"
+            "QMenuBar::item:selected {"
+            "    background-color: rgba(255, 255, 255, 0.2);"
+            "    border-radius: 3px;"
+            "}"
+            "QMenuBar::item:pressed {"
+            "    background-color: rgba(255, 255, 255, 0.3);"
+            "}"
+        );
+    }
+
     InitializeMainWindow();
 
 }
@@ -166,7 +203,7 @@ void MainWindow::on_actionLoadMesh_triggered()
     {
         cout << "reading aes grid file " << filename.toStdString() << endl << "please waiting for few seconds!" << endl;
         
-        // 在加载新模型前清除之前的视图
+        //* Rest All before loading new model
         ResetViewsAndRenderers();
         
         on_actionNewWindow_triggered();
@@ -178,7 +215,7 @@ void MainWindow::on_actionLoadMesh_triggered()
     cout << "End Load Mesh" << endl;
     double* bounds = qtvtkWindow->GetModelBounds();
     if (bounds != nullptr) {
-        qDebug() << "Outline在X轴上的范围：" << "最小值 = " << bounds[0] << ", 最大值 = " << bounds[1];
+        qDebug() << "Outline range in X axis ：" << "Min  = " << bounds[0] << ", Max = " << bounds[1];
     }
 }
 
@@ -252,7 +289,7 @@ void MainWindow::on_actionOpenFile_triggered()
     {
         cout << "reading aes grid file " << filename.toStdString() << endl << "please waiting for few seconds!" << endl;
         
-        // 在加载新模型前清除之前的视图
+        //* Rest All before loading new model
         ResetViewsAndRenderers();
         
         on_actionNewWindow_triggered();
@@ -321,18 +358,17 @@ void MainWindow::on_actionAddPointInformation_triggered()
     if (::style == nullptr)
     {
         ::style = new MouseInteractorStyle();
-        ::style->SetMainWindow(this);  // 设置MainWindow指针
+        ::style->SetMainWindow(this);  
         cout << "initialize mouse interactor style" << endl;
         ui->vtkBox->interactor()->SetInteractorStyle(::style);
     }
     if (!::style->isAddTextActor)
     {
-        // 不再添加 textActor 到渲染器，因为信息显示在侧边栏
-        // ui->vtkBox->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor2D(::style->textActor);
+
         ::style->isAddTextActor = true;
         ::style->pointActor->VisibilityOn();
         
-        // 显示探测面板
+        //* Probe Widget Shows
         if (probePanel) {
             probePanel->show();
             probePanel->ClearData();
@@ -343,18 +379,15 @@ void MainWindow::on_actionAddPointInformation_triggered()
     }
     if (::style->isAddTextActor && probePanel && probePanel->isVisible())
     {
-        // 隐藏点信息功能
+        //* No longer use point information
         ::style->pointActor->VisibilityOff();
         
-        // 隐藏探测面板
         probePanel->hide();
     }
     else
     {
-        // 显示点信息功能
         ::style->pointActor->VisibilityOff();
         
-        // 显示探测面板
         if (probePanel) {
             probePanel->show();
             probePanel->ClearData();
@@ -368,11 +401,10 @@ void MainWindow::on_actionExport_Picture_triggered()
 {
     ExportPicDialog dialog(this);
     
-    // 传递三个视图的渲染窗口
     dialog.setRenderWindows(
-        ui->vtkBox->renderWindow(),           // 3D 主视图
-        MeridionalrenderWindow,                // Meridional 视图
-        BladeToBladerenderWindow               // Blade-to-Blade 视图
+        ui->vtkBox->renderWindow(),         
+        MeridionalrenderWindow,               
+        BladeToBladerenderWindow            
     );
     
     dialog.exec();
@@ -570,24 +602,17 @@ void MainWindow::selectBoundaryButtonTriggeded()
         controlPanel = new ControlPanel(this);
         controlPanel->setWindowModality(Qt::NonModal);
         
-        // 获取boundary数据并传递给ControlPanel
+        //* Get Boundary data to Control Panel
         auto boundaryData = qtvtkWindow->GetBoundaryDatasets();
         controlPanel->setupTable(boundaryData);
         
-        // 连接ControlPanel的boundary控制信号到MainWindow的槽函数
         connect(controlPanel, &ControlPanel::setBoundarys, this, &MainWindow::showBoundaryActor);
-        // 连接ControlPanel的cutplane控制信号到MainWindow的槽函数
         connect(controlPanel, &ControlPanel::setCutplaneVisiable, this, &MainWindow::showCutplane);
-        // 连接ControlPanel的boundary透明度信号到vtkDisplayWindow
         connect(controlPanel, &ControlPanel::boundaryTransparencyChanged, qtvtkWindow, &vtkDisplayWindow::SetBoundaryTransparency);
-        // 连接ControlPanel的slice透明度信号到vtkDisplayWindow
         connect(controlPanel, &ControlPanel::sliceTransparencyChanged, qtvtkWindow, &vtkDisplayWindow::SetSliceTransparency);
-        // 连接ControlPanel的slice删除信号到MainWindow的删除函数
         connect(controlPanel, &ControlPanel::sliceDeleteRequested, this, &MainWindow::deleteSlice);
-        // 连接ControlPanel的slice contour mode信号到vtkDisplayWindow
         connect(controlPanel, &ControlPanel::sliceContourModeChanged, qtvtkWindow, &vtkDisplayWindow::SetSliceContourMode);
         
-        // 连接slice contour mode信号到CutplaneDialog的UI控件启用/禁用
         connect(controlPanel, &ControlPanel::sliceContourModeChanged, [this](const QString& mode) {
             if (cutPlaneDialog) {
                 bool enableMapping = (mode == "isolated");
@@ -599,7 +624,6 @@ void MainWindow::selectBoundaryButtonTriggeded()
             ui->vtkBox->renderWindow()->Render();
         });
         
-        // 设置透明度控件的初始状态，与transparancyCheckBox保持一致
         controlPanel->setTransparencyControlsEnabled(ui->transparancyCheckBox->isChecked());
     }
     
@@ -686,13 +710,11 @@ void MainWindow::slicesCheckBoxTriggered()
         qtvtkWindow->AddNewCutplane();
 
         if (controlPanel != nullptr) {
-            // 获取当前cutplane的数量作为索引
-            int cutplaneIndex = qtvtkWindow->GetPlanes().size() - 1; // 新添加的cutplane索引
+            int cutplaneIndex = qtvtkWindow->GetPlanes().size() - 1; 
             double origin[3] = {0.0, 0.0, 0.0};
             double normal[3] = {1.0, 0.0, 0.0};
             controlPanel->addCutplaneToTable(cutplaneIndex, origin, normal);
         }
-        // 第一次创建cutplane时也要显示ScalarBar
         if (ui->slicesCheckBox->isChecked()) {
             qtvtkWindow->ShowCutplaneScalarBar();
         }
@@ -729,7 +751,6 @@ void MainWindow::slicesSettingButtonTriggered()
         cutplaneDialog->setModelBounds(bounds);
     }
     
-    // 设置流场变量数据
     cutplaneDialog->setFlowVariables(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber());
     
     cutplaneDialog->setAttribute(Qt::WA_DeleteOnClose);
@@ -742,7 +763,6 @@ void MainWindow::slicesSettingButtonTriggered()
         ui->vtkBox->renderWindow()->Render();
     });
     
-    // 连接变量选择变化信号
     connect(cutplaneDialog, &CutplaneDialog::variableSelectionChanged, [this](int flowNumber){
         qtvtkWindow->SetCutplaneVariable(flowNumber);
         ui->vtkBox->renderWindow()->Render();
@@ -779,7 +799,7 @@ void MainWindow::makeNewCutplane(double* origin, double* normal)
     qtvtkWindow->AddNewCutplane(origin, normal);
 
     if (controlPanel != nullptr) {
-        int cutplaneIndex = qtvtkWindow->GetPlanes().size() - 1; // 新添加的cutplane索引
+        int cutplaneIndex = qtvtkWindow->GetPlanes().size() - 1;
         controlPanel->addCutplaneToTable(cutplaneIndex, origin, normal);
     }
     
@@ -790,14 +810,15 @@ void MainWindow::makeNewCutplane(double* origin, double* normal)
 
 void MainWindow::transparancyCheckBoxTriggered()
 {
-    static bool firstTimeEnabled = true; // 跟踪是否是第一次启用透明度
+    static bool firstTimeEnabled = true;
     bool isChecked = ui->transparancyCheckBox->isChecked();
     
     if (isChecked) {
-        // 只在第一次勾选时设置全局透明度为0.5
+        //* only set tansparency 0.5 while first pressed
         if (firstTimeEnabled) {
             qtvtkWindow->SetActorTransparancy(0.5);
-            firstTimeEnabled = false; // 标记已经执行过第一次设置
+            firstTimeEnabled = false;
+            //* now you need to tell control panel transparency is 0.5
         }
         vtkObject::GlobalWarningDisplayOff();
     }
@@ -806,7 +827,6 @@ void MainWindow::transparancyCheckBoxTriggered()
         vtkObject::GlobalWarningDisplayOn();
     }
     
-    // 控制ControlPanel中透明度控件的启用/禁用状态
     if (controlPanel) {
         controlPanel->setTransparencyControlsEnabled(isChecked);
     }
@@ -835,6 +855,10 @@ void MainWindow::InitializeMainWindow()
     SetIcons();
     SetvtkBox();
 
+    if (ui->CBtn_BackGround) {
+        ui->CBtn_BackGround->setCurrentIndex(1);
+    }
+
     connect(ui->xoyView, SIGNAL(clicked()), this, SLOT(xoyViewTriggered()));
     connect(ui->xozView, SIGNAL(clicked()), this, SLOT(xozViewTriggered()));
     connect(ui->yozView, SIGNAL(clicked()), this, SLOT(yozViewTriggered()));
@@ -851,31 +875,29 @@ void MainWindow::InitializeMainWindow()
     connect(ui->MeridionalButton, SIGNAL(clicked()),this, SLOT(MeridionalButtonTriggered()));
     connect(ui->MeridionalcheckBox, SIGNAL(stateChanged(int)),this, SLOT(MeridionalCheckBoxTriggered()));
     
-    // Blade-to-Blade connection
     connect(ui->BladeToBladePlaneButton, SIGNAL(clicked()), this, SLOT(BladeToBladePlaneButtonTriggered()));
 
-    //* Set View Control    // 创建主分割器
+    //* Set View Control    
     mainSplitter = new QSplitter(Qt::Horizontal, this);
 
-    // 创建左侧容器（用于3D视图）
+    //* used for Main model view
     mainViewContainer = new QWidget(mainSplitter);
     QVBoxLayout *mainViewLayout = new QVBoxLayout(mainViewContainer);
     mainViewLayout->setContentsMargins(0, 0, 0, 0);
     mainViewLayout->addWidget(ui->vtkBox);
     mainSplitter->addWidget(mainViewContainer);
 
-    // 创建右侧面板（用于Meridional和Blade-to-Blade视图）
+    //* used for Meridional and Blade-to-Blade
     rightPanel = new QWidget(mainSplitter);
     rightLayout = new QVBoxLayout(rightPanel);
     rightLayout->setContentsMargins(0, 0, 0, 0);
 
-    // 创建Meridional视图容器
     meridionalViewContainer = new QWidget(rightPanel);
     QVBoxLayout *meridionalLayout = new QVBoxLayout(meridionalViewContainer);
     meridionalLayout->setContentsMargins(0, 0, 0, 0);
     meridionalLayout->addWidget(vtkWidget);
     
-    // 为Meridional视图设置2D交互样式（禁止旋转）
+    //* forbidding rotation for Meridional View
     MeridionalrenderWindow->AddRenderer(Meridionalrenderer);
     vtkWidget->setRenderWindow(MeridionalrenderWindow);
     vtkSmartPointer<vtkInteractorStyleImage> meridionalStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
@@ -886,7 +908,7 @@ void MainWindow::InitializeMainWindow()
     
     rightLayout->addWidget(meridionalViewContainer);
 
-    // 创建Blade-to-Blade视图容器
+    //* Blade-to-Blade View Container
     bladeToBladeViewContainer = new QWidget(rightPanel);
     QVBoxLayout *bladeLayout = new QVBoxLayout(bladeToBladeViewContainer);
     bladeLayout->setContentsMargins(0, 0, 0, 0);
@@ -894,30 +916,24 @@ void MainWindow::InitializeMainWindow()
     rightLayout->addWidget(bladeToBladeViewContainer);
 
     mainSplitter->addWidget(rightPanel);
-
-    // 设置分割器初始比例
     mainSplitter->setSizes(QList<int>() << 800 << 400);
 
-    // 创建探测面板（放在最右侧）
     probePanel = new ProbePanel(this);
     probePanel->setMinimumWidth(300);
     probePanel->setMaximumWidth(500);
-    probePanel->hide();  // 初始隐藏
+    probePanel->hide(); 
     
-    // 连接面板关闭信号
     connect(probePanel, &ProbePanel::panelClosed, this, &MainWindow::onProbePanelClosed);
     
-    // 创建外层水平分割器，包含mainSplitter和probePanel
+    // Outer Splitrer to contain mainSplitter probePanel
     QSplitter *outerSplitter = new QSplitter(Qt::Horizontal, this);
     outerSplitter->addWidget(mainSplitter);
     outerSplitter->addWidget(probePanel);
-    outerSplitter->setStretchFactor(0, 1);  // mainSplitter可伸缩
-    outerSplitter->setStretchFactor(1, 0);  // probePanel固定大小
+    outerSplitter->setStretchFactor(0, 1);  
+    outerSplitter->setStretchFactor(1, 0);  
     
-    // 将外层分割器添加到主布局中
     ui->VTKLayout->addWidget(outerSplitter);
 
-    // 初始化视图状态
     ui->Check_3Dview->setChecked(true);
     on_Check_3Dview_toggled(true);
 
@@ -1091,7 +1107,6 @@ void MainWindow::AddBladeToBladePlane(double span)
 {
     qDebug() << "[B2B] Creating blade-to-blade plane at span =" << span;
     
-    // Create blade-to-blade plane and add to BladeToBladerenderer
     auto actors = qtvtkWindow->CreateBladeToBladePlane(span);
     
     qDebug() << "[B2B] Number of actors created:" << actors.size();
@@ -1107,7 +1122,6 @@ void MainWindow::AddBladeToBladePlane(double span)
         qDebug() << "[B2B] Added actor" << i << "to BladeToBladerenderer";
     }
     
-    // Setup 2D camera for flat view
     vtkCamera* camera = BladeToBladerenderer->GetActiveCamera();
     camera->SetPosition(0, 0, 10);
     camera->SetFocalPoint(0, 0, 0);
@@ -1161,7 +1175,6 @@ void MainWindow::on_Check_3Dview_toggled(bool checked)
         mainViewContainer->show();
         rightPanel->hide();
 
-        // 重新计算分割器大小
         mainSplitter->setSizes(QList<int>() << this->width() << 0);
 
         UpdateViewLabels();
@@ -1246,11 +1259,10 @@ void MainWindow::deleteSlice(int cutplaneIndex)
     // 调用vtkDisplayWindow删除cutplane
     qtvtkWindow->DeleteCutplane(cutplaneIndex);
     
-    // 重新渲染
     ui->vtkBox->renderWindow()->Render();
 }
 
-//* Background Control Functions
+//* Set BackGround for all views
 void MainWindow::on_CBtn_BackGround_currentTextChanged(const QString &text)
 {
     if (!qtvtkWindow->HasGrid())
@@ -1258,36 +1270,30 @@ void MainWindow::on_CBtn_BackGround_currentTextChanged(const QString &text)
         return;
     }
     
-    // 设置主VTK窗口的背景
     qtvtkWindow->SetBackgroundStyle(text);
     
-    // 设置Meridional视图背景
     SetViewBackground(Meridionalrenderer, text);
     MeridionalrenderWindow->Render();
     
-    // 设置Blade-to-Blade视图背景
     SetViewBackground(BladeToBladerenderer, text);
     BladeToBladerenderWindow->Render();
 }
 
-// 视图管理辅助方法实现
+
 void MainWindow::SetupMeridionalView()
 {
     if (qtvtkWindow->MeridionalPlaneActor.empty())
     {
-        // 设置背景
         SetViewBackground(Meridionalrenderer, ui->CBtn_BackGround->currentText());
         MeridionalrenderWindow->AddRenderer(Meridionalrenderer);
         vtkWidget->setRenderWindow(MeridionalrenderWindow);
         
-        // 设置2D交互样式，禁止旋转，只允许平移和缩放
         vtkSmartPointer<vtkInteractorStyleImage> imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
         if (MeridionalrenderWindow->GetInteractor())
         {
             MeridionalrenderWindow->GetInteractor()->SetInteractorStyle(imageStyle);
         }
         
-        // 创建Meridional平面
         auto plane = qtvtkWindow->CreateMeridionalPlane(0, 10);
         for (int i = 0; i < plane.size(); i++)
         {
@@ -1299,7 +1305,6 @@ void MainWindow::SetupMeridionalView()
 
 void MainWindow::SetupBladeToBladeView()
 {
-    // 设置背景
     SetViewBackground(BladeToBladerenderer, ui->CBtn_BackGround->currentText());
     BladeToBladerenderWindow->AddRenderer(BladeToBladerenderer);
     bladeToBladevtkWidget->setRenderWindow(BladeToBladerenderWindow);
@@ -1363,7 +1368,6 @@ void MainWindow::ShowBladeToBladeView()
 
 void MainWindow::CreateViewLabels()
 {
-    // 创建主视图标签
     if (!mainViewLabel) {
         mainViewLabel = new QLabel("3D View", this);
         mainViewLabel->setAlignment(Qt::AlignCenter);
@@ -1371,7 +1375,6 @@ void MainWindow::CreateViewLabels()
         mainViewLabel->hide();
     }
     
-    // 创建Meridional视图标签
     if (!meridionalViewLabel) {
         meridionalViewLabel = new QLabel("Meridional View", this);
         meridionalViewLabel->setAlignment(Qt::AlignCenter);
@@ -1379,7 +1382,6 @@ void MainWindow::CreateViewLabels()
         meridionalViewLabel->hide();
     }
     
-    // 创建Blade-to-Blade视图标签
     if (!bladeToBladeViewLabel) {
         bladeToBladeViewLabel = new QLabel("Blade-to-Blade View", this);
         bladeToBladeViewLabel->setAlignment(Qt::AlignCenter);
@@ -1392,19 +1394,16 @@ void MainWindow::UpdateViewLabels()
 {
     CreateViewLabels();
 
-    // --- Main View Label ---
     mainViewLabel->setParent(mainViewContainer);
     mainViewLabel->setGeometry(10, 10, 100, 25);
     mainViewLabel->setVisible(mainViewContainer->isVisible());
     if(mainViewContainer->isVisible()) mainViewLabel->raise();
 
-    // --- Meridional View Label ---
     meridionalViewLabel->setParent(meridionalViewContainer);
     meridionalViewLabel->setGeometry(10, 10, 120, 25);
     meridionalViewLabel->setVisible(meridionalViewContainer->isVisible());
     if(meridionalViewContainer->isVisible()) meridionalViewLabel->raise();
 
-    // --- Blade-to-Blade View Label ---
     bladeToBladeViewLabel->setParent(bladeToBladeViewContainer);
     bladeToBladeViewLabel->setGeometry(10, 10, 140, 25);
     bladeToBladeViewLabel->setVisible(bladeToBladeViewContainer->isVisible());
@@ -1422,7 +1421,6 @@ void MainWindow::UpdateProbePanel(const std::string& coordinates,
 
 void MainWindow::onProbePanelClosed()
 {
-    // 当用户点击探测面板的关闭按钮时，同步关闭探测功能
     if (::style && ::style->isAddTextActor) {
         ::style->pointActor->VisibilityOff();
         ui->vtkBox->renderWindow()->Render();
@@ -1434,7 +1432,6 @@ void MainWindow::ResetViewsAndRenderers()
 {
     cout << "Resetting all views and renderers to clear previous model..." << endl;
     
-    // 清除Meridional View中的所有actors
     if (Meridionalrenderer) {
         Meridionalrenderer->RemoveAllViewProps();
         if (MeridionalrenderWindow) {
@@ -1442,7 +1439,6 @@ void MainWindow::ResetViewsAndRenderers()
         }
     }
     
-    // 清除Blade-to-Blade View中的所有actors
     if (BladeToBladerenderer) {
         BladeToBladerenderer->RemoveAllViewProps();
         if (BladeToBladerenderWindow) {
@@ -1450,7 +1446,6 @@ void MainWindow::ResetViewsAndRenderers()
         }
     }
     
-    // 重置Meridional和Blade-to-Blade复选框状态
     if (ui->MeridionalcheckBox) {
         disconnect(ui->MeridionalcheckBox, SIGNAL(stateChanged(int)), this, SLOT(MeridionalCheckBoxTriggered()));
         ui->MeridionalcheckBox->setCheckState(Qt::Unchecked);
@@ -1458,4 +1453,25 @@ void MainWindow::ResetViewsAndRenderers()
     }
     
     cout << "Views and renderers reset completed." << endl;
+}
+
+//* Turbo Initialize Button
+void MainWindow::on_Btn_TurboInitial_clicked()
+{
+    qDebug() << "[Turbo Init] Checking node_radius availability...";
+    
+
+    if (!qtvtkWindow->HasNodeRadius())
+    {
+        QMessageBox::warning(this, "Failed",
+                           "Please Set Model as Rotation in PreProcessing !");
+        qDebug() << "[Turbo Init] node_radius field not found!";
+        ui->Wi_TurboSet->setEnabled(false);
+        return;
+    }
+    
+    // node_radius存在，启用Wi_TurboSet
+    ui->Wi_TurboSet->setEnabled(true);
+
+    qDebug() << "[Turbo Init] Successfully enabled Wi_TurboSet!";
 }

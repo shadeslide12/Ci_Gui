@@ -158,6 +158,7 @@ public:
     int GetIsoSurfaceFloodNumber(){return isoSurfaceFloodNumber;}
     int GetIsoSurfaceFlowNumber(){return isoSurfaceFlowNumber;}
     bool HasGrid(){return hasGrid;};
+    bool HasNodeRadius(){return !aesReader.node_radius.empty();};
     bool HasVector(){return hasVector;}
     bool HasIsoSurface(){return hasIsoSurface;}
     bool HasCutplane(){return deriveds.cutplanes.size() != 0;}
