@@ -3,6 +3,7 @@
 #include <QMainWindow>
 
 #include <string>
+#include <vector>
 
 #include "vtkDisplayWindow.h"
 #include "SelectBoundaryDialog.h"
@@ -14,7 +15,6 @@
 #include "ConstHeightPlaneDialog.h"
 #include "MeridionalPlaneDialog.h"
 #include "ConstSettingDialog.h"
-#include "BladeToBladePlaneDialog.h"
 #include "ProbePanel.h"
 #include "exportPicDialog.h"
 #include <vtkInteractorStyle.h>
@@ -41,6 +41,9 @@
 #include <QButtonGroup>
 #include <QSplitter>
 #include <QLabel>
+#include <QCheckBox>
+#include <QScrollArea>
+#include <QGridLayout>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -66,6 +69,7 @@ public:
     
     // 重置所有视图和渲染器，清除之前模型的残留
     void ResetViewsAndRenderers();
+    void BladeToBladePlaneButtonTriggered();
 
 private slots:
     void on_actionLoadMesh_triggered();
@@ -125,9 +129,13 @@ private slots:
     void ChangeConstHeightFlow(int flow);
     
     // Blade-to-blade slots
-    void BladeToBladePlaneButtonTriggered();
     void AddBladeToBladePlane(double span);
     void ChangeBladeToBladePlaneFlow(int flow);
+    void onSpanSliderChanged(int value);
+    
+    // Periodic copy slots
+    void onCopyZoneChanged(int index);
+    void onPeriodicCopyRequested();
     
     void onProbePanelClosed();
 
@@ -197,6 +205,8 @@ private:
     void CreateViewLabels();
     void UpdateViewLabels();
 
+    std::vector<QCheckBox*> periodicCopyBoundaryChecks;
+    void updatePeriodicCopyBoundaryList(int zoneIndex);
 
     //* test
     void CreateCutPreview();

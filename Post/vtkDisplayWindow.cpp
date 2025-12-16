@@ -54,6 +54,13 @@ using std::string; using std::vector; using std::set;
 #include <vtkUnstructuredGridReader.h>
 #include <vtkPolyLine.h>
 #include <vtkCleanPolyData.h>
+#include <vtkCell.h>
+#include <vtkCellArray.h>
+#include <vtkAppendPolyData.h>
+#include <vtkTransform.h>
+#include <vtkTransformFilter.h>
+#include <limits>
+#include <algorithm>
 
 vtkDisplayWindow::vtkDisplayWindow(QObject *parent):QObject(parent)
 {
@@ -872,61 +879,74 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeMeridionalFlow(do
 {
     RemoveMeridianActor();
     MeridionalPlaneActor.clear();
-    auto Mesh = aesReader.GetZoneGrids();
-    auto Flow = aesReader.GetFlows();
-    auto TotalMesh = aesReader.GetTotalGrid();
-    vtkSmartPointer<vtkDoubleArray> scalar = vtkSmartPointer<vtkDoubleArray>::New();
-    int start = 0;
-//    for(int i = 0; i < zone; i++)
-//    {
-//        start += TotalMesh->GetNumberOfPoints();
-//    }
-    vtkSmartPointer<vtkPolyData> ply = vtkSmartPointer<vtkPolyData>::New();
-    vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
-    for(int i = 0; i < TotalMesh->GetNumberOfPoints();i++){
-        double ny = TotalMesh->GetPoint(i)[1];
-        double nz = TotalMesh->GetPoint(i)[2];
-        double nr = sqrt(ny * ny + nz * nz);
-        pts->InsertNextPoint(TotalMesh->GetPoint(i)[0], nr * cos(0), nr * sin(0));
-    }
-    ply->SetPoints(pts);
-    for(int i = 0; i < TotalMesh->GetNumberOfPoints();i++)
-    {
-        scalar->InsertNextValue(Flow[flowNumber].datas[i]);
-    }
-
-    ply->GetPointData()->SetScalars(scalar);
-    vtkSmartPointer<vtkPointInterpolator> inter = vtkSmartPointer<vtkPointInterpolator>::New();
-
+    
     if (MeridionalPlane.empty()) {
-        std::cout << "[DEBug] MeridionalPlane is empty "<< std::endl;
+        std::cout << "[DEBUG] MeridionalPlane is empty " << std::endl;
         return {};
     }
 
-    inter->SetInputData(MeridionalPlane[0]);
-    inter->SetSourceData(ply);
-//    vtkSmartPointer<vtkGaussianKernel> kernel = vtkSmartPointer<vtkGaussianKernel>::New();
-    vtkSmartPointer<vtkVoronoiKernel> kernel = vtkSmartPointer<vtkVoronoiKernel>::New();
-//    kernel->SetRadius(0.001);
+    auto Flow = aesReader.GetFlows();
+    std::string currentFlowName = Flow[flowNumber].name;
+    vtkPolyData* targetPD = MeridionalPlane[0];
 
-    inter->SetKernel(kernel);
-    vtkSmartPointer<vtkPolyDataMapper> mapper =vtkSmartPointer<vtkPolyDataMapper>::New();
+    // Check if the target flow variable already exists in the cached plane
+    if (!targetPD->GetPointData()->HasArray(currentFlowName.c_str()))
+    {
+        std::cout << "[B2B] Caching all meridional flow variables (First Run)..." << std::endl;
+        
+        auto TotalMesh = aesReader.GetTotalGrid();
+        
+        // 1. Build Source Geometry (Projected Points) - Only once
+        vtkSmartPointer<vtkPolyData> ply = vtkSmartPointer<vtkPolyData>::New();
+        vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+        pts->SetNumberOfPoints(TotalMesh->GetNumberOfPoints());
+        
+        for(int i = 0; i < TotalMesh->GetNumberOfPoints(); i++){
+            double* p = TotalMesh->GetPoint(i);
+            double nr = sqrt(p[1] * p[1] + p[2] * p[2]);
+            pts->SetPoint(i, p[0], nr, 0.0); // Projected to (x, r, 0)
+        }
+        ply->SetPoints(pts);
 
-    mapper->SetInputConnection(inter->GetOutputPort());
+        // 2. Add ALL flow variables to Source
+        for (size_t f = 0; f < Flow.size(); f++) {
+            vtkSmartPointer<vtkDoubleArray> scalar = vtkSmartPointer<vtkDoubleArray>::New();
+            scalar->SetName(Flow[f].name.c_str());
+            scalar->SetNumberOfValues(TotalMesh->GetNumberOfPoints());
+            for(int i = 0; i < TotalMesh->GetNumberOfPoints(); i++) {
+                scalar->SetValue(i, Flow[f].datas[i]);
+            }
+            ply->GetPointData()->AddArray(scalar);
+        }
+
+        // 3. Interpolate ALL variables at once
+        vtkSmartPointer<vtkPointInterpolator> inter = vtkSmartPointer<vtkPointInterpolator>::New();
+        inter->SetInputData(targetPD);
+        inter->SetSourceData(ply);
+        
+        vtkSmartPointer<vtkVoronoiKernel> kernel = vtkSmartPointer<vtkVoronoiKernel>::New();
+        inter->SetKernel(kernel);
+        inter->Update();
+
+        // 4. Update Cache (ShallowCopy keeps the geometry and interpolated arrays)
+        targetPD->ShallowCopy(inter->GetOutput());
+    }
+
+    // 5. Switch Active Scalar (Instant)
+    targetPD->GetPointData()->SetActiveScalars(currentFlowName.c_str());
+
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputData(targetPD); // Use cached data directly
     mapper->SetLookupTable(Flow[flowNumber].scalarBar->GetLookupTable());
-    mapper->SetScalarRange(minRange,maxRange);
+    mapper->SetScalarRange(minRange, maxRange);
     mapper->Update();
 
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
-    std::cout << "[Debug] Mer 6 "<< std::endl;
-
+    
     MeridionalPlaneActor.emplace_back(actor);
-//    renderer->AddActor(actor);
-//    renderer->ResetCamera();
 
     return MeridionalPlaneActor;
-
 }
 void vtkDisplayWindow::VisualizeMeridonalPlane()
 {
@@ -1005,6 +1025,10 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane
     
     std::cout << "[B2B] Creating blade-to-blade plane at span = " << span << std::endl;
     
+    // Clear previous B2B data to avoid duplication
+    BladeToBladePlane.clear();
+    BladeToBladePlaneActor.clear();
+    
     // Check if node_radius exists
     if(aesReader.node_radius.empty())
     {
@@ -1012,9 +1036,10 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane
         return actors;
     }
     
-    auto Mesh = aesReader.GetZoneGrids();
     auto Flow = aesReader.GetFlows();
     auto TotalMeshes = aesReader.GetTotalGrid();
+    
+    const double PI = 3.14159265358979323846;
     
     if (!TotalMeshes->GetPointData()->HasArray("radius"))
     {
@@ -1022,16 +1047,19 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane
         return actors;
     }
     
-    // Step 1: Extract contour at given span
+    // Extract contour at given span from TotalMeshes
     vtkSmartPointer<vtkContourFilter> contour = vtkSmartPointer<vtkContourFilter>::New();
     contour->SetInputData(TotalMeshes);
     TotalMeshes->GetPointData()->SetActiveScalars("radius");
     contour->SetValue(0, span);
     contour->Update();
     
-    std::cout << "[B2B] Contour points: " << contour->GetOutput()->GetNumberOfPoints() << std::endl;
+    vtkPolyData* contourOutput = contour->GetOutput();
+    int numPoints = contourOutput->GetNumberOfPoints();
     
-    if (contour->GetOutput()->GetNumberOfPoints() == 0)
+    std::cout << "[B2B] Contour extracted: " << numPoints << " points" << std::endl;
+    
+    if (numPoints == 0)
     {
         std::cout << "[B2B ERROR] Empty contour! Check span value." << std::endl;
         auto radiusArray = TotalMeshes->GetPointData()->GetArray("radius");
@@ -1043,37 +1071,72 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane
         return actors;
     }
     
-    // Step 2: Unwrap to 2D - flatten the circumferential surface
-    vtkPolyData* contourOutput = contour->GetOutput();
-    int numPoints = contourOutput->GetNumberOfPoints();
-    
-    vtkSmartPointer<vtkPoints> unwrappedPoints = vtkSmartPointer<vtkPoints>::New();
-    unwrappedPoints->SetNumberOfPoints(numPoints);
-    
-    std::cout << "[B2B] Unwrapping cylindrical surface to 2D plane..." << std::endl;
+    // Calculate coordinates for all points
+    std::vector<double> origX(numPoints), origTheta(numPoints), origRadius(numPoints);
+    double sumSin = 0.0, sumCos = 0.0;
+    double xMin = std::numeric_limits<double>::max();
+    double rAtXMin = 0.0;
     
     for (int i = 0; i < numPoints; i++)
     {
         double p[3];
         contourOutput->GetPoint(i, p);
+        origX[i] = p[0];
+        double y = p[1];
+        double z = p[2];
+        origRadius[i] = std::sqrt(y*y + z*z);
+        origTheta[i] = std::atan2(z, y);
         
-        double x = p[0];  // Axial coordinate (streamwise)
-        double y = p[1];  // Radial Y
-        double z = p[2];  // Radial Z
+        sumSin += std::sin(origTheta[i]);
+        sumCos += std::cos(origTheta[i]);
         
-        // Calculate radius and theta
-        double r = std::sqrt(y*y + z*z);
-        double theta = std::atan2(z, y);  // Range: -π to π
-        
-        // Unwrap: convert cylindrical to flat
-        // X stays as axial position
-        // Y becomes the arc length (r * theta)
-        // Z becomes 0 (flatten to 2D)
-        double unwrappedX = x;
-        double unwrappedY = r * theta;  // Arc length
-        double unwrappedZ = 0.0;
-        
-        unwrappedPoints->SetPoint(i, unwrappedX, unwrappedY, unwrappedZ);
+        if (origX[i] < xMin)
+        {
+            xMin = origX[i];
+            rAtXMin = origRadius[i];
+        }
+    }
+    
+    // Calculate circular mean reference theta
+    double refTheta = std::atan2(sumSin, sumCos);
+    std::cout << "[B2B] Reference theta: " << refTheta << " rad (" 
+              << (refTheta * 180.0 / PI) << " deg)" << std::endl;
+    std::cout << "[B2B] X min: " << xMin << ", R at X min: " << rAtXMin << std::endl;
+    
+    // Adjust theta values to be continuous around refTheta
+    std::vector<double> adjustedTheta(numPoints);
+    for (int i = 0; i < numPoints; i++)
+    {
+        double delta = origTheta[i] - refTheta;
+        while (delta > PI) delta -= 2.0 * PI;
+        while (delta < -PI) delta += 2.0 * PI;
+        adjustedTheta[i] = refTheta + delta;
+    }
+    
+    // For constant-radius surface, use x directly as horizontal coordinate
+    double xMax = *std::max_element(origX.begin(), origX.end());
+    std::cout << "[B2B] X range: [" << xMin << ", " << xMax << "]" << std::endl;
+    
+    // Calculate average radius (should be approximately constant on this surface)
+    double avgRadius = 0.0;
+    for (int i = 0; i < numPoints; i++)
+    {
+        avgRadius += origRadius[i];
+    }
+    avgRadius /= numPoints;
+    std::cout << "[B2B] Average radius: " << avgRadius << std::endl;
+    
+    // Create unwrapped points
+    // X = axial coordinate
+    // Y = avgRadius * theta (using average radius for consistency)
+    vtkSmartPointer<vtkPoints> unwrappedPoints = vtkSmartPointer<vtkPoints>::New();
+    unwrappedPoints->SetNumberOfPoints(numPoints);
+    
+    for (int i = 0; i < numPoints; i++)
+    {
+        double x = origX[i];
+        double theta = adjustedTheta[i];
+        unwrappedPoints->SetPoint(i, x, avgRadius * theta, 0.0);
     }
     
     // Create unwrapped polydata
@@ -1082,15 +1145,15 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane
     unwrappedData->SetPolys(contourOutput->GetPolys());
     unwrappedData->GetPointData()->ShallowCopy(contourOutput->GetPointData());
     
-    std::cout << "[B2B] Unwrapped to 2D (X=axial, Y=arc_length, Z=0)" << std::endl;
+    std::cout << "[B2B] Unwrapped to 2D (M'=meridional, Y=r*theta)" << std::endl;
     
-    // Step 3: Create filter wrapper for storage
+    // Store for later use
     vtkSmartPointer<vtkContourFilter> dummyFilter = vtkSmartPointer<vtkContourFilter>::New();
     dummyFilter->SetInputData(unwrappedData);
     dummyFilter->Update();
     BladeToBladePlane.emplace_back(dummyFilter);
     
-    // Step 4: Set active scalars and create mapper
+    // Set active scalars and create mapper
     unwrappedData->GetPointData()->SetActiveScalars(Flow[curFlow].name.c_str());
     
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -1167,6 +1230,155 @@ double* vtkDisplayWindow::GetModelBounds()
     return aesReader.GetTotalGrid()->GetBounds();
     
     // 返回的数组包含6个值：[xmin, xmax, ymin, ymax, zmin, zmax]
+}
+
+std::vector<std::string> vtkDisplayWindow::GetZoneNames()
+{
+    std::vector<std::string> names;
+    auto boundarys = aesReader.GetBoundarys();
+    
+    for (int i = 0; i < boundarys.size(); i++)
+    {
+        if (boundarys[i].size() > 0)
+        {
+            std::string zoneName = boundarys[i][0].zoneName;
+            bool exists = false;
+            for (const auto& name : names)
+            {
+                if (name == zoneName) { exists = true; break; }
+            }
+            if (!exists)
+            {
+                names.push_back(zoneName);
+            }
+        }
+    }
+    return names;
+}
+
+void vtkDisplayWindow::ClearPeriodicCopies()
+{
+    // 从渲染器移除所有周期性复制的 actors
+    for (auto& actor : periodicCopyActors)
+    {
+        renderer->RemoveActor(actor);
+    }
+    periodicCopyActors.clear();
+    std::cout << "[Periodic] Cleared all periodic copies" << std::endl;
+}
+
+void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies)
+{
+    std::vector<int> allBoundaries;
+    if (zoneIndex >= 0 && zoneIndex < static_cast<int>(boundarys.size()))
+    {
+        for (int i = 0; i < static_cast<int>(boundarys[zoneIndex].size()); ++i)
+        {
+            allBoundaries.push_back(i);
+        }
+    }
+    CreatePeriodicCopies(zoneIndex, numCopies, allBoundaries);
+}
+
+void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies, const std::vector<int> &boundaryIndices)
+{
+    // 先清除之前的复制
+    ClearPeriodicCopies();
+
+    if (numCopies <= 0)
+    {
+        std::cout << "[Periodic] No copies to create (numCopies=" << numCopies << ")" << std::endl;
+        return;
+    }
+
+    auto angles = aesReader.angles;
+
+    if (zoneIndex < 0 || zoneIndex >= static_cast<int>(boundarys.size()))
+    {
+        std::cout << "[Periodic ERROR] Invalid zone index: " << zoneIndex << std::endl;
+        return;
+    }
+
+    if (zoneIndex >= static_cast<int>(angles.size()))
+    {
+        std::cout << "[Periodic ERROR] No angle data for zone " << zoneIndex << std::endl;
+        return;
+    }
+
+    if (boundaryIndices.empty())
+    {
+        std::cout << "[Periodic] No boundary indices provided for zone " << zoneIndex << std::endl;
+        return;
+    }
+
+    double angleStep = std::abs(angles[zoneIndex]);  // 取绝对值，已经是度数
+    std::cout << "[Periodic] Zone " << zoneIndex << " angle step: " << angleStep << " degrees" << std::endl;
+    std::cout << "[Periodic] Zone has " << boundarys[zoneIndex].size() << " boundaries, selected "
+              << boundaryIndices.size() << std::endl;
+
+    // 创建 numCopies 个旋转复制
+    for (int copyNum = 1; copyNum <= numCopies; copyNum++)
+    {
+        double rotationAngle = angleStep * copyNum;
+
+        // 创建旋转变换（绕 X 轴旋转）
+        vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+        transform->RotateX(rotationAngle);
+
+        // 只遍历选中的 boundary
+        for (int bndIdx : boundaryIndices)
+        {
+            if (bndIdx < 0 || bndIdx >= static_cast<int>(boundarys[zoneIndex].size()))
+            {
+                continue;
+            }
+
+            auto& bndObj = boundarys[zoneIndex][bndIdx];
+
+            // 获取 shadeActor 的 mapper 的输入数据
+            if (bndObj.shadeActor && bndObj.shadeActor->GetMapper())
+            {
+                vtkMapper* originalMapper = bndObj.shadeActor->GetMapper();
+                vtkDataSet* inputData = originalMapper->GetInput();
+
+                if (inputData && inputData->GetNumberOfPoints() > 0)
+                {
+                    // 应用变换
+                    vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+                    transformFilter->SetInputData(inputData);
+                    transformFilter->SetTransform(transform);
+                    transformFilter->Update();
+
+                    // 创建新的 mapper 和 actor
+                    vtkSmartPointer<vtkDataSetMapper> mapper = vtkSmartPointer<vtkDataSetMapper>::New();
+                    mapper->SetInputConnection(transformFilter->GetOutputPort());
+
+                    // 复制原始 mapper 的标量设置
+                    mapper->SetScalarVisibility(originalMapper->GetScalarVisibility());
+                    mapper->SetScalarRange(originalMapper->GetScalarRange());
+                    if (originalMapper->GetLookupTable())
+                    {
+                        mapper->SetLookupTable(originalMapper->GetLookupTable());
+                    }
+
+                    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+                    actor->SetMapper(mapper);
+
+                    // 复制原始 actor 的属性
+                    actor->GetProperty()->DeepCopy(bndObj.shadeActor->GetProperty());
+
+                    // 添加到渲染器和存储列表
+                    renderer->AddActor(actor);
+                    periodicCopyActors.push_back(actor);
+                }
+            }
+        }
+
+        std::cout << "[Periodic] Created copy " << copyNum << " at rotation " << rotationAngle << " degrees" << std::endl;
+    }
+
+    std::cout << "[Periodic] Created " << numCopies << " periodic copies for zone " << zoneIndex 
+              << " (" << periodicCopyActors.size() << " actors)" << std::endl;
 }
 
 void vtkDisplayWindow::CreatePlanePreview(double value,int currenAxis)

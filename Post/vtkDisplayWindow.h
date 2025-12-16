@@ -150,6 +150,11 @@ public:
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> GetRenderWindow(){return renderWindow;}
     std::vector<vtkAesReader::FlowData> GetFlows(){return aesReader.GetFlows();}
     std::vector<std::vector<vtkAesReader::Boundary>> GetBoundaryDatasets(){return aesReader.GetBoundarys();}
+    std::vector<std::string> GetZoneNames();
+    std::vector<double> GetPeriodicAngles(){return aesReader.angles;}
+    void CreatePeriodicCopies(int zoneIndex, int numCopies);
+    void CreatePeriodicCopies(int zoneIndex, int numCopies, const std::vector<int> &boundaryIndices);
+    void ClearPeriodicCopies();
     DerivedObject GetDeriveds() {return deriveds;}
     std::vector<vtkSmartPointer<vtkPlane>> GetPlanes() {return deriveds.cutplanes;}
     int GetCurFlowNumber(){return curFlow;}
@@ -197,6 +202,9 @@ private:
     std::vector<std::vector<BasicObject>> boundarys;
     AuxiliaryObject auxiliarys;
     DerivedObject deriveds;
+    
+    // Periodic copies storage
+    std::vector<vtkSmartPointer<vtkActor>> periodicCopyActors;
 
     void VisualizeMeridonalPlane();
     void SetBackground();
