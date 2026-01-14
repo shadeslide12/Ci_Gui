@@ -16,24 +16,36 @@
 #include <QTimer>
 #include <QChartView>
 #include <QProgressBar>
+#include <QString>
 
 #include "Residual_Plot.h"
 #include "Perform_Plot.h"
 #include "MonitorPlot.h"
+#include "RadialProfilePlot.h"
 #include "plotManager.h"
 #include "simulationDataManager.h"
 
 #include "PreProcessSettings.h"
 #include "BCExtra.h"
 #include "SelectFile.h"
+#include "Type4ConfigDialog.h"
 #include "UtilitiesGUIPre.h"
 #include "DataStructure.h"
+#include <QMessageBox>
 
 #ifndef NO_VTK_WINDOW
 #include "vtkCGNSReader.h"
 #include <vtkGenericOpenGLRenderWindow.h>
 #include "vtkDataSetMapper.h"
 #include <QVTKOpenGLNativeWidget.h>
+#include <vtkOrientationMarkerWidget.h>
+#include <vtkLineSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkAxesActor.h>
+#include <vtkProperty.h>
+#include <vtkCamera.h>
+#include <fstream>
+#include <vtkFluentCFFReader.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -67,6 +79,9 @@ private slots:
     void on_annular_checkbox_toggled(bool checked);
 
     void on_actionNew_triggered();
+    
+    //* Load Main
+    void on_actionLoadMain_triggered();
 
     void on_actionactionSaveTab_triggered();
 
@@ -85,8 +100,6 @@ private slots:
     void onBCExtraClicked(QComboBox *bmd, int bnd_id, int bc_id);
     void onFilmComboChanged(QComboBox* cmb, QPushButton* btn, int bnd_id, int bc_id);
     void onFilmBCbuttonClicked(QComboBox *bmd, int bnd_id, int bc_id);
-
-    void on_actionLoadMain_triggered();
 
     void on_conbo_rans_currentTextChanged(const QString &arg1);
 
@@ -151,7 +164,9 @@ private slots:
     void onMonitorFaceChange(QComboBox *cmb1, int id);
     void onMonitorMFaceChange(QComboBox *cmb1, int id);
     void onMonitorAverageChange(QComboBox *cmb1, int id);
+    void onMonitorFileNameChange(QLineEdit *lineEdit, int id);
     void onMonitorDeleteMonitor(int id);
+    void onMonitorConfigClicked(int id);
 
     void on_continue_simulation_button_clicked();
 
@@ -171,9 +186,7 @@ private slots:
 
     void on_comboBox_qcr_currentTextChanged(const QString &arg1);
 
-    void on_lineEdit_axis_x_textEdited(const QString &arg1);
-    void on_lineEdit_axis_y_textEdited(const QString &arg1);
-    void on_lineEdit_axis_z_textEdited(const QString &arg1);
+
     void on_lineEdit_factor_x_textEdited(const QString &arg1);
     void on_lineEdit_factor_y_textEdited(const QString &arg1);
     void on_lineEdit_factor_z_textEdited(const QString &arg1);
@@ -230,6 +243,11 @@ private:
     void ShowPerformanceCurve(bool isShow);
     void ShowPassageRepeatTree();
 
+//* MultiGride 
+    void on_check_on_off_toggled(bool checked);
+private:
+    bool isMultiGrid=false;
+
 //*AutoRun Start Here
 private:
     void autoSingleRun();
@@ -265,13 +283,25 @@ private:
     Perform_Plot* performPlot;
     Residual_Plot* residualplot;
     MonitorPlot* monitorplot;
+    RadialProfilePlot* radialProfilePlot;
 
 //* Plot Slot
 private slots:
     void on_Btn_ExportPerformPic_clicked();
-
+    void Btn_ComboAxis_CurrentIndexChanged(int index);
     void onSelectFile();
     void onVariableSelectionChanged();
+    
+//* Dynamic Tab Show/Hide
+private slots:
+    void on_TestDynamicCreate_clicked();
+    void onTabCloseRequested(int index);
+    
+private:
+    // Store tab info for show/hide
+    QString performTabTitle;
+    QString resultTabTitle;
+    QString radialProfileTabTitle;
 
 //* Deal With Ui Elements
 private:
@@ -286,6 +316,14 @@ private:
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow= vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
     vtkSmartPointer<vtkRenderer> renderer= vtkSmartPointer<vtkRenderer>::New();
     QVTKOpenGLNativeWidget *vtkWidget= new QVTKOpenGLNativeWidget(this);
+//* Rotation Line
+
+    vtkSmartPointer<vtkOrientationMarkerWidget> axisWidget;
+    vtkSmartPointer<vtkLineSource> rotationLine;
+    vtkSmartPointer<vtkActor> actor_RotationLine;
+
+    void createAxisWidget();
+    void createRotationLineWidget(int AxisofRotation, double axisLength = 2400.0);
 #endif
 };
 #endif // PREMAINWINDOW_H

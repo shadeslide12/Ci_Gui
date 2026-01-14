@@ -91,7 +91,15 @@ void Perform_Plot::updateVisibility(int i) {
 void Perform_Plot::updateChart(MonitorVariableTable &monitorVariableTable) {
     if(monitorVariableTable.perform.pRatio.isEmpty())
         return;
-    double new_x = monitorVariableTable.outlet.mDot.last();
+    
+    // Get mDot from dynamic monitors
+    double new_x = 0.0;
+    for (const auto& mon : monitorVariableTable.monitors) {
+        if (mon.data.contains("Mdot") && !mon.data["Mdot"].isEmpty()) {
+            new_x = mon.data["Mdot"].last();
+            break;
+        }
+    }
 
     bool need_sort = false;
     if (!series_pratio->points().isEmpty()) {

@@ -10,6 +10,7 @@
 #include <QString>
 #include <QDir>
 #include <QTreeView>
+#include <QDebug>
 
 SelectFile::SelectFile(PreProcessSettings *cfg_in, QWidget *parent)
     : QDialog(parent)
@@ -41,6 +42,8 @@ SelectFile::SelectFile(PreProcessSettings *cfg_in, QWidget *parent)
 SelectFile::~SelectFile()
 {
     delete ui;
+    //* Avoid Memory Leakage
+    delete merger;
 }
 
 void SelectFile::onDirectoryDoubleClicked(const QModelIndex &index)
@@ -137,11 +140,26 @@ void SelectFile::on_boundary_merger_button_clicked()
 void SelectFile::on_show_boundary_button_clicked()
 {
 //  BoundaryMerger
+  //* Ensure user selected Mesh files
+  if (selectedFilesModel->rowCount() <= 0) {
+    QMessageBox::warning(this, "warning", "Please Select a Mesh File");
+    return;
+  }
   std::vector<QString> fileNames = extractFileNames(selectedFilesModel);
   std::vector<std::string> stdfileNames;
   for (const auto& qstr : fileNames) {
     stdfileNames.push_back(qstr.toStdString());
   }
+
+  //* fix the bug in selecting Files
+  QStandardItem *item = selectedFilesModel->item(0);
+  if (item) {
+    QFileInfo fileInfo(item->text());
+    QString fileDir = fileInfo.absolutePath();
+    QDir::setCurrent(fileDir);
+    qDebug() << "Changed working directory to: " << fileDir;
+  }
+
 
   cfg->mesh_files = stdfileNames;
   cfg->num_meshes = cfg->mesh_files.size();
@@ -162,6 +180,8 @@ void SelectFile::on_load_file_button_clicked(){
   SolverPre.LoadYAMLConfigs(2);
   SolverPre.ConvertStep2_3_yaml();
   cfg->LoadYAML(global_pre_setup_yaml);
+  emit fileLoaded();
+
   this->close();
 }
 

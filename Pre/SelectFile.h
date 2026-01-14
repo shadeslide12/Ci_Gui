@@ -50,6 +50,9 @@ private slots:
 
     std::vector<QString> extractFileNames(QStandardItemModel* model);
 
+signals:
+    void fileLoaded();
+
 private:
     Ui::SelectFile *ui;
     QString currentFile;

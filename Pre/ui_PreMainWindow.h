@@ -27,6 +27,7 @@
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QSpinBox>
+#include <QtWidgets/QSplitter>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTabWidget>
@@ -55,6 +56,7 @@ public:
     QHBoxLayout *horizontalLayout_2;
     QWidget *widget_2;
     QHBoxLayout *horizontalLayout_3;
+    QSplitter *splitter;
     QScrollArea *scrollArea;
     QWidget *scrollAreaWidgetContents_2;
     QVBoxLayout *verticalLayout_3;
@@ -107,21 +109,15 @@ public:
     QHBoxLayout *DES_area_2;
     QLabel *label_10;
     QGridLayout *LES_area_4;
-    QLabel *label_12;
-    QLineEdit *lineEdit_factor_x;
-    QLabel *gas_friction_label_3;
-    QLineEdit *lineEdit_factor_y;
-    QLabel *gas_friction_label_5;
-    QLabel *label;
-    QLineEdit *lineEdit_axis_x;
-    QLineEdit *lineEdit_axis_y;
     QLabel *gas_friction_label_6;
-    QLabel *gas_friction_label_4;
-    QLabel *gas_friction_label_7;
-    QLineEdit *lineEdit_axis_z;
-    QLabel *gas_friction_label_8;
+    QComboBox *Combo_Axis;
+    QLabel *label_12;
+    QLabel *label;
     QLineEdit *lineEdit_factor_z;
-    QLabel *label_13;
+    QLabel *gas_friction_label_4;
+    QLineEdit *lineEdit_factor_y;
+    QLineEdit *lineEdit_factor_x;
+    QLabel *gas_friction_label_8;
     QSpacerItem *verticalSpacer_2;
     QWidget *turbomachinery;
     QLabel *label_turbomachinery;
@@ -254,6 +250,16 @@ public:
     QLabel *label_43;
     QLineEdit *LEdit_NumPoints_AutoRun;
     QPushButton *Btn_Start_AutoRun;
+    QWidget *widget_15;
+    QVBoxLayout *verticalLayout_14;
+    QPushButton *TestDynamicCreate;
+    QLabel *unsteady_simulation_label_2;
+    QWidget *widget_16;
+    QHBoxLayout *horizontalLayout_8;
+    QCheckBox *check_on_off;
+    QSpacerItem *horizontalSpacer;
+    QLabel *lab_MG_Level;
+    QSpinBox *Sp_Number_MGLevel;
     QSpacerItem *verticalSpacer_7;
     QTabWidget *Show_MainWindow;
     QWidget *Show_Model;
@@ -386,7 +392,7 @@ public:
         if (PreMainWindow->objectName().isEmpty())
             PreMainWindow->setObjectName(QString::fromUtf8("PreMainWindow"));
         PreMainWindow->setEnabled(true);
-        PreMainWindow->resize(1920, 1109);
+        PreMainWindow->resize(1666, 949);
         QFont font;
         font.setPointSize(10);
         PreMainWindow->setFont(font);
@@ -421,21 +427,24 @@ public:
         widget_2->setEnabled(true);
         horizontalLayout_3 = new QHBoxLayout(widget_2);
         horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
-        scrollArea = new QScrollArea(widget_2);
+        splitter = new QSplitter(widget_2);
+        splitter->setObjectName(QString::fromUtf8("splitter"));
+        splitter->setOrientation(Qt::Horizontal);
+        scrollArea = new QScrollArea(splitter);
         scrollArea->setObjectName(QString::fromUtf8("scrollArea"));
         scrollArea->setEnabled(true);
-        QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+        QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(scrollArea->sizePolicy().hasHeightForWidth());
         scrollArea->setSizePolicy(sizePolicy);
         scrollArea->setMinimumSize(QSize(350, 700));
-        scrollArea->setMaximumSize(QSize(350, 16777215));
+        scrollArea->setMaximumSize(QSize(550, 16777215));
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents_2 = new QWidget();
         scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
         scrollAreaWidgetContents_2->setEnabled(true);
-        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 348, 993));
+        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 341, 983));
         verticalLayout_3 = new QVBoxLayout(scrollAreaWidgetContents_2);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
         widget_4 = new QWidget(scrollAreaWidgetContents_2);
@@ -497,7 +506,7 @@ public:
 
         verticalLayoutWidget_2 = new QWidget(general);
         verticalLayoutWidget_2->setObjectName(QString::fromUtf8("verticalLayoutWidget_2"));
-        verticalLayoutWidget_2->setGeometry(QRect(10, 150, 301, 571));
+        verticalLayoutWidget_2->setGeometry(QRect(10, 150, 301, 578));
         Turbulence_area = new QVBoxLayout(verticalLayoutWidget_2);
         Turbulence_area->setObjectName(QString::fromUtf8("Turbulence_area"));
         Turbulence_area->setContentsMargins(0, 0, 0, 0);
@@ -685,87 +694,66 @@ public:
 
         LES_area_4 = new QGridLayout();
         LES_area_4->setObjectName(QString::fromUtf8("LES_area_4"));
+        gas_friction_label_6 = new QLabel(verticalLayoutWidget_2);
+        gas_friction_label_6->setObjectName(QString::fromUtf8("gas_friction_label_6"));
+
+        LES_area_4->addWidget(gas_friction_label_6, 3, 0, 1, 1);
+
+        Combo_Axis = new QComboBox(verticalLayoutWidget_2);
+        Combo_Axis->addItem(QString());
+        Combo_Axis->addItem(QString());
+        Combo_Axis->addItem(QString());
+        Combo_Axis->setObjectName(QString::fromUtf8("Combo_Axis"));
+
+        LES_area_4->addWidget(Combo_Axis, 0, 1, 1, 1);
+
         label_12 = new QLabel(verticalLayoutWidget_2);
         label_12->setObjectName(QString::fromUtf8("label_12"));
+        QFont font2;
+        font2.setFamily(QString::fromUtf8(".AppleSystemUIFont"));
+        font2.setPointSize(10);
+        font2.setBold(true);
+        font2.setWeight(75);
+        label_12->setFont(font2);
 
-        LES_area_4->addWidget(label_12, 0, 2, 1, 1);
-
-        lineEdit_factor_x = new QLineEdit(verticalLayoutWidget_2);
-        lineEdit_factor_x->setObjectName(QString::fromUtf8("lineEdit_factor_x"));
-
-        LES_area_4->addWidget(lineEdit_factor_x, 1, 3, 1, 1);
-
-        gas_friction_label_3 = new QLabel(verticalLayoutWidget_2);
-        gas_friction_label_3->setObjectName(QString::fromUtf8("gas_friction_label_3"));
-
-        LES_area_4->addWidget(gas_friction_label_3, 1, 0, 1, 1);
-
-        lineEdit_factor_y = new QLineEdit(verticalLayoutWidget_2);
-        lineEdit_factor_y->setObjectName(QString::fromUtf8("lineEdit_factor_y"));
-
-        LES_area_4->addWidget(lineEdit_factor_y, 2, 3, 1, 1);
-
-        gas_friction_label_5 = new QLabel(verticalLayoutWidget_2);
-        gas_friction_label_5->setObjectName(QString::fromUtf8("gas_friction_label_5"));
-
-        LES_area_4->addWidget(gas_friction_label_5, 2, 0, 1, 1);
+        LES_area_4->addWidget(label_12, 1, 0, 1, 1);
 
         label = new QLabel(verticalLayoutWidget_2);
         label->setObjectName(QString::fromUtf8("label"));
 
         LES_area_4->addWidget(label, 0, 0, 1, 1);
 
-        lineEdit_axis_x = new QLineEdit(verticalLayoutWidget_2);
-        lineEdit_axis_x->setObjectName(QString::fromUtf8("lineEdit_axis_x"));
+        lineEdit_factor_z = new QLineEdit(verticalLayoutWidget_2);
+        lineEdit_factor_z->setObjectName(QString::fromUtf8("lineEdit_factor_z"));
 
-        LES_area_4->addWidget(lineEdit_axis_x, 1, 1, 1, 1);
-
-        lineEdit_axis_y = new QLineEdit(verticalLayoutWidget_2);
-        lineEdit_axis_y->setObjectName(QString::fromUtf8("lineEdit_axis_y"));
-
-        LES_area_4->addWidget(lineEdit_axis_y, 2, 1, 1, 1);
-
-        gas_friction_label_6 = new QLabel(verticalLayoutWidget_2);
-        gas_friction_label_6->setObjectName(QString::fromUtf8("gas_friction_label_6"));
-
-        LES_area_4->addWidget(gas_friction_label_6, 2, 2, 1, 1);
+        LES_area_4->addWidget(lineEdit_factor_z, 4, 1, 1, 1);
 
         gas_friction_label_4 = new QLabel(verticalLayoutWidget_2);
         gas_friction_label_4->setObjectName(QString::fromUtf8("gas_friction_label_4"));
 
-        LES_area_4->addWidget(gas_friction_label_4, 1, 2, 1, 1);
+        LES_area_4->addWidget(gas_friction_label_4, 2, 0, 1, 1);
 
-        gas_friction_label_7 = new QLabel(verticalLayoutWidget_2);
-        gas_friction_label_7->setObjectName(QString::fromUtf8("gas_friction_label_7"));
+        lineEdit_factor_y = new QLineEdit(verticalLayoutWidget_2);
+        lineEdit_factor_y->setObjectName(QString::fromUtf8("lineEdit_factor_y"));
 
-        LES_area_4->addWidget(gas_friction_label_7, 3, 0, 1, 1);
+        LES_area_4->addWidget(lineEdit_factor_y, 3, 1, 1, 1);
 
-        lineEdit_axis_z = new QLineEdit(verticalLayoutWidget_2);
-        lineEdit_axis_z->setObjectName(QString::fromUtf8("lineEdit_axis_z"));
+        lineEdit_factor_x = new QLineEdit(verticalLayoutWidget_2);
+        lineEdit_factor_x->setObjectName(QString::fromUtf8("lineEdit_factor_x"));
 
-        LES_area_4->addWidget(lineEdit_axis_z, 3, 1, 1, 1);
+        LES_area_4->addWidget(lineEdit_factor_x, 2, 1, 1, 1);
 
         gas_friction_label_8 = new QLabel(verticalLayoutWidget_2);
         gas_friction_label_8->setObjectName(QString::fromUtf8("gas_friction_label_8"));
 
-        LES_area_4->addWidget(gas_friction_label_8, 3, 2, 1, 1);
-
-        lineEdit_factor_z = new QLineEdit(verticalLayoutWidget_2);
-        lineEdit_factor_z->setObjectName(QString::fromUtf8("lineEdit_factor_z"));
-
-        LES_area_4->addWidget(lineEdit_factor_z, 3, 3, 1, 1);
-
-        label_13 = new QLabel(verticalLayoutWidget_2);
-        label_13->setObjectName(QString::fromUtf8("label_13"));
-
-        LES_area_4->addWidget(label_13, 0, 1, 1, 1);
-
-
-        Turbulence_area->addLayout(LES_area_4);
+        LES_area_4->addWidget(gas_friction_label_8, 4, 0, 1, 1);
 
         verticalSpacer_2 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        Turbulence_area->addItem(verticalSpacer_2);
+        LES_area_4->addItem(verticalSpacer_2, 5, 1, 1, 1);
+
+
+        Turbulence_area->addLayout(LES_area_4);
 
         stackedWidget->addWidget(general);
         turbomachinery = new QWidget();
@@ -960,7 +948,7 @@ public:
 
         gridLayoutWidget = new QWidget(solver);
         gridLayoutWidget->setObjectName(QString::fromUtf8("gridLayoutWidget"));
-        gridLayoutWidget->setGeometry(QRect(0, 410, 311, 210));
+        gridLayoutWidget->setGeometry(QRect(0, 410, 311, 217));
         gridLayout_advanced = new QGridLayout(gridLayoutWidget);
         gridLayout_advanced->setObjectName(QString::fromUtf8("gridLayout_advanced"));
         gridLayout_advanced->setContentsMargins(0, 0, 0, 0);
@@ -1309,11 +1297,6 @@ public:
         gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
         label_44 = new QLabel(widget_13);
         label_44->setObjectName(QString::fromUtf8("label_44"));
-        QFont font2;
-        font2.setFamily(QString::fromUtf8(".AppleSystemUIFont"));
-        font2.setPointSize(10);
-        font2.setBold(true);
-        font2.setWeight(75);
         label_44->setFont(font2);
 
         gridLayout->addWidget(label_44, 0, 0, 1, 1);
@@ -1366,6 +1349,55 @@ public:
 
         verticalLayout_7->addWidget(widget_13);
 
+        widget_15 = new QWidget(savetab);
+        widget_15->setObjectName(QString::fromUtf8("widget_15"));
+        widget_15->setMinimumSize(QSize(0, 100));
+        verticalLayout_14 = new QVBoxLayout(widget_15);
+        verticalLayout_14->setObjectName(QString::fromUtf8("verticalLayout_14"));
+        TestDynamicCreate = new QPushButton(widget_15);
+        TestDynamicCreate->setObjectName(QString::fromUtf8("TestDynamicCreate"));
+
+        verticalLayout_14->addWidget(TestDynamicCreate);
+
+        unsteady_simulation_label_2 = new QLabel(widget_15);
+        unsteady_simulation_label_2->setObjectName(QString::fromUtf8("unsteady_simulation_label_2"));
+
+        verticalLayout_14->addWidget(unsteady_simulation_label_2);
+
+        widget_16 = new QWidget(widget_15);
+        widget_16->setObjectName(QString::fromUtf8("widget_16"));
+        horizontalLayout_8 = new QHBoxLayout(widget_16);
+        horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
+        check_on_off = new QCheckBox(widget_16);
+        check_on_off->setObjectName(QString::fromUtf8("check_on_off"));
+
+        horizontalLayout_8->addWidget(check_on_off);
+
+        horizontalSpacer = new QSpacerItem(50, 20, QSizePolicy::Preferred, QSizePolicy::Minimum);
+
+        horizontalLayout_8->addItem(horizontalSpacer);
+
+        lab_MG_Level = new QLabel(widget_16);
+        lab_MG_Level->setObjectName(QString::fromUtf8("lab_MG_Level"));
+
+        horizontalLayout_8->addWidget(lab_MG_Level);
+
+        Sp_Number_MGLevel = new QSpinBox(widget_16);
+        Sp_Number_MGLevel->setObjectName(QString::fromUtf8("Sp_Number_MGLevel"));
+        Sp_Number_MGLevel->setMinimumSize(QSize(80, 0));
+        Sp_Number_MGLevel->setReadOnly(true);
+        Sp_Number_MGLevel->setMinimum(1);
+        Sp_Number_MGLevel->setMaximum(10);
+        Sp_Number_MGLevel->setValue(3);
+
+        horizontalLayout_8->addWidget(Sp_Number_MGLevel);
+
+
+        verticalLayout_14->addWidget(widget_16);
+
+
+        verticalLayout_7->addWidget(widget_15);
+
         verticalSpacer_7 = new QSpacerItem(20, 16, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         verticalLayout_7->addItem(verticalSpacer_7);
@@ -1375,11 +1407,15 @@ public:
         verticalLayout_3->addWidget(stackedWidget);
 
         scrollArea->setWidget(scrollAreaWidgetContents_2);
-
-        horizontalLayout_3->addWidget(scrollArea);
-
-        Show_MainWindow = new QTabWidget(widget_2);
+        splitter->addWidget(scrollArea);
+        Show_MainWindow = new QTabWidget(splitter);
         Show_MainWindow->setObjectName(QString::fromUtf8("Show_MainWindow"));
+        QSizePolicy sizePolicy2(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy2.setHorizontalStretch(1);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(Show_MainWindow->sizePolicy().hasHeightForWidth());
+        Show_MainWindow->setSizePolicy(sizePolicy2);
+        Show_MainWindow->setMinimumSize(QSize(1100, 0));
         Show_Model = new QWidget();
         Show_Model->setObjectName(QString::fromUtf8("Show_Model"));
         RunGraphLayout = new QVBoxLayout(Show_Model);
@@ -1425,11 +1461,11 @@ public:
 
         widget_9 = new QWidget(Panel_Conver);
         widget_9->setObjectName(QString::fromUtf8("widget_9"));
-        QSizePolicy sizePolicy2(QSizePolicy::Preferred, QSizePolicy::Fixed);
-        sizePolicy2.setHorizontalStretch(0);
-        sizePolicy2.setVerticalStretch(0);
-        sizePolicy2.setHeightForWidth(widget_9->sizePolicy().hasHeightForWidth());
-        widget_9->setSizePolicy(sizePolicy2);
+        QSizePolicy sizePolicy3(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        sizePolicy3.setHorizontalStretch(0);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(widget_9->sizePolicy().hasHeightForWidth());
+        widget_9->setSizePolicy(sizePolicy3);
         horizontalLayout_17 = new QHBoxLayout(widget_9);
         horizontalLayout_17->setSpacing(15);
         horizontalLayout_17->setObjectName(QString::fromUtf8("horizontalLayout_17"));
@@ -1448,8 +1484,8 @@ public:
 
         control_panel_Range_Res = new QWidget(Panel_Conver);
         control_panel_Range_Res->setObjectName(QString::fromUtf8("control_panel_Range_Res"));
-        sizePolicy2.setHeightForWidth(control_panel_Range_Res->sizePolicy().hasHeightForWidth());
-        control_panel_Range_Res->setSizePolicy(sizePolicy2);
+        sizePolicy3.setHeightForWidth(control_panel_Range_Res->sizePolicy().hasHeightForWidth());
+        control_panel_Range_Res->setSizePolicy(sizePolicy3);
         control_panel_Range_Res->setMinimumSize(QSize(0, 350));
         verticalLayout_13 = new QVBoxLayout(control_panel_Range_Res);
         verticalLayout_13->setObjectName(QString::fromUtf8("verticalLayout_13"));
@@ -1671,11 +1707,11 @@ public:
 
         List_Variable = new QListWidget(Panel_Monitor);
         List_Variable->setObjectName(QString::fromUtf8("List_Variable"));
-        QSizePolicy sizePolicy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
-        sizePolicy3.setHorizontalStretch(0);
-        sizePolicy3.setVerticalStretch(0);
-        sizePolicy3.setHeightForWidth(List_Variable->sizePolicy().hasHeightForWidth());
-        List_Variable->setSizePolicy(sizePolicy3);
+        QSizePolicy sizePolicy4(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy4.setHorizontalStretch(0);
+        sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(List_Variable->sizePolicy().hasHeightForWidth());
+        List_Variable->setSizePolicy(sizePolicy4);
         List_Variable->setMinimumSize(QSize(0, 435));
         List_Variable->setSelectionMode(QAbstractItemView::MultiSelection);
 
@@ -1968,8 +2004,9 @@ public:
         verticalLayout_9->addWidget(Result_Table);
 
         Show_MainWindow->addTab(Show_Result, QString());
+        splitter->addWidget(Show_MainWindow);
 
-        horizontalLayout_3->addWidget(Show_MainWindow);
+        horizontalLayout_3->addWidget(splitter);
 
 
         horizontalLayout_2->addWidget(widget_2);
@@ -1983,7 +2020,7 @@ public:
         PreMainWindow->addToolBar(Qt::TopToolBarArea, toolBar);
         menubar = new QMenuBar(PreMainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 1920, 24));
+        menubar->setGeometry(QRect(0, 0, 1666, 24));
         QFont font4;
         font4.setPointSize(12);
         menubar->setFont(font4);
@@ -2009,7 +2046,7 @@ public:
         retranslateUi(PreMainWindow);
 
         stackedWidget->setCurrentIndex(5);
-        Show_MainWindow->setCurrentIndex(3);
+        Show_MainWindow->setCurrentIndex(4);
 
 
         QMetaObject::connectSlotsByName(PreMainWindow);
@@ -2086,21 +2123,18 @@ public:
         gas_type_combo->setItemText(1, QCoreApplication::translate("PreMainWindow", "Real gas", nullptr));
 
         label_10->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p><span style=\" font-weight:700;\">Coordinate Transformation</span></p></body></html>", nullptr));
-        label_12->setText(QCoreApplication::translate("PreMainWindow", "Scale", nullptr));
-        lineEdit_factor_x->setText(QCoreApplication::translate("PreMainWindow", "1.0", nullptr));
-        gas_friction_label_3->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p>axis x</p></body></html>", nullptr));
-        lineEdit_factor_y->setText(QCoreApplication::translate("PreMainWindow", "1.0", nullptr));
-        gas_friction_label_5->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p>axis y</p></body></html>", nullptr));
-        label->setText(QCoreApplication::translate("PreMainWindow", "Rotation", nullptr));
-        lineEdit_axis_x->setText(QCoreApplication::translate("PreMainWindow", "1.0", nullptr));
-        lineEdit_axis_y->setText(QCoreApplication::translate("PreMainWindow", "0.0", nullptr));
         gas_friction_label_6->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p>factor y</p></body></html>", nullptr));
-        gas_friction_label_4->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p>factor x</p></body></html>", nullptr));
-        gas_friction_label_7->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p>axis z</p></body></html>", nullptr));
-        lineEdit_axis_z->setText(QCoreApplication::translate("PreMainWindow", "0.0", nullptr));
-        gas_friction_label_8->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p>factor z</p></body></html>", nullptr));
+        Combo_Axis->setItemText(0, QCoreApplication::translate("PreMainWindow", "X", nullptr));
+        Combo_Axis->setItemText(1, QCoreApplication::translate("PreMainWindow", "Y", nullptr));
+        Combo_Axis->setItemText(2, QCoreApplication::translate("PreMainWindow", "Z", nullptr));
+
+        label_12->setText(QCoreApplication::translate("PreMainWindow", "Scale", nullptr));
+        label->setText(QCoreApplication::translate("PreMainWindow", "Rotation Axis ", nullptr));
         lineEdit_factor_z->setText(QCoreApplication::translate("PreMainWindow", "1.0", nullptr));
-        label_13->setText(QCoreApplication::translate("PreMainWindow", "Axis Vector", nullptr));
+        gas_friction_label_4->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p>factor x</p></body></html>", nullptr));
+        lineEdit_factor_y->setText(QCoreApplication::translate("PreMainWindow", "1.0", nullptr));
+        lineEdit_factor_x->setText(QCoreApplication::translate("PreMainWindow", "1.0", nullptr));
+        gas_friction_label_8->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p>factor z</p></body></html>", nullptr));
         label_turbomachinery->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p><span style=\" font-weight:700;\">Turbomachinery setup</span></p></body></html>", nullptr));
         label_3->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p><span style=\" font-weight:700;\">Blade Row Setting</span></p></body></html>", nullptr));
         label_4->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p><span style=\" font-weight:700;\">Rotor-stator interface</span></p></body></html>", nullptr));
@@ -2200,11 +2234,13 @@ public:
         monitor_label->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p><span style=\" font-size:14pt;\">Monitors</span></p></body></html>", nullptr));
         pushButton->setText(QCoreApplication::translate("PreMainWindow", "Add monitor", nullptr));
         QTreeWidgetItem *___qtreewidgetitem3 = monitor_tree->headerItem();
-        ___qtreewidgetitem3->setText(4, QCoreApplication::translate("PreMainWindow", "delete", nullptr));
-        ___qtreewidgetitem3->setText(3, QCoreApplication::translate("PreMainWindow", "average type", nullptr));
-        ___qtreewidgetitem3->setText(2, QCoreApplication::translate("PreMainWindow", "match face", nullptr));
-        ___qtreewidgetitem3->setText(1, QCoreApplication::translate("PreMainWindow", "face ", nullptr));
-        ___qtreewidgetitem3->setText(0, QCoreApplication::translate("PreMainWindow", "type", nullptr));
+        ___qtreewidgetitem3->setText(6, QCoreApplication::translate("PreMainWindow", "delete", nullptr));
+        ___qtreewidgetitem3->setText(5, QCoreApplication::translate("PreMainWindow", "config", nullptr));
+        ___qtreewidgetitem3->setText(4, QCoreApplication::translate("PreMainWindow", "average type", nullptr));
+        ___qtreewidgetitem3->setText(3, QCoreApplication::translate("PreMainWindow", "match face", nullptr));
+        ___qtreewidgetitem3->setText(2, QCoreApplication::translate("PreMainWindow", "face ", nullptr));
+        ___qtreewidgetitem3->setText(1, QCoreApplication::translate("PreMainWindow", "type", nullptr));
+        ___qtreewidgetitem3->setText(0, QCoreApplication::translate("PreMainWindow", "File Name", nullptr));
         label_44->setText(QCoreApplication::translate("PreMainWindow", "Auto Run", nullptr));
         label_14->setText(QCoreApplication::translate("PreMainWindow", "Start Pressure:", nullptr));
         Btn_Skip_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "Skip", nullptr));
@@ -2213,6 +2249,10 @@ public:
         label_43->setText(QCoreApplication::translate("PreMainWindow", "Number of Points:", nullptr));
         LEdit_NumPoints_AutoRun->setText(QString());
         Btn_Start_AutoRun->setText(QCoreApplication::translate("PreMainWindow", "Start", nullptr));
+        TestDynamicCreate->setText(QCoreApplication::translate("PreMainWindow", "TestDynamicCreate", nullptr));
+        unsteady_simulation_label_2->setText(QCoreApplication::translate("PreMainWindow", "<html><head/><body><p><span style=\" font-weight:696;\">Multi-Grid </span></p></body></html>", nullptr));
+        check_on_off->setText(QCoreApplication::translate("PreMainWindow", "On / Off", nullptr));
+        lab_MG_Level->setText(QCoreApplication::translate("PreMainWindow", "Level :", nullptr));
         Show_MainWindow->setTabText(Show_MainWindow->indexOf(Show_Model), QCoreApplication::translate("PreMainWindow", "Model", nullptr));
         label_27->setText(QCoreApplication::translate("PreMainWindow", "Graph Options", nullptr));
         Btn_AutoScale_Res->setText(QCoreApplication::translate("PreMainWindow", "AutoScale", nullptr));

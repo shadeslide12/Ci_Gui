@@ -1,20 +1,13 @@
 #include "DataStructure.h"
 
 void MonitorVariableTable::clearMonTable() {
-    inlet.pTotal.clear();
-    inlet.tTotal.clear();
-    inlet.vAxial.clear();
-    inlet.vTheta.clear();
-    inlet.pStatic.clear();
-    inlet.mDot.clear();
+    // Clear dynamic monitor data
+    for (MonitorFileData& mon : monitors) {
+        mon.clear();
+    }
+    monitors.clear();
 
-    outlet.pTotal.clear();
-    outlet.tTotal.clear();
-    outlet.vAxial.clear();
-    outlet.vTheta.clear();
-    outlet.pStatic.clear();
-    outlet.mDot.clear();
-
+    // Clear fixed perf data
     perform.pRatio.clear();
     perform.tRatio.clear();
     perform.efficiency.clear();

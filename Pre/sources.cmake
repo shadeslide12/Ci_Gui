@@ -17,12 +17,18 @@ list(APPEND QT_PRE2_SRC
    ${CMAKE_CURRENT_SOURCE_DIR}/CustomChartView.h
    ${CMAKE_CURRENT_SOURCE_DIR}/plotManager.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/simulationDataManager.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/RadialProfilePlot.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/Type4ConfigDialog.cpp
 #   ${CMAKE_CURRENT_SOURCE_DIR}/bcaddition.cpp
 #   ${CMAKE_CURRENT_SOURCE_DIR}/yamlreader.cpp
 )
 
 list(APPEND QT_PRE2_VTK_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/vtkCGNSReader.cpp
+)
+
+list(APPEND QT_PRE2_VTK_SRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/vtkFluentCFFReader.cpp
 )
 
 list(APPEND QT_PRE2_MAIN_SRC

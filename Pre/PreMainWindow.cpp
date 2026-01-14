@@ -5,6 +5,8 @@
 #include <QProgressBar>
 #include <QDebug>
 
+#include "vtkFluentCFFReader.h"
+
 PreMainWindow::PreMainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::PreMainWindow)
@@ -13,6 +15,7 @@ PreMainWindow::PreMainWindow(QWidget *parent)
     ,residualplot(new Residual_Plot)
     ,performPlot(new Perform_Plot(this))
     ,monitorplot(new MonitorPlot(this))
+    ,radialProfilePlot(new RadialProfilePlot(this))
     ,simulationDataManager(new SimulationDataManager(this))
     ,plotManager(new PlotManager(this))
 {
@@ -34,6 +37,8 @@ PreMainWindow::PreMainWindow(QWidget *parent)
   ui->load_steady_flow->setVisible(false);
   ui->run_pre_process->setVisible(false);
   ui->saveYAMLButton->setVisible(false);
+
+  ui->Show_MainWindow->setTabsClosable(true);
 }
 
 void PreMainWindow::runOutputWindowReady()
@@ -139,19 +144,68 @@ void PreMainWindow::Assign_Value()
   Assign_Run();
   Assign_Solver();
   Assign_VTK();
+
 }
 
 void PreMainWindow::Assign_VTK()
 {
 #ifndef NO_VTK_WINDOW
-  if(cfg.num_meshes > 0) {
+
+  //* Initializing Vtk Widget
+  if (!isVTKWindow) {
+    renderer->SetBackground(1.0, 1.0, 1.0);
+    renderer->SetBackground2(0.529, 0.8078, 0.92157);
+    renderer->SetGradientBackground(true);
+    isVTKWindow = true;
+    renderWindow->AddRenderer(renderer);
+    vtkWidget->setRenderWindow(renderWindow);
+    ui->RunGraphLayout->insertWidget(0, vtkWidget, 1);
+    createAxisWidget();
+    vtkWidget->renderWindow()->Render();
+  }
+  if(cfg.num_meshes > 0  ) {
+    //* Remove All models Before Reading New Case
+    qDebug()<<"[DEBUG] VTK Initializing ....";
+    qDebug()<<"[DEBUG] Mesh number is : " << cfg.num_meshes;
+    renderer->RemoveAllViewProps();
+    
     vector<vector<vtkSmartPointer<vtkUnstructuredGrid>>> datasets;
     vector<vector<vtkSmartPointer<vtkActor>>> actors(cfg.num_meshes);
     for (int i = 0; i < cfg.num_meshes; i++) {
-      std::string filename = cfg.mesh_files[i] + ".cgns";
-      CGNSReader reader(filename);
-      vector<vtkSmartPointer<vtkUnstructuredGrid>> ds = reader.getDataSet();
-      datasets.push_back(ds);
+      vector<vtkSmartPointer<vtkUnstructuredGrid>> currentDataSet;
+      std::string filename;
+      
+      switch (cfg.Flag_Type_Files) {
+        case 0: 
+          filename = cfg.mesh_files[i] + ".cgns";
+          qDebug() << "[DEBUG] Loading CGNS Files : " << QString::fromStdString(filename);
+          
+          if (std::ifstream(filename).good()) {
+            CGNSReader reader(filename);
+            currentDataSet = reader.getDataSet();
+          } else {
+            qDebug() << "[DEBUG] File Doesn't exist "  ;
+          }
+          break;
+          
+        case 1: 
+          filename = cfg.mesh_files[i] + ".cas.h5";
+          qDebug() << "[DEBUG] Loading Cas Files : " << QString::fromStdString(filename);
+          
+          if (std::ifstream(filename).good()) {
+            vtkFluentCFFReader reader(filename);
+            currentDataSet = reader.getDataSet();
+          } else {
+            qDebug() << "[DEBUG] File Doesn't exist "  ;
+          }
+          break;
+          
+        default:
+          qDebug() << "[DEBUG] Invalid Files" ;
+          break;
+      }
+      
+      datasets.push_back(currentDataSet);
     }
     for (int i = 0; i < datasets.size(); i++) {
       for (int j = 1; j < datasets[i].size(); j++) {
@@ -174,16 +228,37 @@ void PreMainWindow::Assign_VTK()
     renderer->ResetCamera();
     vtkWidget->renderWindow()->Render();
   }
-  if (!isVTKWindow) {
-    renderer->SetBackground(1.0, 1.0, 1.0);
-    renderer->SetBackground2(0.529, 0.8078, 0.92157);
-    renderer->SetGradientBackground(true);
-    isVTKWindow = true;
-    renderWindow->AddRenderer(renderer);
-    vtkWidget->setRenderWindow(renderWindow);
-    ui->RunGraphLayout->insertWidget(0, vtkWidget, 1);
-    vtkWidget->renderWindow()->Render();
+
+  if (cfg.num_meshes>0) {
+    // Calculate model bounds for dynamic axis sizing
+    double bounds[6];
+    renderer->ComputeVisiblePropBounds(bounds);
+    
+    // Calculate maximum dimension of the model
+    double xSize = bounds[1] - bounds[0];
+    double ySize = bounds[3] - bounds[2]; 
+    double zSize = bounds[5] - bounds[4];
+    double maxSize = std::max({xSize, ySize, zSize});
+    
+    // Set axis length as 2x the maximum model dimension (configurable multiplier)
+    double axisLength = maxSize * 2.0;
+    
+    qDebug() << "[DEBUG] Model bounds: x[" << bounds[0] << "," << bounds[1] << "] y[" << bounds[2] << "," << bounds[3] << "] z[" << bounds[4] << "," << bounds[5] << "]";
+    qDebug() << "[DEBUG] Max model size:" << maxSize << ", Axis length:" << axisLength;
+    
+    //createRotationLineWidget(0, axisLength);
+    
+    // Adjust camera clipping planes based on model size
+    vtkSmartPointer<vtkCamera> camera = renderer->GetActiveCamera();
+    double nearClip = maxSize * 0.001;  // 0.1% of model size
+    double farClip = maxSize * 100.0;   // 100x model size
+    camera->SetClippingRange(nearClip, farClip);
+    
+    qDebug() << "[DEBUG] Camera clipping range: near=" << nearClip << ", far=" << farClip;
   }
+  vtkSmartPointer<vtkCamera> camera=renderer->GetActiveCamera();
+  camera->Zoom(0.5);
+  renderer->GetRenderWindow()->Render();
 #endif
 }
 
@@ -234,6 +309,7 @@ void PreMainWindow::GetMonitorTree()
     QComboBox *OneComboFace = new QComboBox(this);
     QComboBox *OneComboMFace = new QComboBox(this);
     QComboBox *OneComboAverage = new QComboBox(this);
+    QLineEdit *OneLineEditFileName = new QLineEdit(this);
     QPushButton *OneButton = new QPushButton(this);
 
     for (auto iter:GUI_monitor_dict)
@@ -260,16 +336,35 @@ void PreMainWindow::GetMonitorTree()
       OneComboMFace->setCurrentText(QString::fromStdString(cfg.monitor->global_bc_names[0]));
       OneComboMFace->setEnabled(false);
     }
-    OneComboType->setCurrentText(QString::fromStdString(GUI_monitor_dict_R.at(monitor_type)));
+   if (i==0)
+   {
+     OneComboType->setCurrentText(QString::fromStdString(GUI_monitor_dict_R.at(100)));
+   }else
+   {
+     OneComboType->setCurrentText(QString::fromStdString(GUI_monitor_dict_R.at(monitor_type)));
+   }
     OneComboAverage->setCurrentText(QString::fromStdString(GUI_monitor_average_R.at(average_type)));
+    OneLineEditFileName->setText(QString::fromStdString(cfg.monitor->monitors[i].filename));
     OneButton->setMaximumWidth(50);
     OneButton->setText("X");
 
-    ui->monitor_tree->setItemWidget(treeItem, 0, OneComboType);
-    ui->monitor_tree->setItemWidget(treeItem, 1, OneComboFace);
-    ui->monitor_tree->setItemWidget(treeItem, 2, OneComboMFace);
-    ui->monitor_tree->setItemWidget(treeItem, 3, OneComboAverage);
-    ui->monitor_tree->setItemWidget(treeItem, 4, OneButton);
+    // Type 4 配置按钮
+    QPushButton *configButton = new QPushButton(this);
+    configButton->setText("Setting ⚙");
+    configButton->setMaximumWidth(130);
+    configButton->setToolTip("Configure Type 4 parameters");
+    // 仅 Type 4 (Turbine efficiency) 显示配置按钮
+    bool isType4 = (cfg.monitor->monitors[i].type == 4);
+    configButton->setVisible(isType4);
+    configButton->setEnabled(isType4);
+
+    ui->monitor_tree->setItemWidget(treeItem, 0, OneLineEditFileName);
+    ui->monitor_tree->setItemWidget(treeItem, 1, OneComboType);
+    ui->monitor_tree->setItemWidget(treeItem, 2, OneComboFace);
+    ui->monitor_tree->setItemWidget(treeItem, 3, OneComboMFace);
+    ui->monitor_tree->setItemWidget(treeItem, 4, OneComboAverage);
+    ui->monitor_tree->setItemWidget(treeItem, 5, configButton);
+    ui->monitor_tree->setItemWidget(treeItem, 6, OneButton);
 
     connect(OneComboType, QOverload<int>::of(&QComboBox::currentIndexChanged),
             [this,OneComboType,OneComboMFace, i]{
@@ -287,9 +382,25 @@ void PreMainWindow::GetMonitorTree()
             [this,OneComboAverage, i]{
                 this->onMonitorAverageChange(OneComboAverage, i);
             });
+    connect(OneLineEditFileName, &QLineEdit::editingFinished,
+            [this,OneLineEditFileName, i]{
+                this->onMonitorFileNameChange(OneLineEditFileName, i);
+            });
     connect(OneButton, QOverload<bool>::of(&QPushButton::clicked),
             [this,i]{
                 this->onMonitorDeleteMonitor(i);
+            });
+    connect(configButton, &QPushButton::clicked,
+            [this, i]{
+                this->onMonitorConfigClicked(i);
+            });
+    // 当类型变化时更新配置按钮可见性
+    connect(OneComboType, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [configButton, OneComboType]{
+                int typeId = GUI_monitor_dict.at(OneComboType->currentText().toStdString());
+                bool isType4 = (typeId == 4);
+                configButton->setVisible(isType4);
+                configButton->setEnabled(isType4);
             });
   }
 }
@@ -331,9 +442,6 @@ void PreMainWindow::Assign_General()
   ui->film_checkbox->setChecked(false);
   ui->film_checkbox->toggled(false);
 
-  SetupDoubleLineEdit(this,ui->lineEdit_axis_x, cfg.rot_axis(0));
-  SetupDoubleLineEdit(this,ui->lineEdit_axis_y, cfg.rot_axis(1));
-  SetupDoubleLineEdit(this,ui->lineEdit_axis_z, cfg.rot_axis(2));
   SetupDoubleLineEdit(this,ui->lineEdit_factor_x, cfg.scaling_x);
   SetupDoubleLineEdit(this,ui->lineEdit_factor_y, cfg.scaling_y);
   SetupDoubleLineEdit(this,ui->lineEdit_factor_z, cfg.scaling_z);
@@ -519,11 +627,21 @@ void PreMainWindow::on_annular_checkbox_toggled(bool checked) {
 
 void PreMainWindow::on_actionNew_triggered()
 {
-  SelectFile *selectfile = new SelectFile(&cfg);
+  //* Reset Setting Member cfg to avoid Crash
+  cfg = PreProcessSettings();
+
+  //* Prevent SelectFile Memory Leakage
+  SelectFile *selectfile = new SelectFile(&cfg,this);
   selectfile->setModal(true);
   selectfile->show();
-  connect(selectfile, &QDialog::finished, this, &PreMainWindow::Assign_Value);
-  ui->scrollArea->setEnabled(true);
+  //* Ensure everything is ready before enter next step
+  connect(selectfile, &SelectFile::fileLoaded, this, [this] {
+    Assign_Value();
+    ui->scrollArea->setEnabled(true);
+
+  });
+  connect(selectfile, &QDialog::finished, selectfile, &QObject::deleteLater);
+
 }
 
 void PreMainWindow::on_tb_type_combo_currentTextChanged(const QString &arg1)
@@ -685,6 +803,7 @@ void PreMainWindow::onFilmBCbuttonClicked(QComboBox *bmd, int zone_id, int bc_id
     QVector<double> tableData1;
     for (size_t j = 0; j < cfg.all_film_config_data[zone_id][bc_id].second[i].size(); ++j) {
       tableData1.push_back(cfg.all_film_config_data[zone_id][bc_id].second[i][j]);
+//      std::cout<< tableData[i][j] <<std::endl;
     }
     tableData.push_back(tableData1);
   }
@@ -694,7 +813,7 @@ void PreMainWindow::onFilmBCbuttonClicked(QComboBox *bmd, int zone_id, int bc_id
     QVector<double> tableData1;
     for (size_t j = 0; j < cfg.all_film_input_data[zone_id][bc_id].second[i].size(); ++j) {
       tableData1.push_back(cfg.all_film_input_data[zone_id][bc_id].second[i][j]);
-//      std::cout <<i << cfg.all_film_input_data[zone_id][bc_id].second[i][j] << std::endl;
+//      std::cout<< tableData[i][j] <<std::endl;
     }
     tableData_input.push_back(tableData1);
   }
@@ -1097,13 +1216,13 @@ void PreMainWindow::onBCExtraClicked(QComboBox *cmb, int zone_id, int bc_id)
   extra_bc_window->show();
 }
 
-void PreMainWindow::on_actionLoadMain_triggered()
-{
-  cfg=PreProcessSettings();
-  cfg.LoadYAML(global_pre_setup_yaml);
-  ui->scrollArea->setEnabled(true);
-  Assign_Value();
-}
+// void PreMainWindow::on_actionLoadMain_triggered()
+// {
+//   cfg=PreProcessSettings();
+//   cfg.LoadYAML(global_pre_setup_yaml);
+//   ui->scrollArea->setEnabled(true);
+//   Assign_Value();
+// }
 
 void PreMainWindow::on_conbo_rans_currentTextChanged(const QString &arg1)
 {
@@ -1295,9 +1414,6 @@ void PreMainWindow::on_omega_lineEdit_textEdited(const QString &arg1){cfg.o_ic=a
 void PreMainWindow::on_epsilon_lineEdit_textEdited(const QString &arg1){cfg.e_ic=arg1.toDouble();}
 void PreMainWindow::on_gamma_lineEdit_textEdited(const QString &arg1){cfg.g_ic=arg1.toDouble();}
 
-void PreMainWindow::on_lineEdit_axis_x_textEdited(const QString &arg1){cfg.rot_axis(0)=arg1.toDouble();}
-void PreMainWindow::on_lineEdit_axis_y_textEdited(const QString &arg1){cfg.rot_axis(1)=arg1.toDouble();}
-void PreMainWindow::on_lineEdit_axis_z_textEdited(const QString &arg1){cfg.rot_axis(2)=arg1.toDouble();}
 void PreMainWindow::on_lineEdit_factor_x_textEdited(const QString &arg1){cfg.scaling_x=arg1.toDouble();}
 void PreMainWindow::on_lineEdit_factor_y_textEdited(const QString &arg1){cfg.scaling_y=arg1.toDouble();}
 void PreMainWindow::on_lineEdit_factor_z_textEdited(const QString &arg1){cfg.scaling_z=arg1.toDouble();}
@@ -1420,11 +1536,26 @@ void PreMainWindow::on_start_simulation_button_clicked() {
 
     simulationDataManager->closeFiles();
     simulationDataManager->clearData();
-
+    qDebug()<< "1";
     residualplot->clearSeries();
     monitorplot->clearSeries();
 
+    // Update monitor file paths from configuration
+    QStringList monitorFilePaths;
+    for (const auto& monitor : cfg.monitor->monitors) {
+        // Skip perf file (it's handled separately)
+        if (monitor.filename != "mon_perf.dat") {
+            monitorFilePaths.append(QString::fromStdString("./" + monitor.filename));
+            qDebug()<< "2 " << QString::fromStdString("./" + monitor.filename);
+        }
+    }
+    if (!monitorFilePaths.isEmpty()) {
+        simulationDataManager->updateMonitorFilePaths(monitorFilePaths);
+    }
+
     cfg.SaveYAML(cfg.GUI_yaml);
+    qDebug()<< "3";
+
     QString program = "";
     program += "rm -rf mon_*.dat && ";
     program += "rm -rf hist.dat && ";
@@ -1609,17 +1740,18 @@ void PreMainWindow::on_pushButton_clicked()
 void PreMainWindow::onMonitorTypeChange(QComboBox *cmb1, QComboBox *cmb2, int id)
 {
   int type_id = GUI_monitor_dict.at(cmb1->currentText().toStdString());
-  if (type_id==3) {
+  
+  if (type_id == 100) {
     cmb2->setEnabled(true);
     cmb2->setCurrentText(QString::fromStdString(cfg.monitor->global_bc_names[0]));
-    cfg.monitor->monitors[id].type=1;
+    cfg.monitor->monitors[id].type = 1;  
   }
   else
   {
     cmb2->setEnabled(false);
     cmb2->setCurrentText("");
-    cfg.monitor->monitors[id].type=type_id;
-    cfg.monitor->monitors[id].match_face_id=0;
+    cfg.monitor->monitors[id].type = type_id;  
+    cfg.monitor->monitors[id].match_face_id = 0;
   }
 }
 
@@ -1648,11 +1780,39 @@ void PreMainWindow::onMonitorAverageChange(QComboBox *cmb1, int id) {
   cfg.monitor->monitors[id].average_type=GUI_monitor_average.at(st);
 }
 
+void PreMainWindow::onMonitorFileNameChange(QLineEdit *lineEdit, int id) {
+  std::string filename = lineEdit->text().toStdString();
+  cfg.monitor->monitors[id].filename = filename;
+}
+
 void PreMainWindow::onMonitorDeleteMonitor(int id) {
   cfg.monitor->monitors.erase(cfg.monitor->monitors.begin()+id);
   cfg.num_monitor-=1;
   cfg.monitor->num_monitors-=1;
   GetMonitorTree();
+}
+
+void PreMainWindow::onMonitorConfigClicked(int id) {
+  // 打开 Type 4 配置对话框
+  Type4ConfigDialog dialog(cfg.monitor->monitors[id], 
+                           cfg.monitor->global_bc_names, 
+                           this);
+  
+  if (dialog.exec() == QDialog::Accepted) {
+    // 更新配置
+    cfg.monitor->monitors[id].secondary_inlets = dialog.getSecondaryInlets();
+    cfg.monitor->monitors[id].secondary_exits = dialog.getSecondaryExits();
+    cfg.monitor->monitors[id].filmcooling_zones = dialog.getFilmcoolingZones();
+    cfg.monitor->monitors[id].torque_walls = dialog.getTorqueWalls();
+    cfg.monitor->monitors[id].mixing_planes = dialog.getMixingPlanes();
+    
+    // 更新数量字段
+    cfg.monitor->monitors[id].num_secondary_inlet = static_cast<int>(cfg.monitor->monitors[id].secondary_inlets.size());
+    cfg.monitor->monitors[id].num_secondary_exit = static_cast<int>(cfg.monitor->monitors[id].secondary_exits.size());
+    cfg.monitor->monitors[id].num_filmcooling_zone = static_cast<int>(cfg.monitor->monitors[id].filmcooling_zones.size());
+    cfg.monitor->monitors[id].num_torque_wall = static_cast<int>(cfg.monitor->monitors[id].torque_walls.size());
+    cfg.monitor->monitors[id].num_mixing_plane = static_cast<int>(cfg.monitor->monitors[id].mixing_planes.size());
+  }
 }
 
 void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStatus)
@@ -1666,7 +1826,7 @@ void PreMainWindow::showFinishDialog(int exitCode, QProcess::ExitStatus exitStat
     performPlot->updateChart(simulationDataManager->getMonitorData());
     statusLabel->setText("Status: waiting");
 
-//* [New] some change here for auto Running
+//* [New] some change for auto Running
   if (exitCode==0 && exitStatus==QProcess::NormalExit) {
       qDebug() << "Inside if condition";
       qDebug() << "progress arrived at 100";
@@ -2046,9 +2206,6 @@ void PreMainWindow::on_generate_film_boundary_clicked()
   }
 }
 
-
-
-//Monitor Start Here
 void PreMainWindow::onSelectFile()
 {
     QString filePath = QFileDialog::getOpenFileName(this,
@@ -2060,21 +2217,104 @@ void PreMainWindow::onSelectFile()
     }
 
     ui->List_Variable->clear();
-    if(filePath.contains("inlet")){
-        ui->List_Variable->addItem("pTotal(inlet)");
-        ui->List_Variable->addItem("tTotal(inlet)");
-        ui->List_Variable->addItem("vAxial(inlet)");
-        ui->List_Variable->addItem("vTheta(inlet)");
-        ui->List_Variable->addItem("pStatic(inlet)");
-        ui->List_Variable->addItem("mDot(inlet)");
+    
+    // Detect file type first
+    int fileType = MonitorPlot::detectMonitorFileType(filePath);
+    qDebug() << "Detected monitor file type:" << fileType;
+    
+    // ============== Type 2: Radial Profile ==============
+    if (fileType == 2) {
+        // Load Type 2 file directly into MonitorPlot
+        monitorplot->loadType2File(filePath);
+        
+        // Populate variable list from Type 2 data
+        QStringList displayNames = monitorplot->type2Data.getDisplayNames();
+        for (const QString& name : displayNames) {
+            ui->List_Variable->addItem(name);
+        }
+        
+        qDebug() << "Loaded Type 2 file with" << displayNames.size() << "variables";
+        return;
     }
-    if(filePath.contains("outlet")){
-        ui->List_Variable->addItem("pTotal(outlet)");
-        ui->List_Variable->addItem("tTotal(outlet)");
-        ui->List_Variable->addItem("vAxial(outlet)");
-        ui->List_Variable->addItem("vTheta(outlet)");
-        ui->List_Variable->addItem("pStatic(outlet)");
-        ui->List_Variable->addItem("mDot(outlet)");
+    
+    // ============== Type 1/3/5: Time Series ==============
+    // Switch back to normal mode if was in Type 2 mode
+    if (monitorplot->isType2Mode()) {
+        monitorplot->setType2Mode(false);
+    }
+    
+    // Try to read variable names from file header
+    QFile file(filePath);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        
+        // Read first line: # monitor type X on boundary Y
+        QString line1 = in.readLine();
+        
+        // Read second line: # Iter Var1 Var2 ...
+        QString line2 = in.readLine();
+        file.close();
+        
+        if (line2.startsWith("#")) {
+            // Parse variable names from header
+            QStringList variables = line2.mid(1).trimmed().split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+            
+            // Add variables to list (skip "Iter" column)
+            for (int i = 1; i < variables.size(); ++i) {
+                ui->List_Variable->addItem(variables[i]);
+            }
+            
+            // Update SimulationDataManager to read this file first
+            QStringList monitorPaths;
+            monitorPaths << filePath;
+            simulationDataManager->updateMonitorFilePaths(monitorPaths);
+            
+            // Get actual variable names from SimulationDataManager (handles Type 4 etc.)
+            QStringList actualVarNames = simulationDataManager->getAllVariableDisplayNames();
+            
+            // If SimulationDataManager parsed different variables (e.g., Type 4), update the list
+            if (!actualVarNames.isEmpty()) {
+                ui->List_Variable->clear();
+                for (const QString& var : actualVarNames) {
+                    ui->List_Variable->addItem(var);
+                }
+            }
+            
+            // Ensure series exist in MonitorPlot
+            QStringList displayNames;
+            for (int i = 0; i < ui->List_Variable->count(); ++i) {
+                displayNames << ui->List_Variable->item(i)->text();
+            }
+            monitorplot->updateAvailableVariables(displayNames);
+            
+            // Manually trigger chart update with loaded data
+            MonitorVariableTable& monData = simulationDataManager->getMonitorData();
+            if (!monData.monitors.isEmpty()) {
+                int lastIter = 0;
+                for (const auto& mon : monData.monitors) {
+                    for (const auto& varData : mon.data) {
+                        lastIter = qMax(lastIter, varData.size());
+                    }
+                }
+                if (lastIter > 0) {
+                    monitorplot->loadAllDataToChart(monData);
+                }
+            }
+            
+            qDebug() << "Loaded" << displayNames.size() << "variables from" << QFileInfo(filePath).fileName();
+            return;
+        }
+    }
+    
+    // Fallback: use old hardcoded method if file reading fails
+    qDebug() << "Failed to read file header, using fallback method";
+    if(filePath.contains("inlet") || filePath.contains("outlet")){
+        ui->List_Variable->addItem("Ptotal");
+        ui->List_Variable->addItem("Ttotal");
+        ui->List_Variable->addItem("Vaxial");
+        ui->List_Variable->addItem("Vtheta");
+        ui->List_Variable->addItem("Pstatic");
+        ui->List_Variable->addItem("Mdot");
     }
     if(filePath.contains("perf")){
         ui->List_Variable->addItem("pRatio");
@@ -2085,8 +2325,6 @@ void PreMainWindow::onSelectFile()
         ui->List_Variable->addItem("qOutlet");
     }
 }
-
-
 
 void PreMainWindow::onVariableSelectionChanged()
 {
@@ -2104,13 +2342,8 @@ void PreMainWindow::onVariableSelectionChanged()
 
     monitorplot->updateSeriesVisibility(monitorplot->displayVariableList);
     monitorplot->updateRangeOnVariableChange();
-    //updateMonitorData();
-
 }
 
-
-
-//* [New]Others StartHere
 void PreMainWindow::updateInterfaceUI() {
     qDebug()<<ui->CBox_Theme->currentIndex();
     QChart::ChartTheme theme = static_cast<QChart::ChartTheme>(
@@ -2198,7 +2431,17 @@ void PreMainWindow::setResultTableData() {
         return;
     ui->Result_Table->setItem(indexResultTable,0,new QTableWidgetItem(QString::number(indexResultTable+1)) );
     ui->Result_Table->setItem(indexResultTable,1,new QTableWidgetItem(QString::number(cfg.p_curve.target_p) ) );
-    ui->Result_Table->setItem(indexResultTable,2,new QTableWidgetItem(QString::number(simulationDataManager->getMonitorData().outlet.mDot.last())) );
+    
+    // Get mDot from dynamic monitors (outlet)
+    double mDot = 0.0;
+    const auto& monitors = simulationDataManager->getMonitorData().monitors;
+    for (const auto& mon : monitors) {
+        if (mon.data.contains("Mdot") && !mon.data["Mdot"].isEmpty()) {
+            mDot = mon.data["Mdot"].last();
+            break;
+        }
+    }
+    ui->Result_Table->setItem(indexResultTable,2,new QTableWidgetItem(QString::number(mDot)) );
     ui->Result_Table->setItem(indexResultTable,3,new QTableWidgetItem(QString::number(simulationDataManager->getMonitorData().perform.pRatio.last())) );
     ui->Result_Table->setItem(indexResultTable,4,new QTableWidgetItem(QString::number(simulationDataManager->getMonitorData().perform.tRatio.last())) );
     ui->Result_Table->setItem(indexResultTable,5,new QTableWidgetItem(QString::number(simulationDataManager->getMonitorData().perform.efficiency.last())) );
@@ -2242,6 +2485,19 @@ void PreMainWindow::on_Btn_Start_AutoRun_clicked() {
     simulationDataManager->isAutoRunning = 1;
     this->on_Btn_ClearHistory_clicked();
     this->autoSingleRun();
+
+    if (ui->Show_MainWindow->indexOf(ui->Show_Performance) == -1) {
+      ui->Show_MainWindow->addTab(ui->Show_Performance, performTabTitle);
+      qDebug() << "Tab shown: Show_Performance";
+    }
+    if (ui->Show_MainWindow->indexOf(ui->Show_Result) == -1) {
+      ui->Show_MainWindow->addTab(ui->Show_Result, resultTabTitle);
+      qDebug() << "Tab shown: Show_Result";
+    }
+
+    // Switch to Performance tab
+    ui->Show_MainWindow->setCurrentWidget(ui->Show_Performance);
+
     ui->start_simulation_button->setEnabled(false);
     ui->continue_simulation_button->setEnabled(false);
     ui->stop_simulation_button->setEnabled(false);
@@ -2383,6 +2639,23 @@ void PreMainWindow::setup_UiElements() {
 //    QVBoxLayout* RunGraphLayout = new QVBoxLayout(centralWidget);
 //    RunGraphLayout->setSpacing(0);
 //    RunGraphLayout->setContentsMargins(0, 0, 0, 0);
+
+    //* [New] Hide Show_Performance and Show_Result tabs by default
+    int perfIndex = ui->Show_MainWindow->indexOf(ui->Show_Performance);
+    if (perfIndex != -1) {
+        performTabTitle = ui->Show_MainWindow->tabText(perfIndex);
+        ui->Show_MainWindow->removeTab(perfIndex);
+    }
+    
+    int resultIndex = ui->Show_MainWindow->indexOf(ui->Show_Result);
+    if (resultIndex != -1) {
+        resultTabTitle = ui->Show_MainWindow->tabText(resultIndex);
+        ui->Show_MainWindow->removeTab(resultIndex);
+    }
+    
+    //* [New] Add Radial Profile Tab (for Type 2 post-processing)
+    radialProfileTabTitle = "Radial Profile";
+    ui->Show_MainWindow->addTab(radialProfilePlot, radialProfileTabTitle);
 }
 
 void PreMainWindow::setup_Connection() {
@@ -2396,6 +2669,9 @@ void PreMainWindow::setup_Connection() {
             monitorplot, &MonitorPlot::updateMonitorChart);
 
 
+    //* ComboButton Axis
+    connect(ui->Combo_Axis,QOverload<int>::of(&QComboBox::currentIndexChanged),this,
+            &PreMainWindow::Btn_ComboAxis_CurrentIndexChanged);
     //* [New]Residual Button Binding Here
 
     connect(ui->Btn_ManualScale_Res,&QPushButton::clicked,this,[this](){residualplot->setManualScaleMode();ui->control_panel_Range_Res->setEnabled(1);});
@@ -2452,4 +2728,172 @@ void PreMainWindow::setup_Connection() {
         if(!syncMainWindowTheme){ui->Btn_SyncWindowTheme->setText("UnSync");syncMainWindowTheme=1;}
         else{ui->Btn_SyncWindowTheme->setText("Sync");syncMainWindowTheme=0;};
     });
+
+    connect(ui->check_on_off, &QCheckBox::toggled, this, &PreMainWindow::on_check_on_off_toggled);
+
+    //* [New] Dynamic Tab Show/Hide
+    connect(ui->Show_MainWindow, &QTabWidget::tabCloseRequested, 
+            this, &PreMainWindow::onTabCloseRequested);
+}
+
+
+//* Change the slot of Combo Axis
+void PreMainWindow::Btn_ComboAxis_CurrentIndexChanged(int index) {
+  qDebug()<<"Combo Axis Index is :"<<index;
+  switch(index){
+      case 0:
+          cfg.rot_axis(0)=1.0;
+          cfg.rot_axis(1)=0.0;
+          cfg.rot_axis(2)=0.0;
+          break;
+      case 1:
+          cfg.rot_axis(0)=0.0;
+          cfg.rot_axis(1)=1.0;
+          cfg.rot_axis(2)=0.0;
+          break;
+      case 2:
+          cfg.rot_axis(0)=0.0;
+          cfg.rot_axis(1)=0.0;
+          cfg.rot_axis(2)=1.0;
+          break;
+      default:
+          break;
+  }
+  
+  // Calculate dynamic axis length based on current model bounds
+  if (cfg.num_meshes > 0) {
+      double bounds[6];
+      renderer->ComputeVisiblePropBounds(bounds);
+      
+      double xSize = bounds[1] - bounds[0];
+      double ySize = bounds[3] - bounds[2]; 
+      double zSize = bounds[5] - bounds[4];
+      double maxSize = std::max({xSize, ySize, zSize});
+      double axisLength = maxSize * 2.0;
+      
+      qDebug() << "[DEBUG] Axis change - Max model size:" << maxSize << ", Axis length:" << axisLength;
+      createRotationLineWidget(index, axisLength);
+  } else {
+      // Fallback to default length if no model loaded
+      createRotationLineWidget(index);
+  }
+}
+
+void PreMainWindow::createAxisWidget() {
+    vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
+    axes->SetShaftTypeToCylinder();
+    axes->SetXAxisLabelText("X");
+    axes->SetYAxisLabelText("Y");
+    axes->SetZAxisLabelText("Z");
+    axes->SetTotalLength(1.0, 1.0, 1.0);
+    axes->SetCylinderRadius(0.02);
+    axes->SetConeRadius(0.08);
+    axes->SetSphereRadius(0.08);
+
+    axisWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
+    axisWidget->SetOutlineColor(0.9300, 0.5700, 0.1300);
+    axisWidget->SetOrientationMarker(axes);
+
+
+    vtkRenderWindowInteractor* interactor = vtkWidget->renderWindow()->GetInteractor();
+    if (!interactor) {
+      vtkSmartPointer<vtkRenderWindowInteractor> newInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+      vtkWidget->renderWindow()->SetInteractor(newInteractor);
+      interactor = newInteractor;
+    }
+
+    axisWidget->SetInteractor(interactor);
+    //* axes Position
+    axisWidget->SetViewport(0.8, 0.0, 1.0, 0.3);
+
+    vtkWidget->renderWindow()->Render();
+    axisWidget->SetEnabled(1);
+    axisWidget->On();
+    axisWidget->InteractiveOff();
+}
+
+
+void PreMainWindow::createRotationLineWidget(int axisRotation, double axisLength) {
+  //* if added before ,remove it,avoid added multi times
+    if (actor_RotationLine)
+        renderer->RemoveActor(actor_RotationLine);
+    rotationLine = vtkSmartPointer<vtkLineSource>::New();
+    
+    // Use dynamic axis length based on model size
+    double halfLength = axisLength / 2.0;
+    
+    switch (axisRotation) {
+      case 0:
+        rotationLine->SetPoint1(-halfLength, -0.3, 0.0);
+        rotationLine->SetPoint2(halfLength, -0.3, 0.0);
+        qDebug()<< "change asix to x, length:" << axisLength;
+        break;
+      case 1:
+        rotationLine->SetPoint1(-0.3, -halfLength, 0.0);
+        rotationLine->SetPoint2(-0.3, halfLength, 0.0);
+        qDebug()<< "change axis to y, length:" << axisLength;
+        break;
+      case 2:
+        rotationLine->SetPoint1(0.0, -0.3, -halfLength);
+        rotationLine->SetPoint2(0.0, -0.3, halfLength);
+        qDebug()<< "change axis to z, length:" << axisLength;
+        break;
+    }
+
+    vtkSmartPointer<vtkPolyDataMapper> rotationAxisMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    rotationAxisMapper->SetInputConnection(rotationLine->GetOutputPort());
+    actor_RotationLine = vtkSmartPointer<vtkActor>::New();
+    actor_RotationLine->SetMapper(rotationAxisMapper);
+
+    actor_RotationLine->GetProperty()->SetColor(0.0, 0.0, 0.0); // line is black
+    actor_RotationLine->GetProperty()->SetLineWidth(1.0);
+
+    renderer->AddActor(actor_RotationLine);
+    renderer->GetRenderWindow()->Render();
+}
+
+
+//* MultiGrid
+void PreMainWindow::on_check_on_off_toggled(bool checked) {
+  qDebug()<< "[Debug] on_check_on_off_toggled: "<<checked;
+  isMultiGrid = checked;
+  ui->Sp_Number_MGLevel->setReadOnly(!isMultiGrid);
+  if(isMultiGrid) {
+    ui->Sp_Number_MGLevel->setStyleSheet("QSpinBox { background-color: white; }");
+  } else {
+    ui->Sp_Number_MGLevel->setStyleSheet("QSpinBox { background-color: #E0E0E0; }");
+  }
+}
+
+void PreMainWindow::on_actionLoadMain_triggered() {
+   QMessageBox::information(this,"information","Developing.....");
+}
+
+//* [New] Dynamic Tab Show/Hide Implementation
+void PreMainWindow::on_TestDynamicCreate_clicked()
+{
+    // Show hidden tabs if they are not already visible
+    if (ui->Show_MainWindow->indexOf(ui->Show_Performance) == -1) {
+        ui->Show_MainWindow->addTab(ui->Show_Performance, performTabTitle);
+        qDebug() << "Tab shown: Show_Performance";
+    }
+    if (ui->Show_MainWindow->indexOf(ui->Show_Result) == -1) {
+        ui->Show_MainWindow->addTab(ui->Show_Result, resultTabTitle);
+        qDebug() << "Tab shown: Show_Result";
+    }
+    
+    // Switch to Performance tab
+    ui->Show_MainWindow->setCurrentWidget(ui->Show_Performance);
+}
+
+void PreMainWindow::onTabCloseRequested(int index)
+{
+    QWidget* widget = ui->Show_MainWindow->widget(index);
+    
+    // Only allow closing Show_Performance and Show_Result tabs (hide, not delete)
+    if (widget == ui->Show_Performance || widget == ui->Show_Result) {
+        ui->Show_MainWindow->removeTab(index);
+        qDebug() << "Tab hidden:" << (widget == ui->Show_Performance ? "Show_Performance" : "Show_Result");
+    }
+    // Other fixed tabs cannot be closed
 }

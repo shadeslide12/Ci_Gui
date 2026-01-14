@@ -2,7 +2,7 @@
 // Created by Niko on 2024/12/31.
 //
 
-#include "PlotManager.h"
+#include "plotManager.h"
 
 PlotManager::PlotManager(QObject *parent)
     : QObject(parent)

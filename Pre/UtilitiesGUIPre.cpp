@@ -94,19 +94,21 @@ extern std::map<std::string, std::string> GUI_turbulence_model_dic_R = {
 };
 
 extern std::map<std::string, int> GUI_monitor_dict={
-    {"Average flow property",1},
-    {"Mixing plane boundary condition",2},
-    {"Average-flow performance",3},
-    {"Turbine efficiency",4},
-    {"Wall force",5}
+    {"Average flow property", 1},
+    {"Mixing plane boundary condition", 2},
+    {"Wall force", 3},
+    {"Turbine efficiency", 4},
+    {"Wall heat", 5},
+    {"Average-flow performance", 100}
 };
 
 extern std::map<int, std::string> GUI_monitor_dict_R= {
    {1, "Average flow property"},
    {2, "Mixing plane boundary condition"},
-   {3, "Average-flow performance"},
+   {3, "Wall force"},
    {4, "Turbine efficiency"},
-   {5, "Wall force"}
+   {5, "Wall heat"},
+   {100, "Average-flow performance"}
 };
 
 extern std::map<std::string, int> GUI_monitor_average={
