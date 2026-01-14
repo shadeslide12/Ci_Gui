@@ -1,30 +1,21 @@
-list(APPEND QT_PRE2_SRC
-   ${CMAKE_CURRENT_SOURCE_DIR}/PreMainWindow.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/PreProcessSettings.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/BCExtra.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/UtilitiesGUIPre.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/SelectFile.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/loadprofile.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/BoundaryMerger.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/MergerCore.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/PerformanceCurve.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/Perform_Plot.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/Residual_Plot.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/MonitorPlot.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/DataStructure.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/DataStructure.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/CustomChartView.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/CustomChartView.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/plotManager.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/simulationDataManager.cpp
-#   ${CMAKE_CURRENT_SOURCE_DIR}/bcaddition.cpp
-#   ${CMAKE_CURRENT_SOURCE_DIR}/yamlreader.cpp
+list(APPEND QT_POST_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/ColorBarDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CutplaneDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/IsoSurfaceDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CalculatorDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MeridionalPlaneDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ConstHeightPlaneDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SelectBoundaryDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/vtkAesReader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/vtkDisplayWindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ScaleFactorDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ConstSettingDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ControlPanel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ProbePanel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ExportPicDialog.cpp
 )
 
-list(APPEND QT_PRE2_VTK_SRC
-        ${CMAKE_CURRENT_SOURCE_DIR}/vtkCGNSReader.cpp
-)
-
-list(APPEND QT_PRE2_MAIN_SRC
+list(APPEND QT_POST_MAIN_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
