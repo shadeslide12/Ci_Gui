@@ -16,7 +16,7 @@
 #include "MeridionalPlaneDialog.h"
 #include "ConstSettingDialog.h"
 #include "ProbePanel.h"
-#include "exportPicDialog.h"
+#include "ExportPicDialog.h"
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkInteractorStyleTrackballCamera.h>
@@ -71,6 +71,11 @@ public:
     void ResetViewsAndRenderers();
     void BladeToBladePlaneButtonTriggered();
 
+    // Check if mouse click is on ScalarBar (for double-click to open ColorBarDialog)
+    bool IsClickOnScalarBar();
+
+    void contourSettingButtonTriggered();
+
 private slots:
     void on_actionLoadMesh_triggered();
     void on_actionUpdateFlow_triggered();
@@ -97,7 +102,6 @@ private slots:
     void transparancyCheckBoxTriggered();
     void lightingCheckBoxTriggered();
 
-    void contourSettingButtonTriggered();
     void setColorBar(double,double,int,int,double,double);
 
     void vectorSettingButtonTriggered();

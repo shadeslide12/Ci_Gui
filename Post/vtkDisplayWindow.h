@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <map>
 #include <vtkBox.h>
 #include <vtkClipPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -110,6 +111,16 @@ public:
     void InActivateScalarBarWidget();
     void SetScalarBar(double,double,int,int);
     void SetScalarBarSize(double width, double height);
+    vtkSmartPointer<vtkScalarBarWidget> GetScalarBarWidget() { return auxiliarys.scalarBarWidget; }
+    
+    // 新增ScalarBar控制方法
+    void SetScalarBarVisibility(bool visible);
+    void SetScalarBarOrientation(bool isVertical);
+    void SetScalarBarPosition(double x, double y);
+    void SetScalarBarTitle(const std::string& title);
+    void SetScalarBarTextColor(double r, double g, double b);
+    void SetScalarBarFont(const std::string& family, int size, bool bold, bool italic);
+    
     void VisiableOutlineActor();
     void InVisiableOutlineActor();
     void SetVectorScaleFactor(double);
@@ -155,6 +166,7 @@ public:
     void CreatePeriodicCopies(int zoneIndex, int numCopies);
     void CreatePeriodicCopies(int zoneIndex, int numCopies, const std::vector<int> &boundaryIndices);
     void ClearPeriodicCopies();
+    void ClearPeriodicCopiesForZone(int zoneIndex);
     DerivedObject GetDeriveds() {return deriveds;}
     std::vector<vtkSmartPointer<vtkPlane>> GetPlanes() {return deriveds.cutplanes;}
     int GetCurFlowNumber(){return curFlow;}
@@ -203,8 +215,9 @@ private:
     AuxiliaryObject auxiliarys;
     DerivedObject deriveds;
     
-    // Periodic copies storage
-    std::vector<vtkSmartPointer<vtkActor>> periodicCopyActors;
+    //* Periodic copies storage - organized by zone and actor type
+    std::map<int, std::vector<vtkSmartPointer<vtkActor>>> periodicCopyShadeActorsByZone;
+    std::map<int, std::vector<vtkSmartPointer<vtkActor>>> periodicCopyContourActorsByZone;
 
     void VisualizeMeridonalPlane();
     void SetBackground();

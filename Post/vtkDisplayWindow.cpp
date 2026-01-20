@@ -284,6 +284,15 @@ void vtkDisplayWindow::AddContourActor()
         }
     }
     ActivateScalarBarWidget();
+
+    //* Add Contour copies
+    for (auto& [zoneIdx, actors] : periodicCopyContourActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            renderer->AddActor(actor);
+        }
+    }
 }
 
 void vtkDisplayWindow::RemoveContourActor()
@@ -296,6 +305,15 @@ void vtkDisplayWindow::RemoveContourActor()
         }
     }
     InActivateScalarBarWidget();
+
+    //* Remove Contour copies
+    for (auto& [zoneIdx, actors] : periodicCopyContourActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            renderer->RemoveActor(actor);
+        }
+    }
 }
 
 void vtkDisplayWindow::AddShadeActor()
@@ -305,6 +323,15 @@ void vtkDisplayWindow::AddShadeActor()
         for (auto &y : x)
         {
             renderer->AddActor(y.shadeActor);
+        }
+    }
+
+    //* Add periodic copies
+    for (auto& [zoneIdx, actors] : periodicCopyShadeActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            renderer->AddActor(actor);
         }
     }
 }
@@ -332,6 +359,15 @@ void vtkDisplayWindow::RemoveShadeActor()
         for (auto &y : x)
         {
             renderer->RemoveActor(y.shadeActor);
+        }
+    }
+
+    //* Remove periodic copies
+    for (auto& [zoneIdx, actors] : periodicCopyShadeActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            renderer->RemoveActor(actor);
         }
     }
 }
@@ -488,6 +524,152 @@ void vtkDisplayWindow::SetScalarBarSize(double width, double height)
         rep->Modified();
     }
 }
+
+void vtkDisplayWindow::SetScalarBarVisibility(bool visible)
+{
+    if (visible)
+    {
+        ActivateScalarBarWidget();
+    }
+    else
+    {
+        InActivateScalarBarWidget();
+    }
+    cout << "ScalarBar visibility set to: " << (visible ? "visible" : "hidden") << endl;
+}
+
+void vtkDisplayWindow::SetScalarBarOrientation(bool isVertical)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        vtkScalarBarActor* scalarBar = rep->GetScalarBarActor();
+        if (scalarBar)
+        {
+            if (isVertical)
+            {
+                scalarBar->SetOrientationToVertical();
+                // 垂直时的默认位置和大小
+                rep->SetPosition(0.9, 0.1);
+                rep->SetPosition2(0.1, 0.8);
+            }
+            else
+            {
+                scalarBar->SetOrientationToHorizontal();
+                // 水平时的默认位置和大小
+                rep->SetPosition(0.1, 0.05);
+                rep->SetPosition2(0.8, 0.1);
+            }
+            rep->Modified();
+            cout << "ScalarBar orientation set to: " << (isVertical ? "Vertical" : "Horizontal") << endl;
+        }
+    }
+}
+
+void vtkDisplayWindow::SetScalarBarPosition(double x, double y)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        // 设置ScalarBar的位置（左下角坐标，范围0-1）
+        rep->SetPosition(x, y);
+        rep->Modified();
+        cout << "ScalarBar position set to: (" << x << ", " << y << ")" << endl;
+    }
+}
+
+void vtkDisplayWindow::SetScalarBarTitle(const std::string& title)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        vtkScalarBarActor* scalarBar = rep->GetScalarBarActor();
+        if (scalarBar)
+        {
+            scalarBar->SetTitle(title.c_str());
+            scalarBar->DrawAnnotationsOn();
+            rep->Modified();
+            cout << "ScalarBar title set to: " << title << endl;
+        }
+    }
+}
+
+void vtkDisplayWindow::SetScalarBarTextColor(double r, double g, double b)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        vtkScalarBarActor* scalarBar = rep->GetScalarBarActor();
+        if (scalarBar)
+        {
+            // 设置标题文字颜色
+            scalarBar->GetTitleTextProperty()->SetColor(r, g, b);
+            // 设置标签文字颜色
+            scalarBar->GetLabelTextProperty()->SetColor(r, g, b);
+            // 设置注释文字颜色
+            scalarBar->GetAnnotationTextProperty()->SetColor(r, g, b);
+            rep->Modified();
+            cout << "ScalarBar text color set to RGB(" << r << ", " << g << ", " << b << ")" << endl;
+        }
+    }
+}
+
+void vtkDisplayWindow::SetScalarBarFont(const std::string& family, int size, bool bold, bool italic)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        vtkScalarBarActor* scalarBar = rep->GetScalarBarActor();
+        if (scalarBar)
+        {
+            // 设置标题字体
+            vtkTextProperty* titleProp = scalarBar->GetTitleTextProperty();
+            titleProp->SetFontSize(size + 4);  // 标题稍大一些
+            titleProp->SetBold(bold);
+            titleProp->SetItalic(italic);
+            
+            // 设置字体系列
+            if (family == "Arial")
+                titleProp->SetFontFamilyToArial();
+            else if (family == "Times New Roman" || family == "Times")
+                titleProp->SetFontFamilyToTimes();
+            else if (family == "Courier New" || family == "Courier")
+                titleProp->SetFontFamilyToCourier();
+            else
+                titleProp->SetFontFamilyToArial();  // 默认
+            
+            // 设置标签字体
+            vtkTextProperty* labelProp = scalarBar->GetLabelTextProperty();
+            labelProp->SetFontSize(size);
+            labelProp->SetBold(bold);
+            labelProp->SetItalic(italic);
+            
+            if (family == "Arial")
+                labelProp->SetFontFamilyToArial();
+            else if (family == "Times New Roman" || family == "Times")
+                labelProp->SetFontFamilyToTimes();
+            else if (family == "Courier New" || family == "Courier")
+                labelProp->SetFontFamilyToCourier();
+            else
+                labelProp->SetFontFamilyToArial();
+            
+            rep->Modified();
+            cout << "ScalarBar font set to: " << family << ", size=" << size 
+                 << ", bold=" << bold << ", italic=" << italic << endl;
+        }
+    }
+}
+
 
 void vtkDisplayWindow::VisiableOutlineActor()
 {
@@ -1163,6 +1345,12 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane
     
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
+    
+    // Disable lighting for 2D plane to avoid shading artifacts
+    actor->GetProperty()->SetAmbient(1.0);   // Full ambient lighting
+    actor->GetProperty()->SetDiffuse(0.0);   // No diffuse lighting
+    actor->GetProperty()->SetSpecular(0.0);  // No specular lighting
+    
     BladeToBladePlaneActor.emplace_back(actor);
     actors.emplace_back(actor);
     
@@ -1186,6 +1374,12 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeBladeToBladePlane
         mapper->SetLookupTable(Flow[flowNumber].scalarBar->GetLookupTable());
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
+        
+        // Disable lighting for 2D plane to avoid shading artifacts
+        actor->GetProperty()->SetAmbient(1.0);   // Full ambient lighting
+        actor->GetProperty()->SetDiffuse(0.0);   // No diffuse lighting
+        actor->GetProperty()->SetSpecular(0.0);  // No specular lighting
+        
         BladeToBladePlaneActor.emplace_back(actor);
         actors.emplace_back(actor);
     }
@@ -1258,13 +1452,54 @@ std::vector<std::string> vtkDisplayWindow::GetZoneNames()
 
 void vtkDisplayWindow::ClearPeriodicCopies()
 {
-    // 从渲染器移除所有周期性复制的 actors
-    for (auto& actor : periodicCopyActors)
+    // 从渲染器移除所有 Zone 的周期性复制 shade actors
+    for (auto& [zoneIdx, actors] : periodicCopyShadeActorsByZone)
     {
-        renderer->RemoveActor(actor);
+        for (auto& actor : actors)
+        {
+            renderer->RemoveActor(actor);
+        }
     }
-    periodicCopyActors.clear();
-    std::cout << "[Periodic] Cleared all periodic copies" << std::endl;
+    periodicCopyShadeActorsByZone.clear();
+    
+    // 从渲染器移除所有 Zone 的周期性复制 contour actors
+    for (auto& [zoneIdx, actors] : periodicCopyContourActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            renderer->RemoveActor(actor);
+        }
+    }
+    periodicCopyContourActorsByZone.clear();
+    
+    std::cout << "[Periodic] Cleared all periodic copies from all zones" << std::endl;
+}
+
+void vtkDisplayWindow::ClearPeriodicCopiesForZone(int zoneIndex)
+{
+    // 清除指定 Zone 的周期性复制 shade actors
+    if (periodicCopyShadeActorsByZone.find(zoneIndex) != periodicCopyShadeActorsByZone.end())
+    {
+        for (auto& actor : periodicCopyShadeActorsByZone[zoneIndex])
+        {
+            renderer->RemoveActor(actor);
+        }
+        periodicCopyShadeActorsByZone[zoneIndex].clear();
+        periodicCopyShadeActorsByZone.erase(zoneIndex);
+    }
+    
+    // 清除指定 Zone 的周期性复制 contour actors
+    if (periodicCopyContourActorsByZone.find(zoneIndex) != periodicCopyContourActorsByZone.end())
+    {
+        for (auto& actor : periodicCopyContourActorsByZone[zoneIndex])
+        {
+            renderer->RemoveActor(actor);
+        }
+        periodicCopyContourActorsByZone[zoneIndex].clear();
+        periodicCopyContourActorsByZone.erase(zoneIndex);
+    }
+    
+    std::cout << "[Periodic] Cleared periodic copies for zone " << zoneIndex << std::endl;
 }
 
 void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies)
@@ -1282,8 +1517,8 @@ void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies)
 
 void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies, const std::vector<int> &boundaryIndices)
 {
-    // 先清除之前的复制
-    ClearPeriodicCopies();
+    //* Only clear Current Zone
+    ClearPeriodicCopiesForZone(zoneIndex);
 
     if (numCopies <= 0)
     {
@@ -1311,17 +1546,16 @@ void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies, const 
         return;
     }
 
-    double angleStep = std::abs(angles[zoneIndex]);  // 取绝对值，已经是度数
+    double angleStep = std::abs(angles[zoneIndex]);
     std::cout << "[Periodic] Zone " << zoneIndex << " angle step: " << angleStep << " degrees" << std::endl;
     std::cout << "[Periodic] Zone has " << boundarys[zoneIndex].size() << " boundaries, selected "
               << boundaryIndices.size() << std::endl;
 
-    // 创建 numCopies 个旋转复制
     for (int copyNum = 1; copyNum <= numCopies; copyNum++)
     {
         double rotationAngle = angleStep * copyNum;
 
-        // 创建旋转变换（绕 X 轴旋转）
+        //* 创建旋转变换（绕 X 轴旋转）
         vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
         transform->RotateX(rotationAngle);
 
@@ -1335,7 +1569,7 @@ void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies, const 
 
             auto& bndObj = boundarys[zoneIndex][bndIdx];
 
-            // 获取 shadeActor 的 mapper 的输入数据
+            //* Copy shadeActor
             if (bndObj.shadeActor && bndObj.shadeActor->GetMapper())
             {
                 vtkMapper* originalMapper = bndObj.shadeActor->GetMapper();
@@ -1343,33 +1577,67 @@ void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies, const 
 
                 if (inputData && inputData->GetNumberOfPoints() > 0)
                 {
-                    // 应用变换
                     vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
                     transformFilter->SetInputData(inputData);
                     transformFilter->SetTransform(transform);
                     transformFilter->Update();
 
-                    // 创建新的 mapper 和 actor
-                    vtkSmartPointer<vtkDataSetMapper> mapper = vtkSmartPointer<vtkDataSetMapper>::New();
-                    mapper->SetInputConnection(transformFilter->GetOutputPort());
+                    vtkSmartPointer<vtkDataSetMapper> shadeMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+                    shadeMapper->SetInputConnection(transformFilter->GetOutputPort());
 
-                    // 复制原始 mapper 的标量设置
-                    mapper->SetScalarVisibility(originalMapper->GetScalarVisibility());
-                    mapper->SetScalarRange(originalMapper->GetScalarRange());
+                    shadeMapper->SetScalarVisibility(originalMapper->GetScalarVisibility());
+                    shadeMapper->SetScalarRange(originalMapper->GetScalarRange());
                     if (originalMapper->GetLookupTable())
                     {
-                        mapper->SetLookupTable(originalMapper->GetLookupTable());
+                        shadeMapper->SetLookupTable(originalMapper->GetLookupTable());
                     }
 
-                    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-                    actor->SetMapper(mapper);
+                    vtkSmartPointer<vtkActor> shadeActor = vtkSmartPointer<vtkActor>::New();
+                    shadeActor->SetMapper(shadeMapper);
 
-                    // 复制原始 actor 的属性
-                    actor->GetProperty()->DeepCopy(bndObj.shadeActor->GetProperty());
+                    shadeActor->GetProperty()->DeepCopy(bndObj.shadeActor->GetProperty());
 
-                    // 添加到渲染器和存储列表
-                    renderer->AddActor(actor);
-                    periodicCopyActors.push_back(actor);
+                    renderer->AddActor(shadeActor);
+                    periodicCopyShadeActorsByZone[zoneIndex].push_back(shadeActor);
+                }
+            }
+
+            //* Copy contourActor
+            if (bndObj.contourActor && bndObj.contourActor->GetMapper())
+            {
+                vtkMapper* originalContourMapper = bndObj.contourActor->GetMapper();
+                vtkDataSet* contourInputData = originalContourMapper->GetInput();
+
+                if (contourInputData && contourInputData->GetNumberOfPoints() > 0)
+                {
+                    // 应用变换
+                    vtkSmartPointer<vtkTransformFilter> contourTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+                    contourTransformFilter->SetInputData(contourInputData);
+                    contourTransformFilter->SetTransform(transform);
+                    contourTransformFilter->Update();
+
+                    // 创建新的 contour mapper 和 actor
+                    vtkSmartPointer<vtkDataSetMapper> contourMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+                    contourMapper->SetInputConnection(contourTransformFilter->GetOutputPort());
+
+                    // 复制原始 contour mapper 的标量设置
+                    contourMapper->SetScalarVisibility(originalContourMapper->GetScalarVisibility());
+                    contourMapper->SetScalarRange(originalContourMapper->GetScalarRange());
+                    if (originalContourMapper->GetLookupTable())
+                    {
+                        contourMapper->SetLookupTable(originalContourMapper->GetLookupTable());
+                    }
+
+                    vtkSmartPointer<vtkActor> contourActor = vtkSmartPointer<vtkActor>::New();
+                    contourActor->SetMapper(contourMapper);
+
+                    // 复制原始 contour actor 的属性（包括可见性）
+                    contourActor->GetProperty()->DeepCopy(bndObj.contourActor->GetProperty());
+                    contourActor->SetVisibility(bndObj.contourActor->GetVisibility());
+
+                    // 添加到渲染器和对应 Zone 的 contour actors 列表
+                    renderer->AddActor(contourActor);
+                    periodicCopyContourActorsByZone[zoneIndex].push_back(contourActor);
                 }
             }
         }
@@ -1377,8 +1645,12 @@ void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies, const 
         std::cout << "[Periodic] Created copy " << copyNum << " at rotation " << rotationAngle << " degrees" << std::endl;
     }
 
+    int totalActors = periodicCopyShadeActorsByZone[zoneIndex].size() + 
+                      periodicCopyContourActorsByZone[zoneIndex].size();
     std::cout << "[Periodic] Created " << numCopies << " periodic copies for zone " << zoneIndex 
-              << " (" << periodicCopyActors.size() << " actors)" << std::endl;
+              << " (" << totalActors << " actors: " 
+              << periodicCopyShadeActorsByZone[zoneIndex].size() << " shade + "
+              << periodicCopyContourActorsByZone[zoneIndex].size() << " contour)" << std::endl;
 }
 
 void vtkDisplayWindow::CreatePlanePreview(double value,int currenAxis)
