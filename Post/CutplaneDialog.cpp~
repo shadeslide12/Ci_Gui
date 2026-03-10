@@ -1,13 +1,10 @@
 #include "CutplaneDialog.h"
 #include "ui_CutplaneDialog.h"
-#include "ColorMapPreset.h"
 #include <string>
 using std::stod;
 using std::string;
 #include <iostream>
 #include <QButtonGroup>
-#include <QCoreApplication>
-#include <QDir>
 using std::cout;
 using std::endl;
 
@@ -22,29 +19,15 @@ CutplaneDialog::CutplaneDialog(QWidget *parent): QDialog(parent),ui(new Ui::Cutp
     // 连接新添加的控件信号
     connect(ui->Combo_SLiceLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(onSliceLocationChanged(int)));
     connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
+    connect(ui->Combo_ContourType, SIGNAL(currentIndexChanged(int)), this, SLOT(onColorSchemeChanged(int)));
     connect(ui->Combo_SekectMapVariable, SIGNAL(currentIndexChanged(int)), this, SLOT(onVariableSelectionChanged(int)));
     
-    // 初始化颜色映射预设（从 JSON 加载）
-    currentColorMapIndex = 0;
-    initializeColorMapPresets();
-    
-    // 连接颜色映射 ComboBox 和 Reverse CheckBox
-    ui->Combo_ContourType->blockSignals(true);
-    ui->checkReverseColorMap->blockSignals(true);
-    
-    connect(ui->Combo_ContourType, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &CutplaneDialog::onColorMapPresetChanged);
-    connect(ui->checkReverseColorMap, &QCheckBox::toggled,
-            this, &CutplaneDialog::onReverseColorMapToggled);
-    
-    // 连接 cutplane scalar bar 方向控制
-    connect(ui->cp_radioVertical, &QRadioButton::toggled,
-            this, &CutplaneDialog::onCutplaneOrientationChanged);
-    connect(ui->cp_radioHorizontal, &QRadioButton::toggled,
-            this, &CutplaneDialog::onCutplaneOrientationChanged);
-    
-    ui->Combo_ContourType->blockSignals(false);
-    ui->checkReverseColorMap->blockSignals(false);
+  
+    ui->Combo_ContourType->clear();
+    ui->Combo_ContourType->addItem("Rainbow");              // 0: 彩虹色 (默认) - SetHueRange(0.6667, 0.0)
+    ui->Combo_ContourType->addItem("Viridis");              // 1: Viridis配色方案
+    ui->Combo_ContourType->addItem("Gray");                 // 2: 灰度
+    ui->Combo_ContourType->setCurrentIndex(0);  // 默认选择Rainbow
 
     // 初始化
     currentAxis = 0; // 默认为X轴
@@ -270,105 +253,16 @@ void CutplaneDialog::onColorMappingChanged()
 }
 
 
-void CutplaneDialog::onColorMapPresetChanged(int comboIndex)
+void CutplaneDialog::onColorSchemeChanged(int index)
 {
-    if (comboIndex < 0) return;
+    std::cout << "[Debug] Color scheme changed to index: " << index << std::endl;
     
-    // 获取实际的预设索引（存储在 item data 中）
-    currentColorMapIndex = ui->Combo_ContourType->itemData(comboIndex).toInt();
+    // 发送颜色方案变化信号
+    emit colorSchemeChanged(index);
     
-    bool reverse = ui->checkReverseColorMap->isChecked();
-    
-    QString name = ui->Combo_ContourType->currentText();
-    std::cout << "[CutplaneDialog] Color map preset changed: " << name.toStdString()
-              << ", presetIndex=" << currentColorMapIndex
-              << ", reverse=" << (reverse ? "true" : "false") << std::endl;
-    
-    emit colorSchemeChanged(currentColorMapIndex, reverse);
-}
-
-void CutplaneDialog::onReverseColorMapToggled(bool checked)
-{
-    std::cout << "[CutplaneDialog] Reverse color map toggled: " << (checked ? "true" : "false") << std::endl;
-    
-    // 更新所有预览图标
-    updateColorMapPreviewIcons();
-    
-    // 触发颜色映射更新
-    emit colorSchemeChanged(currentColorMapIndex, checked);
-}
-
-void CutplaneDialog::initializeColorMapPresets()
-{
-    ColorMapPreset& preset = ColorMapPreset::instance();
-    
-    // 尝试从多个可能的路径加载 JSON 文件
-    QString appDir = QCoreApplication::applicationDirPath();
-    QString currentDir = QDir::currentPath();
-    
-    QStringList searchPaths = {
-        "F:/Linux_Files/ZJU/zjui-cfd-pre-wsl/GUI/Post/ColorMaps.json",
-        appDir + "/ColorMaps.json",
-        appDir + "/../ColorMaps.json",
-        appDir + "/../../GUI/Post/ColorMaps.json",
-        currentDir + "/ColorMaps.json",
-        currentDir + "/GUI/Post/ColorMaps.json",
-        "F:/Linux_Files/ZJU/zjui-cfd-pre-wsl/Doc/Others/ColorMap/ColorMaps.json"
-    };
-    
-    // ColorMapPreset 是单例，可能已由 ColorBarDialog 加载
-    if (!preset.isLoaded()) {
-        for (const QString& path : searchPaths) {
-            if (QFile::exists(path)) {
-                if (preset.loadFromJson(path)) {
-                    std::cout << "[CutplaneDialog] Loaded color maps from: " << path.toStdString() << std::endl;
-                    break;
-                }
-            }
-        }
-    }
-    
-    // 填充 ComboBox
-    ui->Combo_ContourType->clear();
-    
-    if (preset.isLoaded()) {
-        auto defaultIndices = preset.getDefaultMapIndices();
-        
-        for (int idx : defaultIndices) {
-            QString name = preset.getName(idx);
-            QPixmap preview = preset.generatePreview(idx, 200, 20, false);
-            ui->Combo_ContourType->addItem(QIcon(preview), name, idx);
-        }
-        
-        std::cout << "[CutplaneDialog] Added " << defaultIndices.size() << " default color maps to combo box" << std::endl;
-    } else {
-        // 如果加载失败，添加基本预设
-        ui->Combo_ContourType->addItem("Rainbow (default)", -1);
-        ui->Combo_ContourType->addItem("Viridis", -2);
-        ui->Combo_ContourType->addItem("Gray", -3);
-    }
-    
-    // 默认选择第一个
-    if (ui->Combo_ContourType->count() > 0) {
-        ui->Combo_ContourType->setCurrentIndex(0);
-        currentColorMapIndex = ui->Combo_ContourType->itemData(0).toInt();
-    }
-}
-
-void CutplaneDialog::updateColorMapPreviewIcons()
-{
-    ColorMapPreset& preset = ColorMapPreset::instance();
-    if (!preset.isLoaded()) return;
-    
-    bool reverse = ui->checkReverseColorMap->isChecked();
-    
-    for (int i = 0; i < ui->Combo_ContourType->count(); ++i) {
-        int presetIndex = ui->Combo_ContourType->itemData(i).toInt();
-        if (presetIndex >= 0) {
-            QPixmap preview = preset.generatePreview(presetIndex, 200, 20, reverse);
-            ui->Combo_ContourType->setItemIcon(i, QIcon(preview));
-        }
-    }
+    // 打印当前选择的颜色方案
+    QString schemeName = ui->Combo_ContourType->currentText();
+    std::cout << "[Debug] Selected color scheme: " << schemeName.toStdString() << std::endl;
 }
 
 void CutplaneDialog::on_Btn_SetPosition_clicked() {
@@ -453,7 +347,6 @@ void CutplaneDialog::updateRangeFromCurrentVariable()
 void CutplaneDialog::setMappingControlEnabled(bool enabled)
 {
     // 启用/禁用MappingControl widget及其所有子控件
-    std::cout << "[Debug] Setting mapping control enabled to " << enabled << std::endl;
     switch (enabled) {
         case true:
             ui->MappingControl->setEnabled(1);
@@ -463,14 +356,4 @@ void CutplaneDialog::setMappingControlEnabled(bool enabled)
 
     
     std::cout << "[Debug] MappingControl enabled: " << (enabled ? "true" : "false") << std::endl;
-}
-
-void CutplaneDialog::onCutplaneOrientationChanged()
-{
-    bool isVertical = ui->cp_radioVertical->isChecked();
-    
-    std::cout << "[CutplaneDialog] Cutplane scalar bar orientation changed to: " 
-              << (isVertical ? "Vertical" : "Horizontal") << std::endl;
-    
-    emit cutplaneOrientationChanged(isVertical);
 }

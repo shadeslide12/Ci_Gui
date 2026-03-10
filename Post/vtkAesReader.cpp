@@ -61,8 +61,20 @@ void vtkAesReader::ReadGrid(string gridFileName)
     gridFile.GetDataset("/group_zone")->Read(bndZoneArray);
     gridFile.GetDataset("/bnd_quad-->node")->Read(quadNodeArray);
     gridFile.GetDataset("/bnd_quad-->group")->Read(quadGroupArray);
-    Utilities::ndarray<double> period_angle;
-    gridFile.GetDataset("/periodic_angle")->Read(period_angle);
+
+    //* periodic_angle absent for non-annular cascades (e.g. PVD). Do NOT treat it as mandatory.
+    angles.clear();
+    if (gridFile.Exists("/periodic_angle"))
+    {
+        Utilities::ndarray<double> period_angle;
+        gridFile.GetDataset("/periodic_angle")->Read(period_angle);
+        for (int i = 0; i < period_angle.GetLength(); i++)
+        {
+            angles.push_back(period_angle(i) * 360.0 / (2.0 * 3.14159265358979323846));
+        }
+    }
+
+    // Optional node_radius for span-based / blade-to-blade operations.
     if(gridFile.Exists("/node_radius"))
     {
         Utilities::ndarray<double> radius;
@@ -71,10 +83,6 @@ void vtkAesReader::ReadGrid(string gridFileName)
         {
             node_radius.push_back(radius(i));
         }
-    }
-    for(int i = 0; i < period_angle.GetLength(); i++)
-    {
-        angles.push_back(period_angle(i) * 360 / (2 * 3.14159265358979323846));
     }
     struct node
     {
@@ -362,32 +370,32 @@ void vtkAesReader::UpdateFlow(string flowFileName)
         //     int index = i * (255 / (10 - 1));
         //     lut->SetTableValue(i, viridisColor[index][0], viridisColor[index][1], viridisColor[index][2]);
         // }
-        lut->SetRange(flow.range);
+        lut->SetRange(100000,140000);
         lut->Build();
-        flow.scalarBar = vtkSmartPointer< vtkScalarBarActor >::New();
-        flow.scalarBar->SetTitle((flowNames[i]).c_str());
-        flow.scalarBar->GetTitleTextProperty()->SetJustificationToLeft();
-	    flow.scalarBar->GetTitleTextProperty()->SetFontFamilyToArial();
-        flow.scalarBar->GetTitleTextProperty()->ItalicOff();
-        flow.scalarBar->GetTitleTextProperty()->BoldOn();
-        flow.scalarBar->GetTitleTextProperty()->ShadowOff();
-        flow.scalarBar->GetTitleTextProperty()->SetColor(0, 0, 0);
-        flow.scalarBar->GetTitleTextProperty()->SetFontSize(25);
-        flow.scalarBar->GetLabelTextProperty()->ItalicOff();
-        flow.scalarBar->GetLabelTextProperty()->BoldOn();
-        flow.scalarBar->GetLabelTextProperty()->ShadowOff();
-        flow.scalarBar->GetLabelTextProperty()->SetColor(0,0,0);
-        flow.scalarBar->GetLabelTextProperty()->SetFontSize(16);
+        flow.mainScalarBar = vtkSmartPointer< vtkScalarBarActor >::New();
+        flow.mainScalarBar->SetTitle((flowNames[i]).c_str());
+        flow.mainScalarBar->GetTitleTextProperty()->SetJustificationToLeft();
+	    flow.mainScalarBar->GetTitleTextProperty()->SetFontFamilyToArial();
+        flow.mainScalarBar->GetTitleTextProperty()->ItalicOff();
+        flow.mainScalarBar->GetTitleTextProperty()->BoldOn();
+        flow.mainScalarBar->GetTitleTextProperty()->ShadowOff();
+        flow.mainScalarBar->GetTitleTextProperty()->SetColor(0, 0, 0);
+        flow.mainScalarBar->GetTitleTextProperty()->SetFontSize(25);
+        flow.mainScalarBar->GetLabelTextProperty()->ItalicOff();
+        flow.mainScalarBar->GetLabelTextProperty()->BoldOn();
+        flow.mainScalarBar->GetLabelTextProperty()->ShadowOff();
+        flow.mainScalarBar->GetLabelTextProperty()->SetColor(0,0,0);
+        flow.mainScalarBar->GetLabelTextProperty()->SetFontSize(16);
 
-        flow.scalarBar->SetNumberOfLabels(10);
-        flow.scalarBar->SetLookupTable(lut);
+        flow.mainScalarBar->SetNumberOfLabels(10);
+        flow.mainScalarBar->SetLookupTable(lut);
 
-        flow.scalarBar->SetWidth(0.1);
-        flow.scalarBar->SetHeight(0.8);
-        flow.scalarBar->UnconstrainedFontSizeOn();
-        flow.scalarBar->SetTextPad(4);
-        flow.scalarBar->SetMaximumHeightInPixels(1000);
-        flow.scalarBar->SetMaximumWidthInPixels(150);
+        flow.mainScalarBar->SetWidth(0.1);
+        flow.mainScalarBar->SetHeight(0.8);
+        flow.mainScalarBar->UnconstrainedFontSizeOn();
+        flow.mainScalarBar->SetTextPad(4);
+        flow.mainScalarBar->SetMaximumHeightInPixels(1000);
+        flow.mainScalarBar->SetMaximumWidthInPixels(150);
 
         flows.emplace_back(flow);
     }
@@ -507,8 +515,11 @@ void vtkAesReader::ChangeScalarBar(double m, double M, int number, int flowNumbe
     // }
     lut->SetRange(m,M);
     lut->Build();
-    flows[flowNumber].scalarBar->SetNumberOfLabels(number);
-    flows[flowNumber].scalarBar->SetLookupTable(lut);
+    
+    // 限制标签数量，避免标签重叠。最多显示12个标签
+    int numberOfLabels = std::min(number, 12);
+    flows[flowNumber].mainScalarBar->SetNumberOfLabels(numberOfLabels);
+    flows[flowNumber].mainScalarBar->SetLookupTable(lut);
 }
 
 void vtkAesReader::CalculateScaleFactor(int vx, int vy, int vz)

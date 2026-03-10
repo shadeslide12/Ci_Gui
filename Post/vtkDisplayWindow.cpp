@@ -1,7 +1,9 @@
 #include "vtkDisplayWindow.h"
+#include "ColorMapPreset.h"
 
 using std::string; using std::vector;
 #include "time.h"
+#include <cmath>
 using std::string; using std::vector; using std::set;
 
 #include <vtkDataSetMapper.h>
@@ -27,6 +29,7 @@ using std::string; using std::vector; using std::set;
 #include <vtkRenderWindowInteractor.h>
 #include "vtkAesReader.h"
 #include <vtkAppendFilter.h>
+#include <vtkScalarBarRepresentation.h>
 
 #include <vtkOpenGLState.h>
 #include <vtkObject.h>
@@ -52,8 +55,15 @@ using std::string; using std::vector; using std::set;
 #include <vtkUnstructuredGridReader.h>
 #include <vtkPolyLine.h>
 #include <vtkCleanPolyData.h>
+#include <vtkCell.h>
+#include <vtkCellArray.h>
+#include <vtkAppendPolyData.h>
+#include <vtkTransform.h>
+#include <vtkTransformFilter.h>
+#include <limits>
+#include <algorithm>
 
-vtkDisplayWindow::vtkDisplayWindow()
+vtkDisplayWindow::vtkDisplayWindow(QObject *parent):QObject(parent)
 {
     renderer = vtkSmartPointer<vtkRenderer>::New();
     renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -82,10 +92,10 @@ void vtkDisplayWindow::UpdateFlow(string flowFileName)
         for (auto &y : x)
         {
             y.contourActor->GetMapper()->SetScalarRange(aesReader.GetFlows()[0].range);
-            y.contourActor->GetMapper()->SetLookupTable(aesReader.GetFlows()[0].scalarBar->GetLookupTable());
+            y.contourActor->GetMapper()->SetLookupTable(aesReader.GetFlows()[0].mainScalarBar->GetLookupTable());
         }
     }
-    auxiliarys.scalarBarWidget->SetScalarBarActor(aesReader.GetFlows()[0].scalarBar);
+    auxiliarys.scalarBarWidget->SetScalarBarActor(aesReader.GetFlows()[0].mainScalarBar);
     if (hasVector)
     {
         hasVector = false;
@@ -116,7 +126,7 @@ void vtkDisplayWindow::CreateBasicObjects()
             auto flow = aesReader.GetFlows().front();
             contourMapper->SetScalarRange(flow.range);
             contourMapper->GetInput()->GetPointData()->SetActiveScalars(flow.name.c_str());
-            contourMapper->SetLookupTable(flow.scalarBar->GetLookupTable());
+            contourMapper->SetLookupTable(flow.mainScalarBar->GetLookupTable());
             vtkSmartPointer<vtkDataSetSurfaceFilter> dsSurfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
             dsSurfaceFilter->SetInputData(y.dataset);
             vtkSmartPointer<vtkFeatureEdges> edgeFilter = vtkSmartPointer<vtkFeatureEdges>::New();
@@ -201,7 +211,7 @@ void vtkDisplayWindow::CreateAxisWidget()
 void vtkDisplayWindow::CreateScalarBarWidget()
 {
     auxiliarys.scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
-    auxiliarys.scalarBarWidget->SetScalarBarActor(aesReader.GetFlows()[0].scalarBar);
+    auxiliarys.scalarBarWidget->SetScalarBarActor(aesReader.GetFlows()[0].mainScalarBar);
     auxiliarys.scalarBarWidget->SetInteractor(renderWindow->GetInteractor());
     auxiliarys.scalarBarWidget->SetEnabled(1);
 }
@@ -252,6 +262,16 @@ void vtkDisplayWindow::AddMeshActor()
             renderer->AddActor(y.meshActor);
         }
     }
+    
+    //* Add Mesh copies
+    for (auto& [zoneIdx, actors] : periodicCopyMeshActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            actor->SetVisibility(true);
+            renderer->AddActor(actor);
+        }
+    }
 }
 
 void vtkDisplayWindow::RemoveMeshActor()
@@ -261,6 +281,16 @@ void vtkDisplayWindow::RemoveMeshActor()
         for (auto &y : x)
         {
             renderer->RemoveActor(y.meshActor);
+        }
+    }
+    
+    //* Remove Mesh copies
+    for (auto& [zoneIdx, actors] : periodicCopyMeshActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            actor->SetVisibility(false);
+            renderer->RemoveActor(actor);
         }
     }
 }
@@ -275,6 +305,16 @@ void vtkDisplayWindow::AddContourActor()
         }
     }
     ActivateScalarBarWidget();
+
+    //* Add Contour copies
+    for (auto& [zoneIdx, actors] : periodicCopyContourActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            actor->SetVisibility(true);
+            renderer->AddActor(actor);
+        }
+    }
 }
 
 void vtkDisplayWindow::RemoveContourActor()
@@ -287,6 +327,16 @@ void vtkDisplayWindow::RemoveContourActor()
         }
     }
     InActivateScalarBarWidget();
+
+    //* Remove Contour copies
+    for (auto& [zoneIdx, actors] : periodicCopyContourActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            actor->SetVisibility(false);
+            renderer->RemoveActor(actor);
+        }
+    }
 }
 
 void vtkDisplayWindow::AddShadeActor()
@@ -296,6 +346,16 @@ void vtkDisplayWindow::AddShadeActor()
         for (auto &y : x)
         {
             renderer->AddActor(y.shadeActor);
+        }
+    }
+
+    //* Add periodic copies
+    for (auto& [zoneIdx, actors] : periodicCopyShadeActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            actor->SetVisibility(true);
+            renderer->AddActor(actor);
         }
     }
 }
@@ -325,6 +385,16 @@ void vtkDisplayWindow::RemoveShadeActor()
             renderer->RemoveActor(y.shadeActor);
         }
     }
+
+    //* Remove periodic copies
+    for (auto& [zoneIdx, actors] : periodicCopyShadeActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            actor->SetVisibility(false);
+            renderer->RemoveActor(actor);
+        }
+    }
 }
 
 void vtkDisplayWindow::AddEdgeActor()
@@ -336,6 +406,16 @@ void vtkDisplayWindow::AddEdgeActor()
             renderer->AddActor(y.edgeActor);
         }
     }
+    
+    //* Add Edge copies
+    for (auto& [zoneIdx, actors] : periodicCopyEdgeActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            actor->SetVisibility(true);
+            renderer->AddActor(actor);
+        }
+    }
 }
 
 void vtkDisplayWindow::RemoveEdgeActor()
@@ -345,6 +425,16 @@ void vtkDisplayWindow::RemoveEdgeActor()
         for (auto &y : x)
         {
             renderer->RemoveActor(y.edgeActor);
+        }
+    }
+    
+    //* Remove Edge copies
+    for (auto& [zoneIdx, actors] : periodicCopyEdgeActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            actor->SetVisibility(false);
+            renderer->RemoveActor(actor);
         }
     }
 }
@@ -442,14 +532,250 @@ void vtkDisplayWindow::SetScalarBar(double m, double M, int number, int flowNumb
         {
             y.contourActor->GetMapper()->GetInput()->GetPointData()->SetActiveScalars(aesReader.GetFlows()[flowNumber].name.c_str());
             y.contourActor->GetMapper()->SetScalarRange(m,M);
-            y.contourActor->GetMapper()->SetLookupTable(aesReader.GetFlows()[flowNumber].scalarBar->GetLookupTable());
+            y.contourActor->GetMapper()->SetLookupTable(aesReader.GetFlows()[flowNumber].mainScalarBar->GetLookupTable());
             y.contourActor->GetMapper()->Update();
         }
     }
     
-    auxiliarys.scalarBarWidget->SetScalarBarActor(aesReader.GetFlows()[flowNumber].scalarBar);
+    auxiliarys.scalarBarWidget->SetScalarBarActor(aesReader.GetFlows()[flowNumber].mainScalarBar);
     curFlow = flowNumber;
+    
+    // 重新應用當前的方向設置（因為 SetScalarBarActor 會用新的 Actor 替換，需要重新設置方向）
+    SetScalarBarOrientation(scalarBarIsVertical);
 }
+
+void vtkDisplayWindow::SetScalarBarSize(double width, double height)
+{
+    // 获取ScalarBarWidget的表示对象
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        // 设置ScalarBar的尺寸（相对于窗口的比例，范围0-1）
+        // Position2是相对尺寸，表示ScalarBar占据窗口的宽度和高度比例
+        rep->SetPosition2(width, height);
+        
+        // 如果需要同时调整位置以保持在视图内，可以获取当前位置并调整
+        double* currentPos = rep->GetPosition();
+        // 确保ScalarBar不会超出窗口边界
+        if (currentPos[0] + width > 1.0)
+        {
+            rep->SetPosition(1.0 - width, currentPos[1]);
+        }
+        if (currentPos[1] + height > 1.0)
+        {
+            rep->SetPosition(currentPos[0], 1.0 - height);
+        }
+        
+        // 更新表示
+        rep->Modified();
+    }
+}
+
+void vtkDisplayWindow::SetScalarBarVisibility(bool visible)
+{
+    if (visible)
+    {
+        ActivateScalarBarWidget();
+    }
+    else
+    {
+        InActivateScalarBarWidget();
+    }
+    cout << "ScalarBar visibility set to: " << (visible ? "visible" : "hidden") << endl;
+}
+
+void vtkDisplayWindow::SetScalarBarOrientation(bool isVertical)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (!rep)
+    {
+        cerr << "Error: Failed to get ScalarBar representation" << endl;
+        return;
+    }
+    
+    // 保存當前方向狀態
+    scalarBarIsVertical = isVertical;
+    
+    // 獲取當前的 ScalarBar Actor
+    vtkScalarBarActor* scalarBar = rep->GetScalarBarActor();
+    if (!scalarBar)
+    {
+        cerr << "Error: Failed to get ScalarBar actor" << endl;
+        return;
+    }
+    
+    // 修改當前的 ScalarBar Actor
+    if (isVertical)
+    {
+        scalarBar->SetOrientationToVertical();
+        scalarBar->SetWidth(0.1);   // 宽度占 10%
+        scalarBar->SetHeight(0.8);  // 高度占 80%
+        scalarBar->SetMaximumWidthInPixels(150);   // 垂直時限制寬度
+        scalarBar->SetMaximumHeightInPixels(1000); // 垂直時限制高度
+        // 垂直时的 Widget 位置和大小
+        rep->SetPosition(0.9, 0.1);
+        rep->SetPosition2(0.1, 0.8);
+    }
+    else
+    {
+        scalarBar->SetOrientationToHorizontal();
+        scalarBar->SetWidth(0.8);   // 宽度占 80%
+        scalarBar->SetHeight(0.1);  // 高度占 10%
+        scalarBar->SetMaximumWidthInPixels(10000);  // 水平時放寬寬度限制
+        scalarBar->SetMaximumHeightInPixels(100);   // 水平時限制高度
+        // 水平时的 Widget 位置和大小
+        rep->SetPosition(0.1, 0.05);
+        rep->SetPosition2(0.8, 0.1);
+    }
+    
+    rep->Modified();
+    renderWindow->Render();
+    cout << "ScalarBar orientation set to: " << (isVertical ? "Vertical" : "Horizontal") << endl;
+}
+
+void vtkDisplayWindow::SetScalarBarPosition(double x, double y)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        // 设置ScalarBar的位置（左下角坐标，范围0-1）
+        rep->SetPosition(x, y);
+        rep->Modified();
+        cout << "ScalarBar position set to: (" << x << ", " << y << ")" << endl;
+    }
+}
+
+void vtkDisplayWindow::SetScalarBarTitle(const std::string& title)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        vtkScalarBarActor* scalarBar = rep->GetScalarBarActor();
+        if (scalarBar)
+        {
+            scalarBar->SetTitle(title.c_str());
+            scalarBar->DrawAnnotationsOn();
+            rep->Modified();
+            cout << "ScalarBar title set to: " << title << endl;
+        }
+    }
+}
+
+void vtkDisplayWindow::SetScalarBarTextColor(double r, double g, double b)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        vtkScalarBarActor* scalarBar = rep->GetScalarBarActor();
+        if (scalarBar)
+        {
+            // 设置标题文字颜色
+            scalarBar->GetTitleTextProperty()->SetColor(r, g, b);
+            // 设置标签文字颜色
+            scalarBar->GetLabelTextProperty()->SetColor(r, g, b);
+            // 设置注释文字颜色
+            scalarBar->GetAnnotationTextProperty()->SetColor(r, g, b);
+            rep->Modified();
+            cout << "ScalarBar text color set to RGB(" << r << ", " << g << ", " << b << ")" << endl;
+        }
+    }
+}
+
+void vtkDisplayWindow::SetScalarBarFont(const std::string& family, int size, bool bold, bool italic)
+{
+    vtkScalarBarRepresentation* rep = vtkScalarBarRepresentation::SafeDownCast(
+        auxiliarys.scalarBarWidget->GetRepresentation());
+    
+    if (rep)
+    {
+        vtkScalarBarActor* scalarBar = rep->GetScalarBarActor();
+        if (scalarBar)
+        {
+            // 设置标题字体
+            vtkTextProperty* titleProp = scalarBar->GetTitleTextProperty();
+            titleProp->SetFontSize(size + 4);  // 标题稍大一些
+            titleProp->SetBold(bold);
+            titleProp->SetItalic(italic);
+            
+            // 设置字体系列
+            if (family == "Arial")
+                titleProp->SetFontFamilyToArial();
+            else if (family == "Times New Roman" || family == "Times")
+                titleProp->SetFontFamilyToTimes();
+            else if (family == "Courier New" || family == "Courier")
+                titleProp->SetFontFamilyToCourier();
+            else
+                titleProp->SetFontFamilyToArial();  // 默认
+            
+            // 设置标签字体
+            vtkTextProperty* labelProp = scalarBar->GetLabelTextProperty();
+            labelProp->SetFontSize(size);
+            labelProp->SetBold(bold);
+            labelProp->SetItalic(italic);
+            
+            if (family == "Arial")
+                labelProp->SetFontFamilyToArial();
+            else if (family == "Times New Roman" || family == "Times")
+                labelProp->SetFontFamilyToTimes();
+            else if (family == "Courier New" || family == "Courier")
+                labelProp->SetFontFamilyToCourier();
+            else
+                labelProp->SetFontFamilyToArial();
+            
+            rep->Modified();
+            cout << "ScalarBar font set to: " << family << ", size=" << size 
+                 << ", bold=" << bold << ", italic=" << italic << endl;
+        }
+    }
+}
+
+void vtkDisplayWindow::SetCutplaneScalarBarOrientation(bool isVertical)
+{
+    if (!deriveds.cutplaneScalarBar)
+    {
+        cerr << "Error: Cutplane ScalarBar not initialized" << endl;
+        return;
+    }
+    
+    if (isVertical)
+    {
+        deriveds.cutplaneScalarBar->SetOrientationToVertical();
+        // 垂直时的位置和大小
+        deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetValue(0.9, 0.1);
+        deriveds.cutplaneScalarBar->SetWidth(0.1);   // 宽度占 10%
+        deriveds.cutplaneScalarBar->SetHeight(0.8);  // 高度占 80%
+        
+        // 垂直方向时使用较小的字体（因为 ScalarBar 更大）
+        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(12);
+        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(10);
+    }
+    else
+    {
+        deriveds.cutplaneScalarBar->SetOrientationToHorizontal();
+        // 水平时的位置和大小
+        deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetValue(0.2, 0.1);
+        deriveds.cutplaneScalarBar->SetWidth(0.6);   // 宽度占 60%
+        deriveds.cutplaneScalarBar->SetHeight(0.06); // 高度占 6%
+        
+        // 水平方向时使用更小的字体（因为 ScalarBar 更小）
+        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(10);
+        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(8);
+    }
+    
+    renderWindow->Render();
+    cout << "Cutplane ScalarBar orientation set to: " << (isVertical ? "Vertical" : "Horizontal") << endl;
+}
+
 
 void vtkDisplayWindow::VisiableOutlineActor()
 {
@@ -523,8 +849,8 @@ void vtkDisplayWindow::CreateIsoSurfaceActor()
     deriveds.contourFilter->SetValue(0, range[0] + (range[1] - range[0]) * 0.5);
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputConnection(deriveds.contourFilter->GetOutputPort());
-    mapper->SetLookupTable(aesReader.GetFlows()[0].scalarBar->GetLookupTable());
-    mapper->SetScalarRange(aesReader.GetFlows()[0].scalarBar->GetLookupTable()->GetRange());
+    mapper->SetLookupTable(aesReader.GetFlows()[0].mainScalarBar->GetLookupTable());
+    mapper->SetScalarRange(aesReader.GetFlows()[0].mainScalarBar->GetLookupTable()->GetRange());
     deriveds.isoSurfaceActor = vtkSmartPointer<vtkActor>::New();
     deriveds.isoSurfaceActor->SetMapper(mapper);
     renderer->AddActor(deriveds.isoSurfaceActor);
@@ -545,8 +871,8 @@ void vtkDisplayWindow::RemoveIsoSurfaceActor()
 
 void vtkDisplayWindow::ChangeFloodNumber(int floodNumber)
 {
-    deriveds.isoSurfaceActor->GetMapper()->SetLookupTable(aesReader.GetFlows()[floodNumber].scalarBar->GetLookupTable());
-    deriveds.isoSurfaceActor->GetMapper()->SetScalarRange(aesReader.GetFlows()[floodNumber].scalarBar->GetLookupTable()->GetRange());
+    deriveds.isoSurfaceActor->GetMapper()->SetLookupTable(aesReader.GetFlows()[floodNumber].mainScalarBar->GetLookupTable());
+    deriveds.isoSurfaceActor->GetMapper()->SetScalarRange(aesReader.GetFlows()[floodNumber].mainScalarBar->GetLookupTable()->GetRange());
     deriveds.isoSurfaceActor->GetMapper()->GetInput()->GetPointData()->SetActiveScalars(aesReader.GetFlows()[floodNumber].name.c_str());
     isoSurfaceFloodNumber = floodNumber;
 }
@@ -566,27 +892,77 @@ void vtkDisplayWindow::SetIsoSurfaceValue(double value)
     deriveds.contourFilter->Update();
 }
 
-void vtkDisplayWindow::AddNewCutplane()
+void vtkDisplayWindow::AddNewCutplane() {
+    AddNewCutplane(nullptr,nullptr);
+}
+
+void vtkDisplayWindow::AddNewCutplane(double* origin, double* normal)
 {
     auto totalMesh = aesReader.GetTotalGrid();
     vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
     vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
-    plane->SetOrigin(0,0,0);
-    plane->SetNormal(1,0,0);
+    
+    // 如果提供了参数，使用提供的参数；否则使用默认值
+    if (origin && normal) {
+        plane->SetOrigin(origin);
+        plane->SetNormal(normal);
+        std::cout << "[Debug] Creating cutplane with custom parameters: origin(" 
+                  << origin[0] << ", " << origin[1] << ", " << origin[2] 
+                  << ") normal(" << normal[0] << ", " << normal[1] << ", " << normal[2] << ")" << std::endl;
+    } else {
+        plane->SetOrigin(0,0,0);
+        plane->SetNormal(1,0,0);
+        std::cout << "[Debug] Creating cutplane with default parameters" << std::endl;
+    }
+    
     cutter->SetInputData(totalMesh);
     cutter->SetCutFunction(plane);
+    
+    // 如果是第一个cutplane，创建共享的LookupTable
+    if (deriveds.cutplanes.empty()) {
+        // 添加边界检查，防止程序卡住
+        auto flows = aesReader.GetFlows();
+        if (flows.empty() || curFlow < 0 || curFlow >= flows.size()) {
+            std::cerr << "[Error] Invalid flow data or curFlow index: " << curFlow 
+                      << ", flows size: " << flows.size() << std::endl;
+            return;
+        }
+        
+        deriveds.cutplaneLookupTable = vtkSmartPointer<vtkLookupTable>::New();
+        deriveds.cutplaneLookupTable->SetNumberOfTableValues(10);
+        deriveds.cutplaneLookupTable->SetRange(flows[curFlow].range);
+        deriveds.cutplaneLookupTable->SetHueRange(0.6667, 0.0);  // 蓝到红渐变，与主模型一致
+        deriveds.cutplaneLookupTable->Build();
+        
+        // 初始化颜色映射参数
+        deriveds.cutplaneColorMapping.minValue = flows[curFlow].range[0];
+        deriveds.cutplaneColorMapping.maxValue = flows[curFlow].range[1];
+        deriveds.cutplaneColorMapping.numberOfColors = 256;
+        deriveds.cutplaneColorMapping.useCustomRange = false;
+        
+        std::cout << "[Debug] Created shared cutplane LookupTable with range: [" 
+                  << deriveds.cutplaneColorMapping.minValue << ", " 
+                  << deriveds.cutplaneColorMapping.maxValue << "]" << std::endl;
+    }
+    
+    // 创建mapper并使用共享的LookupTable
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputConnection(cutter->GetOutputPort());
-    auto scalarBar = aesReader.GetFlows()[curFlow].scalarBar;
-    mapper->SetLookupTable(scalarBar->GetLookupTable());
-    mapper->SetScalarRange(scalarBar->GetLookupTable()->GetRange());
+    mapper->SetLookupTable(deriveds.cutplaneLookupTable);
+    mapper->SetScalarRange(deriveds.cutplaneLookupTable->GetRange());
+    
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     
+    // 添加到容器
     deriveds.cutplanes.emplace_back(plane);
     deriveds.cutters.emplace_back(cutter);
     deriveds.cutplaneActors.emplace_back(actor);
+    
     renderer->AddActor(deriveds.cutplaneActors.back());
+    
+    std::cout << "[Debug] Added cutplane " << (deriveds.cutplanes.size() - 1) 
+              << ", total cutplanes: " << deriveds.cutplanes.size() << std::endl;
 }
 
 void vtkDisplayWindow::SetCutplane(int cutplaneNumber, double *origin, double *normal)
@@ -622,34 +998,75 @@ void vtkDisplayWindow::RemoveCutplane(int number)
     deriveds.cutplaneActors[number]->VisibilityOff();
 }
 
-void vtkDisplayWindow::SetActorTransparancy(bool flag)
+void vtkDisplayWindow::SetActorTransparancy(double opacity)
 {
-    if (flag)
+    for (auto &x : boundarys)
     {
-        for (auto &x : boundarys)
+        for (auto &y : x)
         {
-            for (auto &y : x)
-            {
-                y.contourActor->GetProperty()->SetOpacity(0.5);
-                y.shadeActor->GetProperty()->SetOpacity(0.5);
-            }
+            y.contourActor->GetProperty()->SetOpacity(opacity);
+            y.shadeActor->GetProperty()->SetOpacity(opacity);
         }
-        vtkObject::GlobalWarningDisplayOff();
-        cout << "there are some opengl warnings ignored. maybe fix sometimes." << endl;
     }
-    else
-    {
-        for (auto &x : boundarys)
-        {
-            for (auto &y : x)
-            {
-                y.contourActor->GetProperty()->SetOpacity(1);  
-                y.shadeActor->GetProperty()->SetOpacity(1);
-            }
-        }
-        vtkObject::GlobalWarningDisplayOn();
+    std::cout<< "[Debug] SetActorTransparancy "<<std::endl;
+}
 
+void vtkDisplayWindow::SetBoundaryTransparency(int meshNumber, int boundaryNumber, double opacity)
+{
+    // 检查索引有效性
+    if (meshNumber < 0 || meshNumber >= boundarys.size()) {
+        std::cout << "[Error] Invalid meshNumber: " << meshNumber << std::endl;
+        return;
     }
+    
+    if (boundaryNumber < 0 || boundaryNumber >= boundarys[meshNumber].size()) {
+        std::cout << "[Error] Invalid boundaryNumber: " << boundaryNumber << std::endl;
+        return;
+    }
+    
+    // 设置指定boundary的透明度
+    BasicObject& boundary = boundarys[meshNumber][boundaryNumber];
+    if (boundary.contourActor) {
+        boundary.contourActor->GetProperty()->SetOpacity(opacity);
+    }
+    if (boundary.shadeActor) {
+        boundary.shadeActor->GetProperty()->SetOpacity(opacity);
+    }
+    if (boundary.meshActor) {
+        boundary.meshActor->GetProperty()->SetOpacity(opacity);
+    }
+    if (boundary.edgeActor) {
+        boundary.edgeActor->GetProperty()->SetOpacity(opacity);
+    }
+    if (boundary.velocityActor) {
+        boundary.velocityActor->GetProperty()->SetOpacity(opacity);
+    }
+    
+    // 立即刷新渲染窗口以显示透明度变化
+    renderWindow->Render();
+    
+    std::cout << "[Debug] SetBoundaryTransparency: mesh=" << meshNumber 
+              << ", boundary=" << boundaryNumber << ", opacity=" << opacity << std::endl;
+}
+
+void vtkDisplayWindow::SetSliceTransparency(int sliceNumber, double opacity)
+{
+    // 检查索引有效性
+    if (sliceNumber < 0 || sliceNumber >= deriveds.cutplaneActors.size()) {
+        std::cout << "[Error] Invalid sliceNumber: " << sliceNumber << std::endl;
+        return;
+    }
+    
+    // 设置指定slice的透明度
+    if (deriveds.cutplaneActors[sliceNumber]) {
+        deriveds.cutplaneActors[sliceNumber]->GetProperty()->SetOpacity(opacity);
+    }
+    
+    // 立即刷新渲染窗口以显示透明度变化
+    renderWindow->Render();
+    
+    std::cout << "[Debug] SetSliceTransparency: slice=" << sliceNumber 
+              << ", opacity=" << opacity << std::endl;
 }
 
 void vtkDisplayWindow::SetActorLighting(bool flag)
@@ -686,13 +1103,30 @@ void vtkDisplayWindow::SetBackground()
     // renderWindow->SetMultiSamples(1);
     // renderWindow->SetAlphaBitPlanes(1);
 
-    renderer->SetBackground(1.0,1.0,1.0);
-    renderer->SetBackground2(0.529, 0.8078, 0.92157);
-    renderer->SetGradientBackground(true);
+
+    renderer->SetBackground(1.0, 1.0, 1.0);
+    renderer->SetGradientBackground(false);
 
 }
 
-std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane()
+void vtkDisplayWindow::SetBackgroundStyle(const QString &style)
+{
+    if (style == "Sky Blue") {
+        // 天蓝色渐变背景 (默认)
+        renderer->SetBackground(1.0, 1.0, 1.0);           // 白色
+        renderer->SetBackground2(0.529, 0.8078, 0.92157); // 天蓝色
+        renderer->SetGradientBackground(true);
+    } else if (style == "White") {
+        // 纯白色背景
+        renderer->SetBackground(1.0, 1.0, 1.0);           // 白色
+        renderer->SetGradientBackground(false);
+    }
+    
+    // 刷新渲染窗口
+    renderWindow->Render();
+}
+
+std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane(double minRange, double maxRange)
 {
 
   if(MeridionalPlaneActor.empty())
@@ -731,57 +1165,82 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane()
 
       MeridionalPlane.emplace_back(polyData);
 
-      ChangeMeridionalFlow(curFlow);
+      ChangeMeridionalFlow(Flow[0].range[0], Flow[0].range[1], curFlow);
       return MeridionalPlaneActor;
     }
 }
-std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeMeridionalFlow(int flowNumber)
+std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeMeridionalFlow(double minRange, double maxRange, int flowNumber)
 {
     RemoveMeridianActor();
     MeridionalPlaneActor.clear();
-    auto Mesh = aesReader.GetZoneGrids();
+    
+    if (MeridionalPlane.empty()) {
+        std::cout << "[DEBUG] MeridionalPlane is empty " << std::endl;
+        return {};
+    }
+
     auto Flow = aesReader.GetFlows();
-    auto TotalMesh = aesReader.GetTotalGrid();
-    vtkSmartPointer<vtkDoubleArray> scalar = vtkSmartPointer<vtkDoubleArray>::New();
-    int start = 0;
-//    for(int i = 0; i < zone; i++)
-//    {
-//        start += TotalMesh->GetNumberOfPoints();
-//    }
-    vtkSmartPointer<vtkPolyData> ply = vtkSmartPointer<vtkPolyData>::New();
-    vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
-    for(int i = 0; i < TotalMesh->GetNumberOfPoints();i++){
-        double ny = TotalMesh->GetPoint(i)[1];
-        double nz = TotalMesh->GetPoint(i)[2];
-        double nr = sqrt(ny * ny + nz * nz);
-        pts->InsertNextPoint(TotalMesh->GetPoint(i)[0], nr * cos(0), nr * sin(0));
-    }
-    ply->SetPoints(pts);
-    for(int i = 0; i < TotalMesh->GetNumberOfPoints();i++)
+    std::string currentFlowName = Flow[flowNumber].name;
+    vtkPolyData* targetPD = MeridionalPlane[0];
+
+    // Check if the target flow variable already exists in the cached plane
+    if (!targetPD->GetPointData()->HasArray(currentFlowName.c_str()))
     {
-        scalar->InsertNextValue(Flow[flowNumber].datas[i]);
+        std::cout << "[B2B] Caching all meridional flow variables (First Run)..." << std::endl;
+        
+        auto TotalMesh = aesReader.GetTotalGrid();
+        
+        // 1. Build Source Geometry (Projected Points) - Only once
+        vtkSmartPointer<vtkPolyData> ply = vtkSmartPointer<vtkPolyData>::New();
+        vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+        pts->SetNumberOfPoints(TotalMesh->GetNumberOfPoints());
+        
+        for(int i = 0; i < TotalMesh->GetNumberOfPoints(); i++){
+            double* p = TotalMesh->GetPoint(i);
+            double nr = sqrt(p[1] * p[1] + p[2] * p[2]);
+            pts->SetPoint(i, p[0], nr, 0.0); // Projected to (x, r, 0)
+        }
+        ply->SetPoints(pts);
+
+        // 2. Add ALL flow variables to Source
+        for (size_t f = 0; f < Flow.size(); f++) {
+            vtkSmartPointer<vtkDoubleArray> scalar = vtkSmartPointer<vtkDoubleArray>::New();
+            scalar->SetName(Flow[f].name.c_str());
+            scalar->SetNumberOfValues(TotalMesh->GetNumberOfPoints());
+            for(int i = 0; i < TotalMesh->GetNumberOfPoints(); i++) {
+                scalar->SetValue(i, Flow[f].datas[i]);
+            }
+            ply->GetPointData()->AddArray(scalar);
+        }
+
+        // 3. Interpolate ALL variables at once
+        vtkSmartPointer<vtkPointInterpolator> inter = vtkSmartPointer<vtkPointInterpolator>::New();
+        inter->SetInputData(targetPD);
+        inter->SetSourceData(ply);
+        
+        vtkSmartPointer<vtkVoronoiKernel> kernel = vtkSmartPointer<vtkVoronoiKernel>::New();
+        inter->SetKernel(kernel);
+        inter->Update();
+
+        // 4. Update Cache (ShallowCopy keeps the geometry and interpolated arrays)
+        targetPD->ShallowCopy(inter->GetOutput());
     }
-    ply->GetPointData()->SetScalars(scalar);
-    vtkSmartPointer<vtkPointInterpolator> inter = vtkSmartPointer<vtkPointInterpolator>::New();
-    inter->SetInputData(MeridionalPlane[0]);
-    inter->SetSourceData(ply);
-//    vtkSmartPointer<vtkGaussianKernel> kernel = vtkSmartPointer<vtkGaussianKernel>::New();
-    vtkSmartPointer<vtkVoronoiKernel> kernel = vtkSmartPointer<vtkVoronoiKernel>::New();
-//    kernel->SetRadius(0.001);
-    inter->SetKernel(kernel);
-    vtkSmartPointer<vtkPolyDataMapper> mapper =vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputConnection(inter->GetOutputPort());
-    mapper->SetLookupTable(Flow[flowNumber].scalarBar->GetLookupTable());
-    mapper->SetScalarRange(Flow[flowNumber].range);
+
+    // 5. Switch Active Scalar (Instant)
+    targetPD->GetPointData()->SetActiveScalars(currentFlowName.c_str());
+
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputData(targetPD); // Use cached data directly
+    mapper->SetLookupTable(Flow[flowNumber].mainScalarBar->GetLookupTable());
+    mapper->SetScalarRange(minRange, maxRange);
     mapper->Update();
+
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
+    
     MeridionalPlaneActor.emplace_back(actor);
-//    renderer->AddActor(actor);
-//    renderer->ResetCamera();
 
     return MeridionalPlaneActor;
-
 }
 void vtkDisplayWindow::VisualizeMeridonalPlane()
 {
@@ -825,7 +1284,7 @@ void vtkDisplayWindow::CreateConstHeight(double height)
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputConnection(contour->GetOutputPort());
     mapper->SetScalarRange(Flow[curFlow].range);
-    mapper->SetLookupTable(Flow[curFlow].scalarBar->GetLookupTable());
+    mapper->SetLookupTable(Flow[curFlow].mainScalarBar->GetLookupTable());
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     ConstHeightPlaneActor.emplace_back(actor);
@@ -846,12 +1305,198 @@ void vtkDisplayWindow::ChangeConstHeightFlow(int flowNumber)
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
         mapper->SetInputConnection(ConstHeightPlane[i]->GetOutputPort());
         mapper->SetScalarRange(Flow[flowNumber].range);
-        mapper->SetLookupTable(Flow[flowNumber].scalarBar->GetLookupTable());
+        mapper->SetLookupTable(Flow[flowNumber].mainScalarBar->GetLookupTable());
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
         ConstHeightPlaneActor.emplace_back(actor);
         renderer->AddActor(actor);
     }
+}
+
+std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane(double span)
+{
+    std::vector<vtkSmartPointer<vtkActor>> actors;
+    
+    std::cout << "[B2B] Creating blade-to-blade plane at span = " << span << std::endl;
+    
+    // Clear previous B2B data to avoid duplication
+    BladeToBladePlane.clear();
+    BladeToBladePlaneActor.clear();
+    
+    // Check if node_radius exists
+    if(aesReader.node_radius.empty())
+    {
+        std::cout << "[B2B ERROR] node_radius field not found!" << std::endl;
+        return actors;
+    }
+    
+    auto Flow = aesReader.GetFlows();
+    auto TotalMeshes = aesReader.GetTotalGrid();
+    
+    const double PI = 3.14159265358979323846;
+    
+    if (!TotalMeshes->GetPointData()->HasArray("radius"))
+    {
+        std::cout << "[B2B ERROR] VTK grid does not have 'radius' array!" << std::endl;
+        return actors;
+    }
+    
+    // Extract contour at given span from TotalMeshes
+    vtkSmartPointer<vtkContourFilter> contour = vtkSmartPointer<vtkContourFilter>::New();
+    contour->SetInputData(TotalMeshes);
+    TotalMeshes->GetPointData()->SetActiveScalars("radius");
+    contour->SetValue(0, span);
+    contour->Update();
+    
+    vtkPolyData* contourOutput = contour->GetOutput();
+    int numPoints = contourOutput->GetNumberOfPoints();
+    
+    std::cout << "[B2B] Contour extracted: " << numPoints << " points" << std::endl;
+    
+    if (numPoints == 0)
+    {
+        std::cout << "[B2B ERROR] Empty contour! Check span value." << std::endl;
+        auto radiusArray = TotalMeshes->GetPointData()->GetArray("radius");
+        if (radiusArray) {
+            double range[2];
+            radiusArray->GetRange(range);
+            std::cout << "[B2B] Valid radius range: [" << range[0] << ", " << range[1] << "]" << std::endl;
+        }
+        return actors;
+    }
+    
+    // Calculate coordinates for all points
+    std::vector<double> origX(numPoints), origTheta(numPoints), origRadius(numPoints);
+    double sumSin = 0.0, sumCos = 0.0;
+    double xMin = std::numeric_limits<double>::max();
+    double rAtXMin = 0.0;
+    
+    for (int i = 0; i < numPoints; i++)
+    {
+        double p[3];
+        contourOutput->GetPoint(i, p);
+        origX[i] = p[0];
+        double y = p[1];
+        double z = p[2];
+        origRadius[i] = std::sqrt(y*y + z*z);
+        origTheta[i] = std::atan2(z, y);
+        
+        sumSin += std::sin(origTheta[i]);
+        sumCos += std::cos(origTheta[i]);
+        
+        if (origX[i] < xMin)
+        {
+            xMin = origX[i];
+            rAtXMin = origRadius[i];
+        }
+    }
+    
+    // Calculate circular mean reference theta
+    double refTheta = std::atan2(sumSin, sumCos);
+    std::cout << "[B2B] Reference theta: " << refTheta << " rad (" 
+              << (refTheta * 180.0 / PI) << " deg)" << std::endl;
+    std::cout << "[B2B] X min: " << xMin << ", R at X min: " << rAtXMin << std::endl;
+    
+    // Adjust theta values to be continuous around refTheta
+    std::vector<double> adjustedTheta(numPoints);
+    for (int i = 0; i < numPoints; i++)
+    {
+        double delta = origTheta[i] - refTheta;
+        while (delta > PI) delta -= 2.0 * PI;
+        while (delta < -PI) delta += 2.0 * PI;
+        adjustedTheta[i] = refTheta + delta;
+    }
+    
+    // For constant-radius surface, use x directly as horizontal coordinate
+    double xMax = *std::max_element(origX.begin(), origX.end());
+    std::cout << "[B2B] X range: [" << xMin << ", " << xMax << "]" << std::endl;
+    
+    // Calculate average radius (should be approximately constant on this surface)
+    double avgRadius = 0.0;
+    for (int i = 0; i < numPoints; i++)
+    {
+        avgRadius += origRadius[i];
+    }
+    avgRadius /= numPoints;
+    std::cout << "[B2B] Average radius: " << avgRadius << std::endl;
+    
+    // Create unwrapped points
+    // X = axial coordinate
+    // Y = avgRadius * theta (using average radius for consistency)
+    vtkSmartPointer<vtkPoints> unwrappedPoints = vtkSmartPointer<vtkPoints>::New();
+    unwrappedPoints->SetNumberOfPoints(numPoints);
+    
+    for (int i = 0; i < numPoints; i++)
+    {
+        double x = origX[i];
+        double theta = adjustedTheta[i];
+        unwrappedPoints->SetPoint(i, x, avgRadius * theta, 0.0);
+    }
+    
+    // Create unwrapped polydata
+    vtkSmartPointer<vtkPolyData> unwrappedData = vtkSmartPointer<vtkPolyData>::New();
+    unwrappedData->SetPoints(unwrappedPoints);
+    unwrappedData->SetPolys(contourOutput->GetPolys());
+    unwrappedData->GetPointData()->ShallowCopy(contourOutput->GetPointData());
+    
+    std::cout << "[B2B] Unwrapped to 2D (M'=meridional, Y=r*theta)" << std::endl;
+    
+    // Store for later use
+    vtkSmartPointer<vtkContourFilter> dummyFilter = vtkSmartPointer<vtkContourFilter>::New();
+    dummyFilter->SetInputData(unwrappedData);
+    dummyFilter->Update();
+    BladeToBladePlane.emplace_back(dummyFilter);
+    
+    // Set active scalars and create mapper
+    unwrappedData->GetPointData()->SetActiveScalars(Flow[curFlow].name.c_str());
+    
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputData(unwrappedData);
+    mapper->SetScalarRange(Flow[curFlow].range);
+    mapper->SetLookupTable(Flow[curFlow].mainScalarBar->GetLookupTable());
+    
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    
+    // Disable lighting for 2D plane to avoid shading artifacts
+    actor->GetProperty()->SetAmbient(1.0);   // Full ambient lighting
+    actor->GetProperty()->SetDiffuse(0.0);   // No diffuse lighting
+    actor->GetProperty()->SetSpecular(0.0);  // No specular lighting
+    
+    BladeToBladePlaneActor.emplace_back(actor);
+    actors.emplace_back(actor);
+    
+    std::cout << "[B2B SUCCESS] Created unwrapped 2D blade-to-blade plane" << std::endl;
+    return actors;
+}
+
+std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeBladeToBladePlaneFlow(int flowNumber)
+{
+    std::vector<vtkSmartPointer<vtkActor>> actors;
+    auto Flow = aesReader.GetFlows();
+    
+    BladeToBladePlaneActor.clear();
+    
+    for(int i = 0; i < BladeToBladePlane.size(); i++)
+    {
+        BladeToBladePlane[i]->GetOutput()->GetPointData()->SetActiveScalars(Flow[flowNumber].name.c_str());
+        vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+        mapper->SetInputConnection(BladeToBladePlane[i]->GetOutputPort());
+        mapper->SetScalarRange(Flow[flowNumber].range);
+        mapper->SetLookupTable(Flow[flowNumber].mainScalarBar->GetLookupTable());
+        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+        actor->SetMapper(mapper);
+        
+        // Disable lighting for 2D plane to avoid shading artifacts
+        actor->GetProperty()->SetAmbient(1.0);   // Full ambient lighting
+        actor->GetProperty()->SetDiffuse(0.0);   // No diffuse lighting
+        actor->GetProperty()->SetSpecular(0.0);  // No specular lighting
+        
+        BladeToBladePlaneActor.emplace_back(actor);
+        actors.emplace_back(actor);
+    }
+    
+    return actors;
 }
 
 vtkSmartPointer<vtkPolyData> ConvertUnstructuredGridToPolyData(vtkSmartPointer<vtkUnstructuredGrid> unstructuredGrid)
@@ -877,4 +1522,966 @@ vtkSmartPointer<vtkPolyData> ConvertUnstructuredGridToPolyData(vtkSmartPointer<v
   polyData->SetPolys(polys);
 
   return polyData;
+}
+
+double* vtkDisplayWindow::GetModelBounds()
+{
+    if (!hasGrid)
+    {
+        std::cout << "没有加载网格数据，无法获取边界值" << std::endl;
+        return nullptr;
+    }
+    
+    // 获取总网格数据的边界值
+    return aesReader.GetTotalGrid()->GetBounds();
+    
+    // 返回的数组包含6个值：[xmin, xmax, ymin, ymax, zmin, zmax]
+}
+
+std::vector<std::string> vtkDisplayWindow::GetZoneNames()
+{
+    std::vector<std::string> names;
+    auto boundarys = aesReader.GetBoundarys();
+    
+    for (int i = 0; i < boundarys.size(); i++)
+    {
+        if (boundarys[i].size() > 0)
+        {
+            std::string zoneName = boundarys[i][0].zoneName;
+            bool exists = false;
+            for (const auto& name : names)
+            {
+                if (name == zoneName) { exists = true; break; }
+            }
+            if (!exists)
+            {
+                names.push_back(zoneName);
+            }
+        }
+    }
+    return names;
+}
+
+void vtkDisplayWindow::ClearPeriodicCopies()
+{
+    // 从渲染器移除所有 Zone 的周期性复制 shade actors
+    for (auto& [zoneIdx, actors] : periodicCopyShadeActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            renderer->RemoveActor(actor);
+        }
+    }
+    periodicCopyShadeActorsByZone.clear();
+    
+    // 从渲染器移除所有 Zone 的周期性复制 contour actors
+    for (auto& [zoneIdx, actors] : periodicCopyContourActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            renderer->RemoveActor(actor);
+        }
+    }
+    periodicCopyContourActorsByZone.clear();
+    
+    // 从渲染器移除所有 Zone 的周期性复制 mesh actors
+    for (auto& [zoneIdx, actors] : periodicCopyMeshActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            renderer->RemoveActor(actor);
+        }
+    }
+    periodicCopyMeshActorsByZone.clear();
+    
+    // 从渲染器移除所有 Zone 的周期性复制 edge actors
+    for (auto& [zoneIdx, actors] : periodicCopyEdgeActorsByZone)
+    {
+        for (auto& actor : actors)
+        {
+            renderer->RemoveActor(actor);
+        }
+    }
+    periodicCopyEdgeActorsByZone.clear();
+    
+    std::cout << "[Periodic] Cleared all periodic copies from all zones" << std::endl;
+}
+
+void vtkDisplayWindow::ClearPeriodicCopiesForZone(int zoneIndex)
+{
+    // 清除指定 Zone 的周期性复制 shade actors
+    if (periodicCopyShadeActorsByZone.find(zoneIndex) != periodicCopyShadeActorsByZone.end())
+    {
+        for (auto& actor : periodicCopyShadeActorsByZone[zoneIndex])
+        {
+            renderer->RemoveActor(actor);
+        }
+        periodicCopyShadeActorsByZone[zoneIndex].clear();
+        periodicCopyShadeActorsByZone.erase(zoneIndex);
+    }
+    
+    // 清除指定 Zone 的周期性复制 contour actors
+    if (periodicCopyContourActorsByZone.find(zoneIndex) != periodicCopyContourActorsByZone.end())
+    {
+        for (auto& actor : periodicCopyContourActorsByZone[zoneIndex])
+        {
+            renderer->RemoveActor(actor);
+        }
+        periodicCopyContourActorsByZone[zoneIndex].clear();
+        periodicCopyContourActorsByZone.erase(zoneIndex);
+    }
+    
+    // 清除指定 Zone 的周期性复制 mesh actors
+    if (periodicCopyMeshActorsByZone.find(zoneIndex) != periodicCopyMeshActorsByZone.end())
+    {
+        for (auto& actor : periodicCopyMeshActorsByZone[zoneIndex])
+        {
+            renderer->RemoveActor(actor);
+        }
+        periodicCopyMeshActorsByZone[zoneIndex].clear();
+        periodicCopyMeshActorsByZone.erase(zoneIndex);
+    }
+    
+    // 清除指定 Zone 的周期性复制 edge actors
+    if (periodicCopyEdgeActorsByZone.find(zoneIndex) != periodicCopyEdgeActorsByZone.end())
+    {
+        for (auto& actor : periodicCopyEdgeActorsByZone[zoneIndex])
+        {
+            renderer->RemoveActor(actor);
+        }
+        periodicCopyEdgeActorsByZone[zoneIndex].clear();
+        periodicCopyEdgeActorsByZone.erase(zoneIndex);
+    }
+    
+    std::cout << "[Periodic] Cleared periodic copies for zone " << zoneIndex << std::endl;
+}
+
+void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies)
+{
+    std::vector<int> allBoundaries;
+    if (zoneIndex >= 0 && zoneIndex < static_cast<int>(boundarys.size()))
+    {
+        for (int i = 0; i < static_cast<int>(boundarys[zoneIndex].size()); ++i)
+        {
+            allBoundaries.push_back(i);
+        }
+    }
+    CreatePeriodicCopies(zoneIndex, numCopies, allBoundaries);
+}
+
+void vtkDisplayWindow::CreatePeriodicCopies(int zoneIndex, int numCopies, const std::vector<int> &boundaryIndices)
+{
+    //* Only clear Current Zone
+    ClearPeriodicCopiesForZone(zoneIndex);
+
+    if (numCopies <= 0)
+    {
+        std::cout << "[Periodic] No copies to create (numCopies=" << numCopies << ")" << std::endl;
+        return;
+    }
+
+    auto angles = aesReader.angles;
+
+    if (zoneIndex < 0 || zoneIndex >= static_cast<int>(boundarys.size()))
+    {
+        std::cout << "[Periodic ERROR] Invalid zone index: " << zoneIndex << std::endl;
+        return;
+    }
+
+    if (zoneIndex >= static_cast<int>(angles.size()))
+    {
+        std::cout << "[Periodic ERROR] No angle data for zone " << zoneIndex << std::endl;
+        return;
+    }
+
+    if (boundaryIndices.empty())
+    {
+        std::cout << "[Periodic] No boundary indices provided for zone " << zoneIndex << std::endl;
+        return;
+    }
+
+    double angleStep = std::abs(angles[zoneIndex]);
+    std::cout << "[Periodic] Zone " << zoneIndex << " angle step: " << angleStep << " degrees" << std::endl;
+    std::cout << "[Periodic] Zone has " << boundarys[zoneIndex].size() << " boundaries, selected "
+              << boundaryIndices.size() << std::endl;
+
+    for (int copyNum = 1; copyNum <= numCopies; copyNum++)
+    {
+        double rotationAngle = angleStep * copyNum;
+
+        //* 创建旋转变换（绕 X 轴旋转）
+        vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+        transform->RotateX(rotationAngle);
+
+        // 只遍历选中的 boundary
+        for (int bndIdx : boundaryIndices)
+        {
+            if (bndIdx < 0 || bndIdx >= static_cast<int>(boundarys[zoneIndex].size()))
+            {
+                continue;
+            }
+
+            auto& bndObj = boundarys[zoneIndex][bndIdx];
+
+            //* Copy shadeActor
+            if (bndObj.shadeActor && bndObj.shadeActor->GetMapper())
+            {
+                vtkMapper* originalMapper = bndObj.shadeActor->GetMapper();
+                vtkDataSet* inputData = originalMapper->GetInput();
+
+                if (inputData && inputData->GetNumberOfPoints() > 0)
+                {
+                    vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+                    transformFilter->SetInputData(inputData);
+                    transformFilter->SetTransform(transform);
+                    transformFilter->Update();
+
+                    vtkSmartPointer<vtkDataSetMapper> shadeMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+                    shadeMapper->SetInputConnection(transformFilter->GetOutputPort());
+
+                    shadeMapper->SetScalarVisibility(originalMapper->GetScalarVisibility());
+                    shadeMapper->SetScalarRange(originalMapper->GetScalarRange());
+                    if (originalMapper->GetLookupTable())
+                    {
+                        shadeMapper->SetLookupTable(originalMapper->GetLookupTable());
+                    }
+
+                    vtkSmartPointer<vtkActor> shadeActor = vtkSmartPointer<vtkActor>::New();
+                    shadeActor->SetMapper(shadeMapper);
+
+                    shadeActor->GetProperty()->DeepCopy(bndObj.shadeActor->GetProperty());
+                    
+                    // 检查原始 Actor 是否在渲染器中且可见
+                    bool isInRenderer = renderer->HasViewProp(bndObj.shadeActor);
+                    bool isVisible = bndObj.shadeActor->GetVisibility();
+                    bool shouldAdd = isInRenderer && isVisible;
+                    
+                    shadeActor->SetVisibility(shouldAdd);
+
+                    // 只有在渲染器中且可见的 Actor 才添加到渲染器
+                    if (shouldAdd)
+                    {
+                        renderer->AddActor(shadeActor);
+                    }
+                    periodicCopyShadeActorsByZone[zoneIndex].push_back(shadeActor);
+                }
+            }
+
+            //* Copy contourActor
+            if (bndObj.contourActor && bndObj.contourActor->GetMapper())
+            {
+                vtkMapper* originalContourMapper = bndObj.contourActor->GetMapper();
+                vtkDataSet* contourInputData = originalContourMapper->GetInput();
+
+                if (contourInputData && contourInputData->GetNumberOfPoints() > 0)
+                {
+                    // 应用变换
+                    vtkSmartPointer<vtkTransformFilter> contourTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+                    contourTransformFilter->SetInputData(contourInputData);
+                    contourTransformFilter->SetTransform(transform);
+                    contourTransformFilter->Update();
+
+                    // 创建新的 contour mapper 和 actor
+                    vtkSmartPointer<vtkDataSetMapper> contourMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+                    contourMapper->SetInputConnection(contourTransformFilter->GetOutputPort());
+
+                    // 复制原始 contour mapper 的标量设置
+                    contourMapper->SetScalarVisibility(originalContourMapper->GetScalarVisibility());
+                    contourMapper->SetScalarRange(originalContourMapper->GetScalarRange());
+                    if (originalContourMapper->GetLookupTable())
+                    {
+                        contourMapper->SetLookupTable(originalContourMapper->GetLookupTable());
+                    }
+
+                    vtkSmartPointer<vtkActor> contourActor = vtkSmartPointer<vtkActor>::New();
+                    contourActor->SetMapper(contourMapper);
+
+                    // 复制原始 contour actor 的属性
+                    contourActor->GetProperty()->DeepCopy(bndObj.contourActor->GetProperty());
+                    
+                    // 检查原始 Actor 是否在渲染器中且可见
+                    bool isInRenderer = renderer->HasViewProp(bndObj.contourActor);
+                    bool isVisible = bndObj.contourActor->GetVisibility();
+                    bool shouldAdd = isInRenderer && isVisible;
+                    
+                    contourActor->SetVisibility(shouldAdd);
+
+                    // 只有在渲染器中且可见的 Actor 才添加到渲染器
+                    if (shouldAdd)
+                    {
+                        renderer->AddActor(contourActor);
+                    }
+                    periodicCopyContourActorsByZone[zoneIndex].push_back(contourActor);
+                }
+            }
+
+            //* Copy meshActor
+            if (bndObj.meshActor && bndObj.meshActor->GetMapper())
+            {
+                vtkMapper* originalMeshMapper = bndObj.meshActor->GetMapper();
+                vtkDataSet* meshInputData = originalMeshMapper->GetInput();
+
+                if (meshInputData && meshInputData->GetNumberOfPoints() > 0)
+                {
+                    // 应用变换
+                    vtkSmartPointer<vtkTransformFilter> meshTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+                    meshTransformFilter->SetInputData(meshInputData);
+                    meshTransformFilter->SetTransform(transform);
+                    meshTransformFilter->Update();
+
+                    // 创建新的 mesh mapper 和 actor
+                    vtkSmartPointer<vtkDataSetMapper> meshMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+                    meshMapper->SetInputConnection(meshTransformFilter->GetOutputPort());
+                    meshMapper->ScalarVisibilityOff();
+
+                    vtkSmartPointer<vtkActor> meshActor = vtkSmartPointer<vtkActor>::New();
+                    meshActor->SetMapper(meshMapper);
+
+                    // 复制原始 mesh actor 的属性
+                    meshActor->GetProperty()->DeepCopy(bndObj.meshActor->GetProperty());
+                    
+                    // 检查原始 Actor 是否在渲染器中且可见
+                    bool isInRenderer = renderer->HasViewProp(bndObj.meshActor);
+                    bool isVisible = bndObj.meshActor->GetVisibility();
+                    bool shouldAdd = isInRenderer && isVisible;
+                    
+                    meshActor->SetVisibility(shouldAdd);
+
+                    // 只有在渲染器中且可见的 Actor 才添加到渲染器
+                    if (shouldAdd)
+                    {
+                        renderer->AddActor(meshActor);
+                    }
+                    periodicCopyMeshActorsByZone[zoneIndex].push_back(meshActor);
+                }
+            }
+
+            //* Copy edgeActor
+            if (bndObj.edgeActor && bndObj.edgeActor->GetMapper())
+            {
+                // 使用已经旋转变换后的 shadeActor 数据来生成边缘
+                vtkMapper* originalShadeMapper = bndObj.shadeActor->GetMapper();
+                vtkDataSet* shadeInputData = originalShadeMapper->GetInput();
+
+                if (shadeInputData && shadeInputData->GetNumberOfPoints() > 0)
+                {
+                    // 先对 shade 数据应用变换
+                    vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+                    transformFilter->SetInputData(shadeInputData);
+                    transformFilter->SetTransform(transform);
+                    transformFilter->Update();
+
+                    // 应用 surface filter
+                    vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
+                    surfaceFilter->SetInputConnection(transformFilter->GetOutputPort());
+
+                    // 应用 feature edges filter
+                    vtkSmartPointer<vtkFeatureEdges> edgeFilter = vtkSmartPointer<vtkFeatureEdges>::New();
+                    edgeFilter->SetInputConnection(surfaceFilter->GetOutputPort());
+                    edgeFilter->BoundaryEdgesOn();
+                    edgeFilter->NonManifoldEdgesOff();
+                    edgeFilter->ManifoldEdgesOff();
+                    edgeFilter->SetFeatureAngle(100);
+
+                    // 创建新的 edge mapper 和 actor
+                    vtkSmartPointer<vtkDataSetMapper> edgeMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+                    edgeMapper->SetInputConnection(edgeFilter->GetOutputPort());
+                    edgeMapper->ScalarVisibilityOff();
+
+                    vtkSmartPointer<vtkActor> edgeActor = vtkSmartPointer<vtkActor>::New();
+                    edgeActor->SetMapper(edgeMapper);
+
+                    // 复制原始 edge actor 的属性
+                    edgeActor->GetProperty()->DeepCopy(bndObj.edgeActor->GetProperty());
+                    
+                    // 检查原始 Actor 是否在渲染器中且可见
+                    bool isInRenderer = renderer->HasViewProp(bndObj.edgeActor);
+                    bool isVisible = bndObj.edgeActor->GetVisibility();
+                    bool shouldAdd = isInRenderer && isVisible;
+                    
+                    edgeActor->SetVisibility(shouldAdd);
+
+                    // 只有在渲染器中且可见的 Actor 才添加到渲染器
+                    if (shouldAdd)
+                    {
+                        renderer->AddActor(edgeActor);
+                    }
+                    periodicCopyEdgeActorsByZone[zoneIndex].push_back(edgeActor);
+                }
+            }
+        }
+
+        std::cout << "[Periodic] Created copy " << copyNum << " at rotation " << rotationAngle << " degrees" << std::endl;
+    }
+
+    int totalActors = periodicCopyShadeActorsByZone[zoneIndex].size() + 
+                      periodicCopyContourActorsByZone[zoneIndex].size() +
+                      periodicCopyMeshActorsByZone[zoneIndex].size() +
+                      periodicCopyEdgeActorsByZone[zoneIndex].size();
+    std::cout << "[Periodic] Created " << numCopies << " periodic copies for zone " << zoneIndex 
+              << " (" << totalActors << " actors: " 
+              << periodicCopyShadeActorsByZone[zoneIndex].size() << " shade + "
+              << periodicCopyContourActorsByZone[zoneIndex].size() << " contour + "
+              << periodicCopyMeshActorsByZone[zoneIndex].size() << " mesh + "
+              << periodicCopyEdgeActorsByZone[zoneIndex].size() << " edge)"
+              << periodicCopyContourActorsByZone[zoneIndex].size() << " contour)" << std::endl;
+}
+
+void vtkDisplayWindow::CreatePlanePreview(double value,int currenAxis)
+{
+    // 获取模型的边界框
+    std::cout << "[Debug] Preview Location actual value: " << value << std::endl;
+
+    double bounds[6];
+    if (aesReader.GetTotalGrid())
+    {
+        aesReader.GetTotalGrid()->GetBounds(bounds);
+        std::cout << "边界框: [" << bounds[0] << ", " << bounds[1] << ", " 
+                  << bounds[2] << ", " << bounds[3] << ", " 
+                  << bounds[4] << ", " << bounds[5] << "]" << std::endl;
+    }
+    else
+    {
+        std::cout << "未找到模型网格！" << std::endl;
+        return;  // 没有模型就不创建平面
+    }
+    
+    // 创建一个平面 - 直接使用边界框中间的x位置
+    double position = value;
+    double xRange = bounds[1] - bounds[0];
+    double yRange = bounds[3] - bounds[2];
+    double zRange = bounds[5] - bounds[4];
+
+    if (!xPlaneSource) {
+        xPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+    }
+
+    switch ( currenAxis) {
+        case 0: // X轴 - YZ平面
+            xPlaneSource->SetCenter(position, 0.0, 0.0);
+            xPlaneSource->SetNormal(1.0, 0.0, 0.0);
+            xPlaneSource->SetOrigin(position, bounds[2] - 0.1*yRange, bounds[4] - 0.1*zRange);
+            xPlaneSource->SetPoint1(position, bounds[3] + 0.1*yRange, bounds[4] - 0.1*zRange);
+            xPlaneSource->SetPoint2(position, bounds[2] - 0.1*yRange, bounds[5] + 0.1*zRange);
+            break;
+
+        case 1: // Y轴 - XZ平面
+            xPlaneSource->SetCenter(0.0, position, 0.0);
+            xPlaneSource->SetNormal(0.0, 1.0, 0.0);
+            xPlaneSource->SetOrigin(bounds[0] - 0.1*xRange, position, bounds[4] - 0.1*zRange);
+            xPlaneSource->SetPoint1(bounds[1] + 0.1*xRange, position, bounds[4] - 0.1*zRange);
+            xPlaneSource->SetPoint2(bounds[0] - 0.1*xRange, position, bounds[5] + 0.1*zRange);
+            break;
+
+        case 2: // Z轴 - XY平面
+            xPlaneSource->SetCenter(0.0, 0.0, position);
+            xPlaneSource->SetNormal(0.0, 0.0, 1.0);
+            xPlaneSource->SetOrigin(bounds[0] - 0.1*xRange, bounds[2] - 0.1*yRange, position);
+            xPlaneSource->SetPoint1(bounds[1] + 0.1*xRange, bounds[2] - 0.1*yRange, position);
+            xPlaneSource->SetPoint2(bounds[0] - 0.1*xRange, bounds[3] + 0.1*yRange, position);
+            break;
+    }
+    
+    // 创建映射器和Actor - 直接使用平面而不是裁剪的结果
+    if (!xPlaneMapper) {
+        xPlaneMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    }
+    xPlaneMapper->SetInputConnection(xPlaneSource->GetOutputPort());
+    xPlaneMapper->SetInputConnection(xPlaneSource->GetOutputPort());
+    
+    if (!xPlaneActor) {
+        xPlaneActor = vtkSmartPointer<vtkActor>::New();
+    }
+    xPlaneActor->SetMapper(xPlaneMapper);
+
+    xPlaneActor->GetProperty()->SetColor(0.0, 0.5, 1.0);
+    // xPlaneActor->GetProperty()->SetOpacity(0.3);
+
+    renderer->AddActor(xPlaneActor);
+    renderWindow->Render();
+}
+
+void vtkDisplayWindow::HidePlanePreview()
+{
+    // 如果存在预览平面Actor，则从渲染器中移除
+    if (xPlaneActor)
+    {
+        std::cout << "隐藏预览平面" << std::endl;
+        renderer->RemoveActor(xPlaneActor);
+        renderWindow->Render();
+    }
+}
+
+void vtkDisplayWindow::SetCutplaneColorMapping(double minValue, double maxValue, int numberOfColors,bool isBanded)
+{
+    if (!deriveds.cutplaneLookupTable) {
+        std::cerr << "No cutplane LookupTable exists" << std::endl;
+        return;
+    }
+    
+    // 更新颜色映射参数
+    deriveds.cutplaneColorMapping.minValue = minValue;
+    deriveds.cutplaneColorMapping.maxValue = maxValue;
+    deriveds.cutplaneColorMapping.useCustomRange = true;
+    if (isBanded)
+        deriveds.cutplaneColorMapping.numberOfColors = numberOfColors;
+    else
+        deriveds.cutplaneColorMapping.numberOfColors = 256;
+    // 更新LookupTable
+    UpdateCutplaneColorMapping();
+}
+
+void vtkDisplayWindow::UpdateCutplaneColorMapping()
+{
+    if (!deriveds.cutplaneLookupTable) {
+        std::cerr << "No cutplane LookupTable exists" << std::endl;
+        return;
+    }
+    
+    auto& colorMapping = deriveds.cutplaneColorMapping;
+    
+    // 设置LookupTable参数
+    deriveds.cutplaneLookupTable->SetNumberOfTableValues(colorMapping.numberOfColors);
+    deriveds.cutplaneLookupTable->SetRange(colorMapping.minValue, colorMapping.maxValue);
+    deriveds.cutplaneLookupTable->Build();
+
+    // 更新所有cutplane actors的mapper范围
+    for (auto& actor : deriveds.cutplaneActors) {
+        auto mapper = actor->GetMapper();
+        mapper->SetScalarRange(colorMapping.minValue, colorMapping.maxValue);
+    }
+    
+    // 更新ScalarBar
+    if (deriveds.cutplaneScalarBar) {
+        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+    }
+    
+    std::cout << "[Debug] Updated shared cutplane color mapping: range[" 
+              << colorMapping.minValue << ", " << colorMapping.maxValue 
+              << "], colors=" << colorMapping.numberOfColors << std::endl;
+}
+
+vtkDisplayWindow::DerivedObject::CutplaneColorMapping vtkDisplayWindow::GetCutplaneColorMapping()
+{
+    return deriveds.cutplaneColorMapping;
+}
+
+
+void vtkDisplayWindow::InitializeCutplaneScalarBar()
+{
+    // 确保cutplaneLookupTable存在
+    if (!deriveds.cutplaneLookupTable) {
+        std::cerr << "[Error] Cannot initialize cutplane ScalarBar: cutplaneLookupTable not found" << std::endl;
+        return;
+    }
+    
+    // 如果ScalarBar还没创建，创建它
+    if (!deriveds.cutplaneScalarBar) {
+        deriveds.cutplaneScalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+        deriveds.cutplaneScalarBar->SetTitle("Slice");
+        deriveds.cutplaneScalarBar->SetNumberOfLabels(10);
+        
+        // 设置位置 - 水平显示在窗口中下方（避免被截断）
+        deriveds.cutplaneScalarBar->SetOrientationToHorizontal();
+        deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+        deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetValue(0.2, 0.1);   // 中下方位置
+        deriveds.cutplaneScalarBar->SetWidth(0.6);   // 宽度占窗口60%
+        deriveds.cutplaneScalarBar->SetHeight(0.06); // 高度占窗口6%
+        
+        // 设置字体 - 更小的字体，默认黑色
+        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(10);
+        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetColor(0.0, 0.0, 0.0);
+        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(8);
+        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetColor(0.0, 0.0, 0.0);
+        
+        // 确保可见性
+        deriveds.cutplaneScalarBar->SetVisibility(1);
+        
+        std::cout << "[Debug] Initialized cutplane ScalarBar at position (0.2, 0.1) with size (0.6, 0.06)" << std::endl;
+    }
+}
+
+
+void vtkDisplayWindow::ShowCutplaneScalarBar()
+{
+    std::cout << "[Debug] ShowCutplaneScalarBar called" << std::endl;
+    
+    // 初始化ScalarBar（如果需要）
+    InitializeCutplaneScalarBar();
+    
+    if (deriveds.cutplaneScalarBar) {
+        std::cout << "[Debug] cutplaneScalarBar exists" << std::endl;
+        
+        // 添加到渲染器（如果还没添加）
+        if (!renderer->HasViewProp(deriveds.cutplaneScalarBar)) {
+            renderer->AddActor2D(deriveds.cutplaneScalarBar);
+            std::cout << "[Debug] Added cutplaneScalarBar to renderer" << std::endl;
+        } else {
+            std::cout << "[Debug] cutplaneScalarBar already in renderer" << std::endl;
+        }
+        
+        // 设置可见
+        deriveds.cutplaneScalarBar->SetVisibility(1);
+        std::cout << "[Debug] Set cutplaneScalarBar visibility to 1" << std::endl;
+        std::cout << "[Debug] Showing cutplane ScalarBar" << std::endl;
+    } else {
+        std::cout << "[Debug] cutplaneScalarBar is null!" << std::endl;
+    }
+}
+
+void vtkDisplayWindow::HideCutplaneScalarBar()
+{
+    if (deriveds.cutplaneScalarBar) {
+        // 从渲染器中移除
+        if (renderer->HasViewProp(deriveds.cutplaneScalarBar)) {
+            renderer->RemoveActor2D(deriveds.cutplaneScalarBar);
+        }
+        
+        // 设置不可见
+        deriveds.cutplaneScalarBar->SetVisibility(0);
+        std::cout << "[Debug] Hiding cutplane ScalarBar" << std::endl;
+    }
+}
+
+void vtkDisplayWindow::SetCutplaneColorScheme(int presetIndex, bool reverse)
+{
+    if (!deriveds.cutplaneLookupTable) {
+        std::cerr << "[Error] Cannot set color scheme: cutplaneLookupTable not found" << std::endl;
+        return;
+    }
+    
+    std::cout << "[Debug] Setting cutplane color scheme: presetIndex=" << presetIndex 
+              << ", reverse=" << reverse << std::endl;
+    
+    ColorMapPreset& preset = ColorMapPreset::instance();
+    
+    // 保存当前范围
+    double range[2];
+    deriveds.cutplaneLookupTable->GetTableRange(range);
+    
+    if (presetIndex >= 0 && preset.isLoaded()) {
+        // 使用 JSON 预设
+        preset.applyToLookupTable(presetIndex, deriveds.cutplaneLookupTable, reverse, 256);
+        // 恢复范围（applyToLookupTable 可能会重置）
+        deriveds.cutplaneLookupTable->SetTableRange(range);
+    } else {
+        // Fallback 到旧的硬编码方案
+        int fallbackScheme = (presetIndex < 0) ? (-presetIndex - 1) : 0;
+        switch (fallbackScheme) {
+            case 0: // Rainbow
+                deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+                deriveds.cutplaneLookupTable->SetHueRange(0.6667, 0.0);
+                deriveds.cutplaneLookupTable->SetSaturationRange(1.0, 1.0);
+                deriveds.cutplaneLookupTable->SetValueRange(1.0, 1.0);
+                break;
+            case 1: // Viridis
+                deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+                deriveds.cutplaneLookupTable->SetHueRange(0.75, 0.167);
+                deriveds.cutplaneLookupTable->SetSaturationRange(0.8, 0.9);
+                deriveds.cutplaneLookupTable->SetValueRange(0.2, 0.95);
+                break;
+            case 2: // Gray
+                deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+                deriveds.cutplaneLookupTable->SetHueRange(0.0, 0.0);
+                deriveds.cutplaneLookupTable->SetSaturationRange(0.0, 0.0);
+                deriveds.cutplaneLookupTable->SetValueRange(0.0, 1.0);
+                break;
+            default:
+                deriveds.cutplaneLookupTable->SetNumberOfTableValues(256);
+                deriveds.cutplaneLookupTable->SetHueRange(0.6667, 0.0);
+                deriveds.cutplaneLookupTable->SetSaturationRange(1.0, 1.0);
+                deriveds.cutplaneLookupTable->SetValueRange(1.0, 1.0);
+                break;
+        }
+        deriveds.cutplaneLookupTable->Build();
+    }
+    
+    // 更新ScalarBar（如果存在）
+    if (deriveds.cutplaneScalarBar) {
+        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+    }
+    
+    std::cout << "[Debug] Cutplane color scheme updated successfully" << std::endl;
+}
+
+void vtkDisplayWindow::SetBoundaryColorScheme(int flowNumber, int presetIndex, bool reverse)
+{
+    std::cout << "[Debug] SetBoundaryColorScheme called: flow=" << flowNumber 
+              << ", presetIndex=" << presetIndex << ", reverse=" << reverse << std::endl;
+    
+    if (flowNumber < 0 || flowNumber >= static_cast<int>(aesReader.GetFlows().size())) {
+        std::cerr << "[Error] Invalid flow number: " << flowNumber << std::endl;
+        return;
+    }
+    
+    // 策略1: 尝试从flow的scalarBar获取LookupTable
+    vtkLookupTable* lut = nullptr;
+    auto flows = aesReader.GetFlows();
+    
+    if (flowNumber < static_cast<int>(flows.size()) && flows[flowNumber].mainScalarBar) {
+        lut = vtkLookupTable::SafeDownCast(flows[flowNumber].mainScalarBar->GetLookupTable());
+        if (lut) {
+            std::cout << "[Debug] Found LookupTable from flow scalarBar" << std::endl;
+        }
+    }
+    
+    // 策略2: 如果scalarBar不存在，从第一个有效的boundary actor中获取
+    if (!lut) {
+        std::cout << "[Debug] ScalarBar LookupTable not found, searching in boundary actors..." << std::endl;
+        for (auto& meshBoundaries : boundarys) {
+            for (auto& boundary : meshBoundaries) {
+                if (boundary.contourActor && boundary.contourActor->GetMapper()) {
+                    lut = vtkLookupTable::SafeDownCast(
+                        boundary.contourActor->GetMapper()->GetLookupTable());
+                    if (lut) {
+                        std::cout << "[Debug] Found LookupTable from contourActor" << std::endl;
+                        break;
+                    }
+                }
+                if (!lut && boundary.shadeActor && boundary.shadeActor->GetMapper()) {
+                    lut = vtkLookupTable::SafeDownCast(
+                        boundary.shadeActor->GetMapper()->GetLookupTable());
+                    if (lut) {
+                        std::cout << "[Debug] Found LookupTable from shadeActor" << std::endl;
+                        break;
+                    }
+                }
+            }
+            if (lut) break;
+        }
+    }
+    
+    // 如果仍然没有找到，说明还没有显示任何boundary
+    if (!lut) {
+        std::cerr << "[Error] No LookupTable found. Please display a boundary first." << std::endl;
+        return;
+    }
+    
+    std::cout << "[Debug] Setting color scheme: presetIndex=" << presetIndex 
+              << ", reverse=" << reverse << std::endl;
+    
+    // 使用 ColorMapPreset 应用颜色映射
+    ColorMapPreset& preset = ColorMapPreset::instance();
+    
+    if (presetIndex >= 0 && preset.isLoaded()) {
+        // 使用 JSON 预设中的颜色映射
+        preset.applyToLookupTable(presetIndex, lut, reverse, 256);
+        std::cout << "[Debug] Applied color map preset: " << preset.getName(presetIndex).toStdString() << std::endl;
+    } else {
+        // 回退到旧的硬编码颜色方案（当 presetIndex < 0 或预设未加载时）
+        lut->SetNumberOfTableValues(256);
+        
+        int fallbackScheme = (presetIndex < 0) ? (-presetIndex - 1) : 0;  // -1 -> 0, -2 -> 1, etc.
+        
+        switch (fallbackScheme) {
+            case 0: // Blue → Red
+                if (reverse) {
+                    lut->SetHueRange(0.0, 0.6667);
+                } else {
+                    lut->SetHueRange(0.6667, 0.0);
+                }
+                lut->SetSaturationRange(1.0, 1.0);
+                lut->SetValueRange(1.0, 1.0);
+                break;
+                
+            case 1: // Viridis
+                if (reverse) {
+                    lut->SetHueRange(0.167, 0.75);
+                    lut->SetValueRange(0.95, 0.2);
+                } else {
+                    lut->SetHueRange(0.75, 0.167);
+                    lut->SetValueRange(0.2, 0.95);
+                }
+                lut->SetSaturationRange(0.8, 0.9);
+                break;
+                
+            case 2: // Rainbow
+                if (reverse) {
+                    lut->SetHueRange(0.0, 0.8333);
+                } else {
+                    lut->SetHueRange(0.8333, 0.0);
+                }
+                lut->SetSaturationRange(1.0, 1.0);
+                lut->SetValueRange(1.0, 1.0);
+                break;
+                
+            case 3: // Cool-Warm (Diverging)
+                if (reverse) {
+                    lut->SetHueRange(0.0, 0.6667);
+                } else {
+                    lut->SetHueRange(0.6667, 0.0);
+                }
+                lut->SetSaturationRange(0.7, 0.7);
+                lut->SetValueRange(0.9, 0.9);
+                break;
+                
+            default:
+                lut->SetHueRange(0.6667, 0.0);
+                lut->SetSaturationRange(1.0, 1.0);
+                lut->SetValueRange(1.0, 1.0);
+                break;
+        }
+        
+        lut->Build();
+        std::cout << "[Debug] Applied fallback color scheme: " << fallbackScheme << std::endl;
+    }
+    
+    std::cout << "[Debug] LookupTable built successfully, updating actors..." << std::endl;
+    
+    // 更新所有使用该flow的boundary actors
+    int actorCount = 0;
+    for (size_t i = 0; i < boundarys.size(); i++) {
+        for (size_t j = 0; j < boundarys[i].size(); j++) {
+            auto& boundary = boundarys[i][j];
+            
+            if (boundary.contourActor && boundary.contourActor->GetMapper()) {
+                boundary.contourActor->GetMapper()->SetLookupTable(lut);
+                boundary.contourActor->GetMapper()->Update();
+                actorCount++;
+            }
+            if (boundary.shadeActor && boundary.shadeActor->GetMapper()) {
+                boundary.shadeActor->GetMapper()->SetLookupTable(lut);
+                boundary.shadeActor->GetMapper()->Update();
+                actorCount++;
+            }
+        }
+    }
+    
+    std::cout << "[Debug] Updated " << actorCount << " actors" << std::endl;
+    
+    // 立即刷新渲染
+    if (renderWindow) {
+        std::cout << "[Debug] Rendering..." << std::endl;
+        renderWindow->Render();
+        std::cout << "[Debug] Render complete" << std::endl;
+    } else {
+        std::cerr << "[Warning] renderWindow is null, skipping render" << std::endl;
+    }
+    
+    std::cout << "[Debug] Boundary color scheme updated successfully" << std::endl;
+}
+
+void vtkDisplayWindow::SetCutplaneVariable(int flowNumber)
+{
+    if (flowNumber < 0 || flowNumber >= static_cast<int>(aesReader.GetFlows().size())) {
+        std::cerr << "[Error] Invalid flow number: " << flowNumber << std::endl;
+        return;
+    }
+    
+    std::cout << "[Debug] Setting cutplane variable to flow number: " << flowNumber 
+              << " (" << aesReader.GetFlows()[flowNumber].name << ")" << std::endl;
+    
+    // 更新所有切片的标量数据
+    for (auto& cutplaneActor : deriveds.cutplaneActors) {
+        if (cutplaneActor) {
+            // 设置活动标量数据
+            cutplaneActor->GetMapper()->GetInput()->GetPointData()->SetActiveScalars(
+                aesReader.GetFlows()[flowNumber].name.c_str());
+            
+            // 更新标量范围
+            cutplaneActor->GetMapper()->SetScalarRange(
+                aesReader.GetFlows()[flowNumber].range[0],
+                aesReader.GetFlows()[flowNumber].range[1]);
+            
+            // 设置查找表
+            if (deriveds.cutplaneLookupTable) {
+                deriveds.cutplaneLookupTable->SetRange(
+                    aesReader.GetFlows()[flowNumber].range[0],
+                    aesReader.GetFlows()[flowNumber].range[1]);
+                cutplaneActor->GetMapper()->SetLookupTable(deriveds.cutplaneLookupTable);
+            }
+            
+            cutplaneActor->GetMapper()->Update();
+        }
+    }
+    
+    // 更新标量条（如果存在）
+    if (deriveds.cutplaneScalarBar && deriveds.cutplaneLookupTable) {
+        deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
+        deriveds.cutplaneScalarBar->SetTitle(aesReader.GetFlows()[flowNumber].name.c_str());
+    }
+    
+    std::cout << "[Debug] Cutplane variable updated successfully" << std::endl;
+}
+
+void vtkDisplayWindow::DeleteCutplane(int cutplaneIndex)
+{
+    // 检查索引是否有效
+    if (cutplaneIndex < 0 || cutplaneIndex >= deriveds.cutplanes.size()) {
+        return;
+    }
+    
+    // 从渲染器中移除actor
+    renderer->RemoveActor(deriveds.cutplaneActors[cutplaneIndex]);
+    
+    // 从容器中删除对应的元素
+    deriveds.cutplanes.erase(deriveds.cutplanes.begin() + cutplaneIndex);
+    deriveds.cutters.erase(deriveds.cutters.begin() + cutplaneIndex);
+    deriveds.cutplaneActors.erase(deriveds.cutplaneActors.begin() + cutplaneIndex);
+}
+
+void vtkDisplayWindow::SetSliceContourMode(const QString &mode)
+{
+    if (deriveds.cutplaneActors.empty()) {
+        std::cout << "[Debug] No cutplanes to update" << std::endl;
+        return;
+    }
+    
+    vtkSmartPointer<vtkLookupTable> targetLookupTable;
+    
+    if (mode == "sync with main") {
+        // 使用主模型的颜色映射和变量
+        std::cout <<"[Debug] Sync CurFLow is :"<<curFlow<<std::endl;
+        auto flows = aesReader.GetFlows();
+        if (curFlow >= 0 && curFlow < flows.size()) {
+            vtkScalarsToColors* scalarColors = flows[curFlow].mainScalarBar->GetLookupTable();
+            targetLookupTable = vtkLookupTable::SafeDownCast(scalarColors);
+            
+            if (targetLookupTable) {
+                std::cout << "[Debug] Switching slices to sync with main model (flow: " 
+                          << flows[curFlow].name << ")" << std::endl;
+                
+                // 同步变量类型 - 更新所有切片的标量数据
+                for (auto& cutplaneActor : deriveds.cutplaneActors) {
+                    if (cutplaneActor) {
+                        // 设置与主模型相同的标量变量
+                        cutplaneActor->GetMapper()->GetInput()->GetPointData()->SetActiveScalars(
+                            flows[curFlow].name.c_str());
+                        std::cout << "[Debug] Synced cutplane variable to: " << flows[curFlow].name << std::endl;
+                    }
+                }
+                
+                // 隐藏切片的scalar bar（与主模型共享）
+                HideCutplaneScalarBar();
+            } else {
+                std::cout << "[Error] Failed to cast LookupTable from main model" << std::endl;
+                return;
+            }
+        } else {
+            std::cout << "[Error] Invalid curFlow index: " << curFlow << std::endl;
+            return;
+        }
+    } else if (mode == "isolated") {
+        // 使用独立的颜色映射
+        targetLookupTable = deriveds.cutplaneLookupTable;
+        std::cout << "[Debug] Switching slices to isolated color mapping" << std::endl;
+        
+        // 显示切片的scalar bar（独立模式）
+        ShowCutplaneScalarBar();
+    } else {
+        std::cout << "[Warning] Unknown contour mode: " << mode.toStdString() << std::endl;
+        return;
+    }
+    
+    // 更新所有cutplane的颜色映射
+    for (int i = 0; i < deriveds.cutplaneActors.size(); i++) {
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::SafeDownCast(
+            deriveds.cutplaneActors[i]->GetMapper());
+        if (mapper && targetLookupTable) {
+            mapper->SetLookupTable(targetLookupTable);
+            mapper->SetScalarRange(targetLookupTable->GetRange());
+            std::cout << "[Debug] Updated cutplane " << i << " color mapping" << std::endl;
+        }
+    }
 }

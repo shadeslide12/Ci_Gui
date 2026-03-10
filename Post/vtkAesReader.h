@@ -33,7 +33,7 @@ public:
         std::vector<double> datas;
         std::string name;
         double range[2];
-        vtkSmartPointer<vtkScalarBarActor> scalarBar;
+        vtkSmartPointer<vtkScalarBarActor> mainScalarBar;
         double boundaryRange[2];
     };
 
