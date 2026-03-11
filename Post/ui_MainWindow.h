@@ -146,6 +146,7 @@ public:
     QLineEdit *LEd_Level;
     QLabel *label_19;
     QSlider *Sli_Span;
+    QPushButton *Btn_Apply;
     QWidget *Wi_B2B_3;
     QGridLayout *Wi_B2B_4;
     QLabel *label_BladeToBlade_2;
@@ -220,8 +221,8 @@ public:
         sizePolicy1.setVerticalStretch(0);
         sizePolicy1.setHeightForWidth(tabWidget->sizePolicy().hasHeightForWidth());
         tabWidget->setSizePolicy(sizePolicy1);
-        tabWidget->setMinimumSize(QSize(260, 0));
-        tabWidget->setMaximumSize(QSize(240, 16777215));
+        tabWidget->setMinimumSize(QSize(240, 0));
+        tabWidget->setMaximumSize(QSize(280, 16777215));
         tab_normal = new QWidget();
         tab_normal->setObjectName(QString::fromUtf8("tab_normal"));
         verticalLayout_tab1 = new QVBoxLayout(tab_normal);
@@ -233,7 +234,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents_2 = new QWidget();
         scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
-        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 238, 867));
+        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 254, 867));
         verticalLayout = new QVBoxLayout(scrollAreaWidgetContents_2);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         label_5 = new QLabel(scrollAreaWidgetContents_2);
@@ -470,7 +471,7 @@ public:
         sizePolicy3.setHeightForWidth(widget_5->sizePolicy().hasHeightForWidth());
         widget_5->setSizePolicy(sizePolicy3);
         widget_5->setMinimumSize(QSize(220, 0));
-        widget_5->setMaximumSize(QSize(220, 16777215));
+        widget_5->setMaximumSize(QSize(220, 80));
         gridLayout_4 = new QGridLayout(widget_5);
         gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
         horizontalSpacer_16 = new QSpacerItem(10, 20, QSizePolicy::Policy::Fixed, QSizePolicy::Minimum);
@@ -520,6 +521,8 @@ public:
 
         label_2 = new QLabel(scrollAreaWidgetContents_2);
         label_2->setObjectName(QString::fromUtf8("label_2"));
+        sizePolicy.setHeightForWidth(label_2->sizePolicy().hasHeightForWidth());
+        label_2->setSizePolicy(sizePolicy);
 
         verticalLayout->addWidget(label_2);
 
@@ -569,7 +572,7 @@ public:
 
         verticalLayout->addLayout(horizontalLayout_6);
 
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
+        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Expanding, QSizePolicy::Minimum);
 
         verticalLayout->addItem(verticalSpacer);
 
@@ -679,7 +682,7 @@ public:
         periodicCopyScrollArea->setWidgetResizable(true);
         periodicCopyContainer = new QWidget();
         periodicCopyContainer->setObjectName(QString::fromUtf8("periodicCopyContainer"));
-        periodicCopyContainer->setGeometry(QRect(0, 0, 228, 180));
+        periodicCopyContainer->setGeometry(QRect(0, 0, 248, 180));
         periodicCopyGridLayout = new QGridLayout(periodicCopyContainer);
         periodicCopyGridLayout->setObjectName(QString::fromUtf8("periodicCopyGridLayout"));
         periodicCopyScrollArea->setWidget(periodicCopyContainer);
@@ -764,6 +767,11 @@ public:
         Sli_Span->setOrientation(Qt::Orientation::Horizontal);
 
         Wi_B2B->addWidget(Sli_Span, 5, 1, 1, 1);
+
+        Btn_Apply = new QPushButton(Wi_B2B_2);
+        Btn_Apply->setObjectName(QString::fromUtf8("Btn_Apply"));
+
+        Wi_B2B->addWidget(Btn_Apply, 6, 0, 1, 2);
 
 
         turboSetLayout->addWidget(Wi_B2B_2);
@@ -976,6 +984,7 @@ public:
         label_13->setText(QCoreApplication::translate("MainWindow", "Range Max", nullptr));
         label_14->setText(QCoreApplication::translate("MainWindow", "Levels", nullptr));
         label_19->setText(QCoreApplication::translate("MainWindow", "span", nullptr));
+        Btn_Apply->setText(QCoreApplication::translate("MainWindow", "Apply", nullptr));
         label_BladeToBlade_2->setText(QCoreApplication::translate("MainWindow", "Meridional Plane", nullptr));
         label_17->setText(QCoreApplication::translate("MainWindow", "Variable", nullptr));
         label_15->setText(QCoreApplication::translate("MainWindow", "Range Min", nullptr));

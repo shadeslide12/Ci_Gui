@@ -67,6 +67,8 @@ public:
     
     // 重置所有视图和渲染器，清除之前模型的残留
     void ResetViewsAndRenderers();
+    // 打开新Case时的完整重置
+    void InitializeForNewCase();
     void BladeToBladePlaneButtonTriggered();
 
     // Check if mouse click is on ScalarBar (for double-click to open ColorBarDialog)
@@ -125,7 +127,7 @@ private slots:
     // Blade-to-blade slots
     void AddBladeToBladePlane(double span);
     void ChangeBladeToBladePlaneFlow(int flow);
-    void onSpanSliderChanged(int value);
+    void onSpanSliderChanged();
     
     // Periodic copy slots
     void onCopyZoneChanged(int index);

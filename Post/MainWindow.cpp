@@ -244,10 +244,7 @@ void MainWindow::on_actionLoadMesh_triggered()
     else
     {
         cout << "reading aes grid file " << filename.toStdString() << endl << "please waiting for few seconds!" << endl;
-        
-        // 在加载新模型前清除之前的视图
-        ResetViewsAndRenderers();
-        
+
         on_actionNewWindow_triggered();
 
         qtvtkWindow->ReadAesFile(filename.toStdString());
@@ -315,6 +312,9 @@ void MainWindow::on_actionNewWindow_triggered()
         return;
     }
     cout << "Initialize the VTK Box" << endl;
+
+    InitializeForNewCase();
+
     vtkDisplayWindow *newWindow = new vtkDisplayWindow();
     ui->vtkBox->setRenderWindow(newWindow->GetRenderWindow());
     delete qtvtkWindow;
@@ -352,10 +352,7 @@ void MainWindow::on_actionOpenFile_triggered()
     else if (filename.toStdString().find("grid") != std::string::npos)
     {
         cout << "reading aes grid file " << filename.toStdString() << endl << "please waiting for few seconds!" << endl;
-        
-        // 在加载新模型前清除之前的视图
-        ResetViewsAndRenderers();
-        
+
         on_actionNewWindow_triggered();
         qtvtkWindow->ReadAesFile(filename.toStdString());
         ui->vtkBox->renderWindow()->Render();
@@ -1139,7 +1136,7 @@ void MainWindow::InitializeMainWindow()
     // Span slider connection (0-100 maps to 0.0-1.0)
     ui->Sli_Span->setRange(0, 100);
     ui->Sli_Span->setValue(50);  // Default to 0.5
-    connect(ui->Sli_Span, SIGNAL(valueChanged(int)), this, SLOT(onSpanSliderChanged(int)));
+    connect(ui->Btn_Apply, &QPushButton::clicked, this, &MainWindow::onSpanSliderChanged);
     
     // Periodic copy connections
     connect(ui->com_copy, SIGNAL(currentIndexChanged(int)), this, SLOT(onCopyZoneChanged(int)));
@@ -1407,11 +1404,11 @@ void MainWindow::ChangeBladeToBladePlaneFlow(int flow)
     BladeToBladerenderWindow->Render();
 }
 
-void MainWindow::onSpanSliderChanged(int value)
+void MainWindow::onSpanSliderChanged()
 {
-    double span = value / 100.0;
-    qDebug() << "[B2B] Span slider changed to:" << span;
-    
+    double span = ui->Sli_Span->value() / 100.0;
+    qDebug() << "[B2B] Apply B2B plane at span =" << span;
+
     AddBladeToBladePlane(span);
 }
 
@@ -1673,7 +1670,13 @@ void MainWindow::SetupBladeToBladeView()
     bladeToBladevtkWidget->setRenderWindow(BladeToBladerenderWindow);
     
     qDebug() << "[B2B Setup] Setting up Blade-to-Blade view";
-    
+
+    vtkSmartPointer<vtkInteractorStyleImage> b2bStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
+    if (BladeToBladerenderWindow->GetInteractor())
+    {
+        BladeToBladerenderWindow->GetInteractor()->SetInteractorStyle(b2bStyle);
+    }
+
     // Setup 2D camera (top view, looking down Z-axis)
     vtkCamera* camera = BladeToBladerenderer->GetActiveCamera();
     camera->SetPosition(0, 0, 10);       // Position camera above
@@ -1681,8 +1684,11 @@ void MainWindow::SetupBladeToBladeView()
     camera->SetViewUp(0, 1, 0);          // Y-axis points up
     camera->ParallelProjectionOn();      // Parallel projection for 2D
     
-    // Restore any existing B2B planes if they exist
-    if (!qtvtkWindow->BladeToBladePlaneActor.empty()) {
+    if (qtvtkWindow->BladeToBladePlaneActor.empty()) {
+        double span = ui->Sli_Span->value() / 100.0;
+        qDebug() << "[B2B Setup] No existing B2B plane, creating at current slider span =" << span;
+        AddBladeToBladePlane(span);
+    } else {
         qDebug() << "[B2B Setup] Restoring" << qtvtkWindow->BladeToBladePlaneActor.size() << "existing B2B planes";
         for (int i = 0; i < qtvtkWindow->BladeToBladePlaneActor.size(); i++) {
             BladeToBladerenderer->AddActor(qtvtkWindow->BladeToBladePlaneActor[i]);
@@ -1820,6 +1826,64 @@ void MainWindow::ResetViewsAndRenderers()
     }
     
     cout << "Views and renderers reset completed." << endl;
+}
+
+void MainWindow::InitializeForNewCase()
+{
+    qDebug() << "[InitializeForNewCase] Starting full reset for new case...";
+
+    // 1. 清除 Meridional / Blade-to-Blade 渲染器内容
+    ResetViewsAndRenderers();
+
+    // 2. 切换回单视图（3D View）模式
+    ui->Check_3Dview->setChecked(true);
+    on_Check_3Dview_toggled(true);
+
+    // 3. 禁用 Turbo 面板，新Case须重新 Initialize
+    ui->Wi_TurboSet->setEnabled(false);
+
+    // 4. 重置内部状态标志
+    hasPeriodicCopies = false;
+    periodicCopyBoundaryChecks.clear();
+    savedBoundaryTransparencies.clear();
+
+    // 5. 重置 Blade-to-Blade slider
+    ui->Sli_Span->setValue(50);
+
+    // 6. 清除残留的对话框
+    if (colorBarDialog) {
+        colorBarDialog->close();
+        delete colorBarDialog;
+        colorBarDialog = nullptr;
+    }
+    if (isoSurfaceDialog) {
+        isoSurfaceDialog->close();
+        delete isoSurfaceDialog;
+        isoSurfaceDialog = nullptr;
+    }
+    if (cutPlaneDialog) {
+        cutPlaneDialog->close();
+        delete cutPlaneDialog;
+        cutPlaneDialog = nullptr;
+    }
+    if (controlPanel) {
+        controlPanel->close();
+        delete controlPanel;
+        controlPanel = nullptr;
+    }
+
+    // 7. 关闭探测面板
+    if (probePanel) {
+        probePanel->hide();
+    }
+    if (::style) {
+        ::style->isAddTextActor = false;
+    }
+
+    // 8. 清除 Zone 下拉框
+    ui->com_copy->clear();
+
+    qDebug() << "[InitializeForNewCase] Reset complete.";
 }
 
 //* Turbo Initialize Button
