@@ -3,6 +3,7 @@
 #include "ColorMapPreset.h"
 
 #include <QString>
+#include <QPushButton>
 #include <QColorDialog>
 #include <QCoreApplication>
 #include <QDir>
@@ -28,6 +29,12 @@ ColorBarDialog::ColorBarDialog(QWidget *parent)
     // 连接原有信号
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(setParameters()));
     connect(ui->nameComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeFlowNumber(int)));
+
+    // Apply 按钮：应用参数但不关闭对话框
+    QPushButton* applyBtn = ui->buttonBox->button(QDialogButtonBox::Apply);
+    if (applyBtn) {
+        connect(applyBtn, &QPushButton::clicked, this, &ColorBarDialog::setParameters);
+    }
     
     // 初始化并连接Legend控件
     initializeLegendControls();

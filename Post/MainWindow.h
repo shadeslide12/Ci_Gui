@@ -199,6 +199,10 @@ private:
     void ShowBladeToBladeView();
     void CreateViewLabels();
     void UpdateViewLabels();
+    void SyncViewsWithMainModel(int flowNumber, double minRange, double maxRange);
+
+    bool meridionalInitialized = false;
+    bool b2bInitialized = false;
 
     std::vector<QCheckBox*> periodicCopyBoundaryChecks;
     bool hasPeriodicCopies = false;

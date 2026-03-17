@@ -1126,7 +1126,7 @@ void vtkDisplayWindow::SetBackgroundStyle(const QString &style)
     renderWindow->Render();
 }
 
-std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane(double minRange, double maxRange)
+std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane()
 {
 
   if(MeridionalPlaneActor.empty())
@@ -1171,9 +1171,6 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane(d
 }
 std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeMeridionalFlow(double minRange, double maxRange, int flowNumber)
 {
-    RemoveMeridianActor();
-    MeridionalPlaneActor.clear();
-    
     if (MeridionalPlane.empty()) {
         std::cout << "[DEBUG] MeridionalPlane is empty " << std::endl;
         return {};
@@ -1229,8 +1226,22 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeMeridionalFlow(do
     // 5. Switch Active Scalar (Instant)
     targetPD->GetPointData()->SetActiveScalars(currentFlowName.c_str());
 
+    // Reuse existing actor/mapper if available to avoid expensive object allocation
+    if (!MeridionalPlaneActor.empty()) {
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::SafeDownCast(
+            MeridionalPlaneActor[0]->GetMapper());
+        if (mapper) {
+            mapper->SetInputData(targetPD);
+            mapper->SetLookupTable(Flow[flowNumber].mainScalarBar->GetLookupTable());
+            mapper->SetScalarRange(minRange, maxRange);
+            mapper->Modified();
+            return MeridionalPlaneActor;
+        }
+    }
+
+    // First time: create new mapper and actor
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputData(targetPD); // Use cached data directly
+    mapper->SetInputData(targetPD);
     mapper->SetLookupTable(Flow[flowNumber].mainScalarBar->GetLookupTable());
     mapper->SetScalarRange(minRange, maxRange);
     mapper->Update();
@@ -1441,15 +1452,12 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane
     
     std::cout << "[B2B] Unwrapped to 2D (M'=meridional, Y=r*theta)" << std::endl;
     
-    // Store for later use
-    vtkSmartPointer<vtkContourFilter> dummyFilter = vtkSmartPointer<vtkContourFilter>::New();
-    dummyFilter->SetInputData(unwrappedData);
-    dummyFilter->Update();
-    BladeToBladePlane.emplace_back(dummyFilter);
-    
+    // Store unwrapped polydata directly for later reuse
+    BladeToBladePlane.emplace_back(unwrappedData);
+
     // Set active scalars and create mapper
     unwrappedData->GetPointData()->SetActiveScalars(Flow[curFlow].name.c_str());
-    
+
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputData(unwrappedData);
     mapper->SetScalarRange(Flow[curFlow].range);
@@ -1470,33 +1478,43 @@ std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane
     return actors;
 }
 
-std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeBladeToBladePlaneFlow(int flowNumber)
+std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeBladeToBladePlaneFlow(int flowNumber, double minRange, double maxRange)
 {
-    std::vector<vtkSmartPointer<vtkActor>> actors;
+    if (BladeToBladePlane.empty())
+        return {};
+
     auto Flow = aesReader.GetFlows();
-    
-    BladeToBladePlaneActor.clear();
-    
-    for(int i = 0; i < BladeToBladePlane.size(); i++)
-    {
-        BladeToBladePlane[i]->GetOutput()->GetPointData()->SetActiveScalars(Flow[flowNumber].name.c_str());
-        vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-        mapper->SetInputConnection(BladeToBladePlane[i]->GetOutputPort());
-        mapper->SetScalarRange(Flow[flowNumber].range);
-        mapper->SetLookupTable(Flow[flowNumber].mainScalarBar->GetLookupTable());
-        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-        actor->SetMapper(mapper);
-        
-        // Disable lighting for 2D plane to avoid shading artifacts
-        actor->GetProperty()->SetAmbient(1.0);   // Full ambient lighting
-        actor->GetProperty()->SetDiffuse(0.0);   // No diffuse lighting
-        actor->GetProperty()->SetSpecular(0.0);  // No specular lighting
-        
-        BladeToBladePlaneActor.emplace_back(actor);
-        actors.emplace_back(actor);
+    vtkPolyData* pd = BladeToBladePlane[0];
+    pd->GetPointData()->SetActiveScalars(Flow[flowNumber].name.c_str());
+
+    // Reuse existing actor/mapper if available to avoid expensive object allocation
+    if (!BladeToBladePlaneActor.empty()) {
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::SafeDownCast(
+            BladeToBladePlaneActor[0]->GetMapper());
+        if (mapper) {
+            mapper->SetInputData(pd);
+            mapper->SetLookupTable(Flow[flowNumber].mainScalarBar->GetLookupTable());
+            mapper->SetScalarRange(minRange, maxRange);
+            mapper->Modified();
+            return BladeToBladePlaneActor;
+        }
     }
-    
-    return actors;
+
+    // First time: create new actor
+    BladeToBladePlaneActor.clear();
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputData(pd);
+    mapper->SetScalarRange(minRange, maxRange);
+    mapper->SetLookupTable(Flow[flowNumber].mainScalarBar->GetLookupTable());
+
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetAmbient(1.0);
+    actor->GetProperty()->SetDiffuse(0.0);
+    actor->GetProperty()->SetSpecular(0.0);
+
+    BladeToBladePlaneActor.emplace_back(actor);
+    return BladeToBladePlaneActor;
 }
 
 vtkSmartPointer<vtkPolyData> ConvertUnstructuredGridToPolyData(vtkSmartPointer<vtkUnstructuredGrid> unstructuredGrid)

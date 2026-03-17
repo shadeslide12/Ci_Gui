@@ -694,6 +694,12 @@ void MainWindow::contourSettingButtonTriggered()
                 [this](int flowNumber, int colorMapIndex, bool reverse) {
                     qtvtkWindow->SetBoundaryColorScheme(flowNumber, colorMapIndex, reverse);
                     ui->vtkBox->renderWindow()->Render();
+                    if (MeridionalrenderWindow && meridionalViewContainer && meridionalViewContainer->isVisible()) {
+                        MeridionalrenderWindow->Render();
+                    }
+                    if (BladeToBladerenderWindow && bladeToBladeViewContainer && bladeToBladeViewContainer->isVisible()) {
+                        BladeToBladerenderWindow->Render();
+                    }
                 });
         
         colorBarDialog->setWindowModality(Qt::ApplicationModal);
@@ -715,6 +721,41 @@ void MainWindow::setColorBar(double m, double M, int number, int flowNumber, dou
     qtvtkWindow->SetScalarBar(m,M,number,flowNumber);
     qtvtkWindow->SetScalarBarSize(width, height);
     ui->vtkBox->renderWindow()->Render();
+
+    auto flows = qtvtkWindow->GetFlows();
+    if (flowNumber >= 0 && flowNumber < static_cast<int>(flows.size())) {
+        SyncViewsWithMainModel(flowNumber, m, M);
+    }
+}
+
+void MainWindow::SyncViewsWithMainModel(int flowNumber, double minRange, double maxRange)
+{
+    if (!qtvtkWindow || !qtvtkWindow->HasGrid())
+        return;
+
+    // Meridional View
+    if (!qtvtkWindow->MeridionalPlane.empty()) {
+        Meridionalrenderer->RemoveAllViewProps();
+        auto actors = qtvtkWindow->ChangeMeridionalFlow(minRange, maxRange, flowNumber);
+        for (auto& actor : actors) {
+            Meridionalrenderer->AddActor(actor);
+        }
+        if (MeridionalrenderWindow && meridionalViewContainer && meridionalViewContainer->isVisible()) {
+            MeridionalrenderWindow->Render();
+        }
+    }
+
+    // Blade-to-Blade View
+    if (!qtvtkWindow->BladeToBladePlane.empty()) {
+        BladeToBladerenderer->RemoveAllViewProps();
+        auto actors = qtvtkWindow->ChangeBladeToBladePlaneFlow(flowNumber, minRange, maxRange);
+        for (auto& actor : actors) {
+            BladeToBladerenderer->AddActor(actor);
+        }
+        if (BladeToBladerenderWindow && bladeToBladeViewContainer && bladeToBladeViewContainer->isVisible()) {
+            BladeToBladerenderWindow->Render();
+        }
+    }
 }
 
 bool MainWindow::IsClickOnScalarBar()
@@ -1140,7 +1181,7 @@ void MainWindow::InitializeMainWindow()
     
     // Periodic copy connections
     connect(ui->com_copy, SIGNAL(currentIndexChanged(int)), this, SLOT(onCopyZoneChanged(int)));
-    connect(ui->Led_Copy, SIGNAL(returnPressed()), this, SLOT(onPeriodicCopyRequested()));
+    connect(ui->Btn_ApplyCopy, &QPushButton::clicked, this, &MainWindow::onPeriodicCopyRequested);
     connect(ui->Btn_ClearAllZoneCopy, &QPushButton::clicked, this, [this]() {
         if (qtvtkWindow && qtvtkWindow->HasGrid())
         {
@@ -1264,7 +1305,7 @@ void MainWindow::SetIcons()
     ui->actionAddScalarBarActor->setIcon(QIcon((iconPath+"colorbar.png").c_str()));
     ui->actionAddOutlineActor->setIcon(QIcon((iconPath+"boundbox.png").c_str()));
     ui->actionAddPointInformation->setIcon(QIcon((iconPath+"text.png").c_str()));
-    ui->actionCalculatorFunction->setIcon(QIcon((iconPath+"calculator.png").c_str()));
+    // ui->actionCalculatorFunction->setIcon(QIcon((iconPath+"calculator.png").c_str()));
     ui->actionNewWindow->setIcon(QIcon((iconPath+"newwindow.png").c_str()));
     QIcon checkedIcon((iconPath+"open.png").c_str());
 }
@@ -1392,11 +1433,11 @@ void MainWindow::AddBladeToBladePlane(double span)
 
 void MainWindow::ChangeBladeToBladePlaneFlow(int flow)
 {
-    // Remove old actors
     BladeToBladerenderer->RemoveAllViewProps();
-    
-    // Create new actors with updated flow variable
-    auto actors = qtvtkWindow->ChangeBladeToBladePlaneFlow(flow);
+    auto flows = qtvtkWindow->GetFlows();
+    double minRange = (flow >= 0 && flow < static_cast<int>(flows.size())) ? flows[flow].range[0] : 0.0;
+    double maxRange = (flow >= 0 && flow < static_cast<int>(flows.size())) ? flows[flow].range[1] : 1.0;
+    auto actors = qtvtkWindow->ChangeBladeToBladePlaneFlow(flow, minRange, maxRange);
     for (int i = 0; i < actors.size(); i++)
     {
         BladeToBladerenderer->AddActor(actors[i]);
@@ -1638,7 +1679,7 @@ void MainWindow::on_CBtn_BackGround_currentTextChanged(const QString &text)
 // 视图管理辅助方法实现
 void MainWindow::SetupMeridionalView()
 {
-    if (qtvtkWindow->MeridionalPlaneActor.empty())
+    if (!meridionalInitialized)
     {
         // 设置背景
         SetViewBackground(Meridionalrenderer, ui->CBtn_BackGround->currentText());
@@ -1653,49 +1694,50 @@ void MainWindow::SetupMeridionalView()
         }
         
         // 创建Meridional平面
-        auto plane = qtvtkWindow->CreateMeridionalPlane(0, 10);
+        auto plane = qtvtkWindow->CreateMeridionalPlane();
         for (int i = 0; i < plane.size(); i++)
         {
             Meridionalrenderer->AddActor(plane[i]);
         }
         MeridionalrenderWindow->Render();
+        meridionalInitialized = true;
     }
 }
 
 void MainWindow::SetupBladeToBladeView()
 {
-    // 设置背景
-    SetViewBackground(BladeToBladerenderer, ui->CBtn_BackGround->currentText());
-    BladeToBladerenderWindow->AddRenderer(BladeToBladerenderer);
-    bladeToBladevtkWidget->setRenderWindow(BladeToBladerenderWindow);
-    
-    qDebug() << "[B2B Setup] Setting up Blade-to-Blade view";
+    if (!b2bInitialized) {
+        SetViewBackground(BladeToBladerenderer, ui->CBtn_BackGround->currentText());
+        BladeToBladerenderWindow->AddRenderer(BladeToBladerenderer);
+        bladeToBladevtkWidget->setRenderWindow(BladeToBladerenderWindow);
 
-    vtkSmartPointer<vtkInteractorStyleImage> b2bStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
-    if (BladeToBladerenderWindow->GetInteractor())
-    {
-        BladeToBladerenderWindow->GetInteractor()->SetInteractorStyle(b2bStyle);
+        vtkSmartPointer<vtkInteractorStyleImage> b2bStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
+        if (BladeToBladerenderWindow->GetInteractor()) {
+            BladeToBladerenderWindow->GetInteractor()->SetInteractorStyle(b2bStyle);
+        }
+
+        // Set 2D camera defaults only once
+        vtkCamera* camera = BladeToBladerenderer->GetActiveCamera();
+        camera->SetPosition(0, 0, 10);
+        camera->SetFocalPoint(0, 0, 0);
+        camera->SetViewUp(0, 1, 0);
+        camera->ParallelProjectionOn();
+
+        b2bInitialized = true;
+        qDebug() << "[B2B Setup] Initialized Blade-to-Blade view";
     }
 
-    // Setup 2D camera (top view, looking down Z-axis)
-    vtkCamera* camera = BladeToBladerenderer->GetActiveCamera();
-    camera->SetPosition(0, 0, 10);       // Position camera above
-    camera->SetFocalPoint(0, 0, 0);      // Look at Z=0 plane
-    camera->SetViewUp(0, 1, 0);          // Y-axis points up
-    camera->ParallelProjectionOn();      // Parallel projection for 2D
-    
     if (qtvtkWindow->BladeToBladePlaneActor.empty()) {
         double span = ui->Sli_Span->value() / 100.0;
-        qDebug() << "[B2B Setup] No existing B2B plane, creating at current slider span =" << span;
+        qDebug() << "[B2B Setup] No existing B2B plane, creating at span =" << span;
         AddBladeToBladePlane(span);
     } else {
         qDebug() << "[B2B Setup] Restoring" << qtvtkWindow->BladeToBladePlaneActor.size() << "existing B2B planes";
         for (int i = 0; i < qtvtkWindow->BladeToBladePlaneActor.size(); i++) {
             BladeToBladerenderer->AddActor(qtvtkWindow->BladeToBladePlaneActor[i]);
         }
-        BladeToBladerenderer->ResetCamera();
     }
-    
+
     BladeToBladerenderWindow->Render();
 }
 
@@ -1844,8 +1886,18 @@ void MainWindow::InitializeForNewCase()
 
     // 4. 重置内部状态标志
     hasPeriodicCopies = false;
+    meridionalInitialized = false;
+    b2bInitialized = false;
     periodicCopyBoundaryChecks.clear();
     savedBoundaryTransparencies.clear();
+
+    // 4b. 清空 VTK 平面数据和 Actor 向量
+    if (qtvtkWindow) {
+        qtvtkWindow->MeridionalPlane.clear();
+        qtvtkWindow->MeridionalPlaneActor.clear();
+        qtvtkWindow->BladeToBladePlane.clear();
+        qtvtkWindow->BladeToBladePlaneActor.clear();
+    }
 
     // 5. 重置 Blade-to-Blade slider
     ui->Sli_Span->setValue(50);

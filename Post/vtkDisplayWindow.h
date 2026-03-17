@@ -192,21 +192,21 @@ public:
 
     double* GetModelBounds();
 
-    std::vector<vtkSmartPointer<vtkActor>> CreateMeridionalPlane(double minRange, double maxRange);
+    std::vector<vtkSmartPointer<vtkActor>> CreateMeridionalPlane();
     void CreateConstHeight(double height);
     std::vector<vtkSmartPointer<vtkActor>> ChangeMeridionalFlow(double minRange, double maxRange, int flowNumber);
     void ChangeConstHeightFlow(int flowNumber);
     
     // Blade-to-blade functions (similar to ConstHeight)
     std::vector<vtkSmartPointer<vtkActor>> CreateBladeToBladePlane(double span);
-    std::vector<vtkSmartPointer<vtkActor>> ChangeBladeToBladePlaneFlow(int flowNumber);
+    std::vector<vtkSmartPointer<vtkActor>> ChangeBladeToBladePlaneFlow(int flowNumber, double minRange, double maxRange);
     
     std::vector<vtkSmartPointer<vtkActor>> MeridionalPlaneActor;
     std::vector<vtkSmartPointer<vtkActor>> ConstHeightPlaneActor;
     std::vector<vtkSmartPointer<vtkPolyData>> MeridionalPlane;
     std::vector<vtkSmartPointer<vtkContourFilter>> ConstHeightPlane;
     std::vector<vtkSmartPointer<vtkActor>> BladeToBladePlaneActor;
-    std::vector<vtkSmartPointer<vtkContourFilter>> BladeToBladePlane;
+    std::vector<vtkSmartPointer<vtkPolyData>> BladeToBladePlane;
 private:
     vtkSmartPointer<vtkRenderer> renderer;
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow;

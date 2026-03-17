@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1666</width>
-    <height>1000</height>
+    <height>1031</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -61,7 +61,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QTabWidget" name="tabWidget">
+        <widget class="QTabWidget" name="tabWidget_Control">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -108,7 +108,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>254</width>
-                <height>867</height>
+                <height>898</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout">
@@ -990,6 +990,12 @@
            </property>
            <item>
             <widget class="QLabel" name="label_3">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="font">
               <font>
                <pointsize>11</pointsize>
@@ -1037,6 +1043,12 @@
               </property>
               <item>
                <widget class="QWidget" name="Wi_BasicInfo" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <layout class="QVBoxLayout" name="basicInfoLayout">
                  <property name="spacing">
                   <number>2</number>
@@ -1113,8 +1125,14 @@
               </item>
               <item>
                <widget class="QWidget" name="Wi_Copy" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <layout class="QGridLayout" name="gridLayout_3">
-                 <item row="0" column="0" colspan="2">
+                 <item row="0" column="0" colspan="3">
                   <widget class="QLabel" name="label_8">
                    <property name="font">
                     <font>
@@ -1140,7 +1158,7 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="1">
+                 <item row="1" column="1" colspan="2">
                   <widget class="QComboBox" name="com_copy"/>
                  </item>
                  <item row="2" column="0">
@@ -1156,15 +1174,21 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="1">
+                 <item row="2" column="1" colspan="2">
                   <widget class="QLineEdit" name="Led_Copy"/>
                  </item>
-                 <item row="3" column="0" colspan="2">
+                 <item row="3" column="0" colspan="3">
                   <widget class="QScrollArea" name="periodicCopyScrollArea">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="minimumSize">
                     <size>
                      <width>0</width>
-                     <height>180</height>
+                     <height>270</height>
                     </size>
                    </property>
                    <property name="frameShape">
@@ -1182,7 +1206,7 @@
                       <x>0</x>
                       <y>0</y>
                       <width>248</width>
-                      <height>180</height>
+                      <height>270</height>
                      </rect>
                     </property>
                     <layout class="QGridLayout" name="periodicCopyGridLayout"/>
@@ -1190,13 +1214,20 @@
                   </widget>
                  </item>
                  <item row="4" column="0">
+                  <widget class="QPushButton" name="Btn_ApplyCopy">
+                   <property name="text">
+                    <string>Apply</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="1">
                   <widget class="QPushButton" name="Btn_ClearCopyCurrentZone">
                    <property name="text">
                     <string>Clear</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="4" column="1">
+                 <item row="4" column="2">
                   <widget class="QPushButton" name="Btn_ClearAllZoneCopy">
                    <property name="text">
                     <string>Clear All</string>
@@ -1208,7 +1239,40 @@
               </item>
               <item>
                <widget class="QWidget" name="Wi_B2B_2" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <layout class="QGridLayout" name="Wi_B2B">
+                 <item row="1" column="1">
+                  <widget class="QSlider" name="Sli_Span">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_19">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>span</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0" colspan="2">
+                  <widget class="QPushButton" name="Btn_Apply">
+                   <property name="text">
+                    <string>Apply</string>
+                   </property>
+                  </widget>
+                 </item>
                  <item row="0" column="0" colspan="2">
                   <widget class="QLabel" name="label_BladeToBlade">
                    <property name="font">
@@ -1222,198 +1286,14 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_11">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Variable</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QComboBox" name="com_Variable"/>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_12">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Range Min</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QLineEdit" name="LEd_range_Min"/>
-                 </item>
-                 <item row="3" column="0">
-                  <widget class="QLabel" name="label_13">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Range Max</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="1">
-                  <widget class="QLineEdit" name="LEd_range_Max"/>
-                 </item>
-                 <item row="4" column="0">
-                  <widget class="QLabel" name="label_14">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Levels</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="4" column="1">
-                  <widget class="QLineEdit" name="LEd_Level"/>
-                 </item>
-                 <item row="5" column="0">
-                  <widget class="QLabel" name="label_19">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>span</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="5" column="1">
-                  <widget class="QSlider" name="Sli_Span">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="6" column="0" colspan="2">
-                  <widget class="QPushButton" name="Btn_Apply">
-                   <property name="text">
-                    <string>Apply</string>
-                   </property>
-                  </widget>
-                 </item>
                 </layout>
                </widget>
-              </item>
-              <item>
-               <widget class="QWidget" name="Wi_B2B_3" native="true">
-                <layout class="QGridLayout" name="Wi_B2B_4">
-                 <item row="0" column="0" colspan="2">
-                  <widget class="QLabel" name="label_BladeToBlade_2">
-                   <property name="font">
-                    <font>
-                     <pointsize>11</pointsize>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Meridional Plane</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_17">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Variable</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QComboBox" name="comboBox_3"/>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_15">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Range Min</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QLineEdit" name="LEd_range_Min_2"/>
-                 </item>
-                 <item row="3" column="0">
-                  <widget class="QLabel" name="label_16">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Range Max</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="1">
-                  <widget class="QLineEdit" name="LEd_range_Max_2"/>
-                 </item>
-                 <item row="4" column="0">
-                  <widget class="QLabel" name="label_18">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Levels</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="4" column="1">
-                  <widget class="QLineEdit" name="LEd_Level_2"/>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <spacer name="turboVerticalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Orientation::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
               </item>
              </layout>
             </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="wi_expan" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1494,7 +1374,6 @@
    <addaction name="actionAddAxisActor"/>
    <addaction name="actionAddOutlineActor"/>
    <addaction name="actionAddPointInformation"/>
-   <addaction name="actionCalculatorFunction"/>
   </widget>
   <action name="actionOpenFile">
    <property name="text">
@@ -1547,6 +1426,9 @@
    </property>
   </action>
   <action name="actionCalculatorFunction">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>CalculatorFunction</string>
    </property>

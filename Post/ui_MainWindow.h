@@ -51,7 +51,7 @@ public:
     QHBoxLayout *horizontalLayout_2;
     QWidget *widget_2;
     QHBoxLayout *horizontalLayout_3;
-    QTabWidget *tabWidget;
+    QTabWidget *tabWidget_Control;
     QWidget *tab_normal;
     QVBoxLayout *verticalLayout_tab1;
     QScrollArea *scrollArea;
@@ -131,34 +131,16 @@ public:
     QScrollArea *periodicCopyScrollArea;
     QWidget *periodicCopyContainer;
     QGridLayout *periodicCopyGridLayout;
+    QPushButton *Btn_ApplyCopy;
     QPushButton *Btn_ClearCopyCurrentZone;
     QPushButton *Btn_ClearAllZoneCopy;
     QWidget *Wi_B2B_2;
     QGridLayout *Wi_B2B;
-    QLabel *label_BladeToBlade;
-    QLabel *label_11;
-    QComboBox *com_Variable;
-    QLabel *label_12;
-    QLineEdit *LEd_range_Min;
-    QLabel *label_13;
-    QLineEdit *LEd_range_Max;
-    QLabel *label_14;
-    QLineEdit *LEd_Level;
-    QLabel *label_19;
     QSlider *Sli_Span;
+    QLabel *label_19;
     QPushButton *Btn_Apply;
-    QWidget *Wi_B2B_3;
-    QGridLayout *Wi_B2B_4;
-    QLabel *label_BladeToBlade_2;
-    QLabel *label_17;
-    QComboBox *comboBox_3;
-    QLabel *label_15;
-    QLineEdit *LEd_range_Min_2;
-    QLabel *label_16;
-    QLineEdit *LEd_range_Max_2;
-    QLabel *label_18;
-    QLineEdit *LEd_Level_2;
-    QSpacerItem *turboVerticalSpacer;
+    QLabel *label_BladeToBlade;
+    QWidget *wi_expan;
     QVBoxLayout *VTKLayout;
     QVTKOpenGLNativeWidget *vtkBox;
     QMenuBar *menubar;
@@ -171,7 +153,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(1666, 1000);
+        MainWindow->resize(1666, 1031);
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -197,6 +179,7 @@ public:
         actionAddPointInformation->setObjectName(QString::fromUtf8("actionAddPointInformation"));
         actionCalculatorFunction = new QAction(MainWindow);
         actionCalculatorFunction->setObjectName(QString::fromUtf8("actionCalculatorFunction"));
+        actionCalculatorFunction->setEnabled(true);
         actionNewWindow = new QAction(MainWindow);
         actionNewWindow->setObjectName(QString::fromUtf8("actionNewWindow"));
         actionExport_Picture = new QAction(MainWindow);
@@ -213,16 +196,16 @@ public:
         horizontalLayout_3->setSpacing(0);
         horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
         horizontalLayout_3->setContentsMargins(0, 0, 0, 0);
-        tabWidget = new QTabWidget(widget_2);
-        tabWidget->setObjectName(QString::fromUtf8("tabWidget"));
-        tabWidget->setEnabled(true);
+        tabWidget_Control = new QTabWidget(widget_2);
+        tabWidget_Control->setObjectName(QString::fromUtf8("tabWidget_Control"));
+        tabWidget_Control->setEnabled(true);
         QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Expanding);
         sizePolicy1.setHorizontalStretch(0);
         sizePolicy1.setVerticalStretch(0);
-        sizePolicy1.setHeightForWidth(tabWidget->sizePolicy().hasHeightForWidth());
-        tabWidget->setSizePolicy(sizePolicy1);
-        tabWidget->setMinimumSize(QSize(240, 0));
-        tabWidget->setMaximumSize(QSize(280, 16777215));
+        sizePolicy1.setHeightForWidth(tabWidget_Control->sizePolicy().hasHeightForWidth());
+        tabWidget_Control->setSizePolicy(sizePolicy1);
+        tabWidget_Control->setMinimumSize(QSize(240, 0));
+        tabWidget_Control->setMaximumSize(QSize(280, 16777215));
         tab_normal = new QWidget();
         tab_normal->setObjectName(QString::fromUtf8("tab_normal"));
         verticalLayout_tab1 = new QVBoxLayout(tab_normal);
@@ -234,7 +217,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents_2 = new QWidget();
         scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
-        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 254, 867));
+        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 254, 898));
         verticalLayout = new QVBoxLayout(scrollAreaWidgetContents_2);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         label_5 = new QLabel(scrollAreaWidgetContents_2);
@@ -580,7 +563,7 @@ public:
 
         verticalLayout_tab1->addWidget(scrollArea);
 
-        tabWidget->addTab(tab_normal, QString());
+        tabWidget_Control->addTab(tab_normal, QString());
         tab_turbo = new QWidget();
         tab_turbo->setObjectName(QString::fromUtf8("tab_turbo"));
         turboTabLayout = new QVBoxLayout(tab_turbo);
@@ -588,6 +571,8 @@ public:
         turboTabLayout->setContentsMargins(4, 4, 4, 4);
         label_3 = new QLabel(tab_turbo);
         label_3->setObjectName(QString::fromUtf8("label_3"));
+        sizePolicy.setHeightForWidth(label_3->sizePolicy().hasHeightForWidth());
+        label_3->setSizePolicy(sizePolicy);
         label_3->setFont(font);
 
         turboTabLayout->addWidget(label_3);
@@ -607,6 +592,8 @@ public:
         turboSetLayout->setContentsMargins(0, 0, 0, 0);
         Wi_BasicInfo = new QWidget(Wi_TurboSet);
         Wi_BasicInfo->setObjectName(QString::fromUtf8("Wi_BasicInfo"));
+        sizePolicy.setHeightForWidth(Wi_BasicInfo->sizePolicy().hasHeightForWidth());
+        Wi_BasicInfo->setSizePolicy(sizePolicy);
         basicInfoLayout = new QVBoxLayout(Wi_BasicInfo);
         basicInfoLayout->setSpacing(2);
         basicInfoLayout->setObjectName(QString::fromUtf8("basicInfoLayout"));
@@ -641,13 +628,15 @@ public:
 
         Wi_Copy = new QWidget(Wi_TurboSet);
         Wi_Copy->setObjectName(QString::fromUtf8("Wi_Copy"));
+        sizePolicy.setHeightForWidth(Wi_Copy->sizePolicy().hasHeightForWidth());
+        Wi_Copy->setSizePolicy(sizePolicy);
         gridLayout_3 = new QGridLayout(Wi_Copy);
         gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
         label_8 = new QLabel(Wi_Copy);
         label_8->setObjectName(QString::fromUtf8("label_8"));
         label_8->setFont(font);
 
-        gridLayout_3->addWidget(label_8, 0, 0, 1, 2);
+        gridLayout_3->addWidget(label_8, 0, 0, 1, 3);
 
         label_9 = new QLabel(Wi_Copy);
         label_9->setObjectName(QString::fromUtf8("label_9"));
@@ -661,7 +650,7 @@ public:
         com_copy = new QComboBox(Wi_Copy);
         com_copy->setObjectName(QString::fromUtf8("com_copy"));
 
-        gridLayout_3->addWidget(com_copy, 1, 1, 1, 1);
+        gridLayout_3->addWidget(com_copy, 1, 1, 1, 2);
 
         label_10 = new QLabel(Wi_Copy);
         label_10->setObjectName(QString::fromUtf8("label_10"));
@@ -672,177 +661,89 @@ public:
         Led_Copy = new QLineEdit(Wi_Copy);
         Led_Copy->setObjectName(QString::fromUtf8("Led_Copy"));
 
-        gridLayout_3->addWidget(Led_Copy, 2, 1, 1, 1);
+        gridLayout_3->addWidget(Led_Copy, 2, 1, 1, 2);
 
         periodicCopyScrollArea = new QScrollArea(Wi_Copy);
         periodicCopyScrollArea->setObjectName(QString::fromUtf8("periodicCopyScrollArea"));
-        periodicCopyScrollArea->setMinimumSize(QSize(0, 180));
+        QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        sizePolicy4.setHorizontalStretch(0);
+        sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(periodicCopyScrollArea->sizePolicy().hasHeightForWidth());
+        periodicCopyScrollArea->setSizePolicy(sizePolicy4);
+        periodicCopyScrollArea->setMinimumSize(QSize(0, 270));
         periodicCopyScrollArea->setFrameShape(QFrame::Shape::NoFrame);
         periodicCopyScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
         periodicCopyScrollArea->setWidgetResizable(true);
         periodicCopyContainer = new QWidget();
         periodicCopyContainer->setObjectName(QString::fromUtf8("periodicCopyContainer"));
-        periodicCopyContainer->setGeometry(QRect(0, 0, 248, 180));
+        periodicCopyContainer->setGeometry(QRect(0, 0, 248, 270));
         periodicCopyGridLayout = new QGridLayout(periodicCopyContainer);
         periodicCopyGridLayout->setObjectName(QString::fromUtf8("periodicCopyGridLayout"));
         periodicCopyScrollArea->setWidget(periodicCopyContainer);
 
-        gridLayout_3->addWidget(periodicCopyScrollArea, 3, 0, 1, 2);
+        gridLayout_3->addWidget(periodicCopyScrollArea, 3, 0, 1, 3);
+
+        Btn_ApplyCopy = new QPushButton(Wi_Copy);
+        Btn_ApplyCopy->setObjectName(QString::fromUtf8("Btn_ApplyCopy"));
+
+        gridLayout_3->addWidget(Btn_ApplyCopy, 4, 0, 1, 1);
 
         Btn_ClearCopyCurrentZone = new QPushButton(Wi_Copy);
         Btn_ClearCopyCurrentZone->setObjectName(QString::fromUtf8("Btn_ClearCopyCurrentZone"));
 
-        gridLayout_3->addWidget(Btn_ClearCopyCurrentZone, 4, 0, 1, 1);
+        gridLayout_3->addWidget(Btn_ClearCopyCurrentZone, 4, 1, 1, 1);
 
         Btn_ClearAllZoneCopy = new QPushButton(Wi_Copy);
         Btn_ClearAllZoneCopy->setObjectName(QString::fromUtf8("Btn_ClearAllZoneCopy"));
 
-        gridLayout_3->addWidget(Btn_ClearAllZoneCopy, 4, 1, 1, 1);
+        gridLayout_3->addWidget(Btn_ClearAllZoneCopy, 4, 2, 1, 1);
 
 
         turboSetLayout->addWidget(Wi_Copy);
 
         Wi_B2B_2 = new QWidget(Wi_TurboSet);
         Wi_B2B_2->setObjectName(QString::fromUtf8("Wi_B2B_2"));
+        sizePolicy.setHeightForWidth(Wi_B2B_2->sizePolicy().hasHeightForWidth());
+        Wi_B2B_2->setSizePolicy(sizePolicy);
         Wi_B2B = new QGridLayout(Wi_B2B_2);
         Wi_B2B->setObjectName(QString::fromUtf8("Wi_B2B"));
+        Sli_Span = new QSlider(Wi_B2B_2);
+        Sli_Span->setObjectName(QString::fromUtf8("Sli_Span"));
+        Sli_Span->setOrientation(Qt::Orientation::Horizontal);
+
+        Wi_B2B->addWidget(Sli_Span, 1, 1, 1, 1);
+
+        label_19 = new QLabel(Wi_B2B_2);
+        label_19->setObjectName(QString::fromUtf8("label_19"));
+        label_19->setFont(font3);
+
+        Wi_B2B->addWidget(label_19, 1, 0, 1, 1);
+
+        Btn_Apply = new QPushButton(Wi_B2B_2);
+        Btn_Apply->setObjectName(QString::fromUtf8("Btn_Apply"));
+
+        Wi_B2B->addWidget(Btn_Apply, 2, 0, 1, 2);
+
         label_BladeToBlade = new QLabel(Wi_B2B_2);
         label_BladeToBlade->setObjectName(QString::fromUtf8("label_BladeToBlade"));
         label_BladeToBlade->setFont(font);
 
         Wi_B2B->addWidget(label_BladeToBlade, 0, 0, 1, 2);
 
-        label_11 = new QLabel(Wi_B2B_2);
-        label_11->setObjectName(QString::fromUtf8("label_11"));
-        label_11->setFont(font3);
-
-        Wi_B2B->addWidget(label_11, 1, 0, 1, 1);
-
-        com_Variable = new QComboBox(Wi_B2B_2);
-        com_Variable->setObjectName(QString::fromUtf8("com_Variable"));
-
-        Wi_B2B->addWidget(com_Variable, 1, 1, 1, 1);
-
-        label_12 = new QLabel(Wi_B2B_2);
-        label_12->setObjectName(QString::fromUtf8("label_12"));
-        label_12->setFont(font3);
-
-        Wi_B2B->addWidget(label_12, 2, 0, 1, 1);
-
-        LEd_range_Min = new QLineEdit(Wi_B2B_2);
-        LEd_range_Min->setObjectName(QString::fromUtf8("LEd_range_Min"));
-
-        Wi_B2B->addWidget(LEd_range_Min, 2, 1, 1, 1);
-
-        label_13 = new QLabel(Wi_B2B_2);
-        label_13->setObjectName(QString::fromUtf8("label_13"));
-        label_13->setFont(font3);
-
-        Wi_B2B->addWidget(label_13, 3, 0, 1, 1);
-
-        LEd_range_Max = new QLineEdit(Wi_B2B_2);
-        LEd_range_Max->setObjectName(QString::fromUtf8("LEd_range_Max"));
-
-        Wi_B2B->addWidget(LEd_range_Max, 3, 1, 1, 1);
-
-        label_14 = new QLabel(Wi_B2B_2);
-        label_14->setObjectName(QString::fromUtf8("label_14"));
-        label_14->setFont(font3);
-
-        Wi_B2B->addWidget(label_14, 4, 0, 1, 1);
-
-        LEd_Level = new QLineEdit(Wi_B2B_2);
-        LEd_Level->setObjectName(QString::fromUtf8("LEd_Level"));
-
-        Wi_B2B->addWidget(LEd_Level, 4, 1, 1, 1);
-
-        label_19 = new QLabel(Wi_B2B_2);
-        label_19->setObjectName(QString::fromUtf8("label_19"));
-        label_19->setFont(font3);
-
-        Wi_B2B->addWidget(label_19, 5, 0, 1, 1);
-
-        Sli_Span = new QSlider(Wi_B2B_2);
-        Sli_Span->setObjectName(QString::fromUtf8("Sli_Span"));
-        Sli_Span->setOrientation(Qt::Orientation::Horizontal);
-
-        Wi_B2B->addWidget(Sli_Span, 5, 1, 1, 1);
-
-        Btn_Apply = new QPushButton(Wi_B2B_2);
-        Btn_Apply->setObjectName(QString::fromUtf8("Btn_Apply"));
-
-        Wi_B2B->addWidget(Btn_Apply, 6, 0, 1, 2);
-
 
         turboSetLayout->addWidget(Wi_B2B_2);
-
-        Wi_B2B_3 = new QWidget(Wi_TurboSet);
-        Wi_B2B_3->setObjectName(QString::fromUtf8("Wi_B2B_3"));
-        Wi_B2B_4 = new QGridLayout(Wi_B2B_3);
-        Wi_B2B_4->setObjectName(QString::fromUtf8("Wi_B2B_4"));
-        label_BladeToBlade_2 = new QLabel(Wi_B2B_3);
-        label_BladeToBlade_2->setObjectName(QString::fromUtf8("label_BladeToBlade_2"));
-        label_BladeToBlade_2->setFont(font);
-
-        Wi_B2B_4->addWidget(label_BladeToBlade_2, 0, 0, 1, 2);
-
-        label_17 = new QLabel(Wi_B2B_3);
-        label_17->setObjectName(QString::fromUtf8("label_17"));
-        label_17->setFont(font3);
-
-        Wi_B2B_4->addWidget(label_17, 1, 0, 1, 1);
-
-        comboBox_3 = new QComboBox(Wi_B2B_3);
-        comboBox_3->setObjectName(QString::fromUtf8("comboBox_3"));
-
-        Wi_B2B_4->addWidget(comboBox_3, 1, 1, 1, 1);
-
-        label_15 = new QLabel(Wi_B2B_3);
-        label_15->setObjectName(QString::fromUtf8("label_15"));
-        label_15->setFont(font3);
-
-        Wi_B2B_4->addWidget(label_15, 2, 0, 1, 1);
-
-        LEd_range_Min_2 = new QLineEdit(Wi_B2B_3);
-        LEd_range_Min_2->setObjectName(QString::fromUtf8("LEd_range_Min_2"));
-
-        Wi_B2B_4->addWidget(LEd_range_Min_2, 2, 1, 1, 1);
-
-        label_16 = new QLabel(Wi_B2B_3);
-        label_16->setObjectName(QString::fromUtf8("label_16"));
-        label_16->setFont(font3);
-
-        Wi_B2B_4->addWidget(label_16, 3, 0, 1, 1);
-
-        LEd_range_Max_2 = new QLineEdit(Wi_B2B_3);
-        LEd_range_Max_2->setObjectName(QString::fromUtf8("LEd_range_Max_2"));
-
-        Wi_B2B_4->addWidget(LEd_range_Max_2, 3, 1, 1, 1);
-
-        label_18 = new QLabel(Wi_B2B_3);
-        label_18->setObjectName(QString::fromUtf8("label_18"));
-        label_18->setFont(font3);
-
-        Wi_B2B_4->addWidget(label_18, 4, 0, 1, 1);
-
-        LEd_Level_2 = new QLineEdit(Wi_B2B_3);
-        LEd_Level_2->setObjectName(QString::fromUtf8("LEd_Level_2"));
-
-        Wi_B2B_4->addWidget(LEd_Level_2, 4, 1, 1, 1);
-
-
-        turboSetLayout->addWidget(Wi_B2B_3);
-
-        turboVerticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        turboSetLayout->addItem(turboVerticalSpacer);
 
 
         turboTabLayout->addWidget(Wi_TurboSet);
 
-        tabWidget->addTab(tab_turbo, QString());
+        wi_expan = new QWidget(tab_turbo);
+        wi_expan->setObjectName(QString::fromUtf8("wi_expan"));
 
-        horizontalLayout_3->addWidget(tabWidget);
+        turboTabLayout->addWidget(wi_expan);
+
+        tabWidget_Control->addTab(tab_turbo, QString());
+
+        horizontalLayout_3->addWidget(tabWidget_Control);
 
         VTKLayout = new QVBoxLayout();
         VTKLayout->setSpacing(0);
@@ -891,11 +792,10 @@ public:
         toolBar->addAction(actionAddAxisActor);
         toolBar->addAction(actionAddOutlineActor);
         toolBar->addAction(actionAddPointInformation);
-        toolBar->addAction(actionCalculatorFunction);
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget_Control->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
@@ -966,7 +866,7 @@ public:
         CBtn_BackGround->setItemText(0, QCoreApplication::translate("MainWindow", "Sky Blue", nullptr));
         CBtn_BackGround->setItemText(1, QCoreApplication::translate("MainWindow", "White", nullptr));
 
-        tabWidget->setTabText(tabWidget->indexOf(tab_normal), QCoreApplication::translate("MainWindow", "General", nullptr));
+        tabWidget_Control->setTabText(tabWidget_Control->indexOf(tab_normal), QCoreApplication::translate("MainWindow", "General", nullptr));
         label_3->setText(QCoreApplication::translate("MainWindow", "View Control", nullptr));
         Btn_TurboInitial->setText(QCoreApplication::translate("MainWindow", "Initialize", nullptr));
         Check_3Dview->setText(QCoreApplication::translate("MainWindow", "3D View", nullptr));
@@ -976,21 +876,13 @@ public:
         label_8->setText(QCoreApplication::translate("MainWindow", "Graphical Instancing", nullptr));
         label_9->setText(QCoreApplication::translate("MainWindow", "Domain", nullptr));
         label_10->setText(QCoreApplication::translate("MainWindow", "Num of copies", nullptr));
+        Btn_ApplyCopy->setText(QCoreApplication::translate("MainWindow", "Apply", nullptr));
         Btn_ClearCopyCurrentZone->setText(QCoreApplication::translate("MainWindow", "Clear", nullptr));
         Btn_ClearAllZoneCopy->setText(QCoreApplication::translate("MainWindow", "Clear All", nullptr));
-        label_BladeToBlade->setText(QCoreApplication::translate("MainWindow", "Blade to Blade", nullptr));
-        label_11->setText(QCoreApplication::translate("MainWindow", "Variable", nullptr));
-        label_12->setText(QCoreApplication::translate("MainWindow", "Range Min", nullptr));
-        label_13->setText(QCoreApplication::translate("MainWindow", "Range Max", nullptr));
-        label_14->setText(QCoreApplication::translate("MainWindow", "Levels", nullptr));
         label_19->setText(QCoreApplication::translate("MainWindow", "span", nullptr));
         Btn_Apply->setText(QCoreApplication::translate("MainWindow", "Apply", nullptr));
-        label_BladeToBlade_2->setText(QCoreApplication::translate("MainWindow", "Meridional Plane", nullptr));
-        label_17->setText(QCoreApplication::translate("MainWindow", "Variable", nullptr));
-        label_15->setText(QCoreApplication::translate("MainWindow", "Range Min", nullptr));
-        label_16->setText(QCoreApplication::translate("MainWindow", "Range Max", nullptr));
-        label_18->setText(QCoreApplication::translate("MainWindow", "Levels", nullptr));
-        tabWidget->setTabText(tabWidget->indexOf(tab_turbo), QCoreApplication::translate("MainWindow", "Turbo", nullptr));
+        label_BladeToBlade->setText(QCoreApplication::translate("MainWindow", "Blade to Blade", nullptr));
+        tabWidget_Control->setTabText(tabWidget_Control->indexOf(tab_turbo), QCoreApplication::translate("MainWindow", "Turbo", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "&File", nullptr));
         menuTools->setTitle(QCoreApplication::translate("MainWindow", "&Tools", nullptr));
         toolBar->setWindowTitle(QCoreApplication::translate("MainWindow", "toolBar", nullptr));

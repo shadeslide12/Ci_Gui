@@ -504,22 +504,23 @@ void vtkAesReader::CreateVector(int vx, int vy, int vz)
 
 void vtkAesReader::ChangeScalarBar(double m, double M, int number, int flowNumber)
 {
-    vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-    lut->SetNumberOfColors(number);		// 指定颜色查找表中有多少种颜色
-    lut->SetHueRange(0.6667, 0.0);	//蓝到红渐变
-    // lut->SetHueRange(0.7777, 0.16667);	//紫到黄渐变
-    // for (int i = 0; i < number; i++)
-    // {
-    //     int index = i * (255 / (number - 1));
-    //     lut->SetTableValue(i, viridisColor[index][0], viridisColor[index][1], viridisColor[index][2]);
-    // }
-    lut->SetRange(m,M);
-    lut->Build();
-    
-    // 限制标签数量，避免标签重叠。最多显示12个标签
+    vtkLookupTable* lut = vtkLookupTable::SafeDownCast(
+        flows[flowNumber].mainScalarBar->GetLookupTable());
+
+    if (lut) {
+        lut->SetTableRange(m, M);
+        lut->Modified();
+    } else {
+        vtkSmartPointer<vtkLookupTable> newLut = vtkSmartPointer<vtkLookupTable>::New();
+        newLut->SetNumberOfColors(number);
+        newLut->SetHueRange(0.6667, 0.0);
+        newLut->SetRange(m, M);
+        newLut->Build();
+        flows[flowNumber].mainScalarBar->SetLookupTable(newLut);
+    }
+
     int numberOfLabels = std::min(number, 12);
     flows[flowNumber].mainScalarBar->SetNumberOfLabels(numberOfLabels);
-    flows[flowNumber].mainScalarBar->SetLookupTable(lut);
 }
 
 void vtkAesReader::CalculateScaleFactor(int vx, int vy, int vz)
