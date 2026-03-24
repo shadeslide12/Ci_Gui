@@ -41,16 +41,13 @@ public:
     QVBoxLayout *sliceSettingsLayout;
     QGroupBox *sliceControlGroup;
     QGridLayout *sliceControlLayout;
-    QLabel *label;
-    QComboBox *comboBox;
-    QPushButton *Btn_AddNew;
-    QCheckBox *checkBox;
-    QLabel *label_SLoaction;
-    QComboBox *Combo_SLiceLocation;
     QHBoxLayout *sliderLayout;
     QSlider *horizontalSlider;
     QLabel *label_ValueLocation;
-    QPushButton *Btn_SetPosition;
+    QPushButton *Btn_AddNew;
+    QLabel *label_SLoaction;
+    QCheckBox *Btn_showPrimarySlice;
+    QComboBox *Combo_SLiceLocation;
     QWidget *MappingControl;
     QVBoxLayout *verticalLayout;
     QGroupBox *mappingGroup;
@@ -150,46 +147,6 @@ public:
         sliceControlLayout->setSpacing(10);
         sliceControlLayout->setObjectName(QString::fromUtf8("sliceControlLayout"));
         sliceControlLayout->setContentsMargins(20, -1, 20, -1);
-        label = new QLabel(sliceControlGroup);
-        label->setObjectName(QString::fromUtf8("label"));
-        QFont font;
-        font.setPointSize(10);
-        label->setFont(font);
-
-        sliceControlLayout->addWidget(label, 0, 0, 1, 1);
-
-        comboBox = new QComboBox(sliceControlGroup);
-        comboBox->setObjectName(QString::fromUtf8("comboBox"));
-        comboBox->setFont(font);
-
-        sliceControlLayout->addWidget(comboBox, 0, 1, 1, 1);
-
-        Btn_AddNew = new QPushButton(sliceControlGroup);
-        Btn_AddNew->setObjectName(QString::fromUtf8("Btn_AddNew"));
-        Btn_AddNew->setMinimumSize(QSize(120, 0));
-        Btn_AddNew->setMaximumSize(QSize(60, 30));
-
-        sliceControlLayout->addWidget(Btn_AddNew, 0, 2, 1, 1);
-
-        checkBox = new QCheckBox(sliceControlGroup);
-        checkBox->setObjectName(QString::fromUtf8("checkBox"));
-
-        sliceControlLayout->addWidget(checkBox, 0, 3, 1, 1);
-
-        label_SLoaction = new QLabel(sliceControlGroup);
-        label_SLoaction->setObjectName(QString::fromUtf8("label_SLoaction"));
-        label_SLoaction->setFont(font);
-
-        sliceControlLayout->addWidget(label_SLoaction, 1, 0, 1, 1);
-
-        Combo_SLiceLocation = new QComboBox(sliceControlGroup);
-        Combo_SLiceLocation->addItem(QString());
-        Combo_SLiceLocation->addItem(QString());
-        Combo_SLiceLocation->addItem(QString());
-        Combo_SLiceLocation->setObjectName(QString::fromUtf8("Combo_SLiceLocation"));
-
-        sliceControlLayout->addWidget(Combo_SLiceLocation, 1, 1, 1, 2);
-
         sliderLayout = new QHBoxLayout();
         sliderLayout->setObjectName(QString::fromUtf8("sliderLayout"));
         horizontalSlider = new QSlider(sliceControlGroup);
@@ -204,13 +161,37 @@ public:
 
         sliderLayout->addWidget(label_ValueLocation);
 
-        Btn_SetPosition = new QPushButton(sliceControlGroup);
-        Btn_SetPosition->setObjectName(QString::fromUtf8("Btn_SetPosition"));
+        Btn_AddNew = new QPushButton(sliceControlGroup);
+        Btn_AddNew->setObjectName(QString::fromUtf8("Btn_AddNew"));
+        Btn_AddNew->setMinimumSize(QSize(120, 0));
+        Btn_AddNew->setMaximumSize(QSize(60, 30));
 
-        sliderLayout->addWidget(Btn_SetPosition);
+        sliderLayout->addWidget(Btn_AddNew);
 
 
-        sliceControlLayout->addLayout(sliderLayout, 2, 0, 1, 4);
+        sliceControlLayout->addLayout(sliderLayout, 1, 0, 1, 4);
+
+        label_SLoaction = new QLabel(sliceControlGroup);
+        label_SLoaction->setObjectName(QString::fromUtf8("label_SLoaction"));
+        QFont font;
+        font.setPointSize(10);
+        label_SLoaction->setFont(font);
+
+        sliceControlLayout->addWidget(label_SLoaction, 0, 0, 1, 1);
+
+        Btn_showPrimarySlice = new QCheckBox(sliceControlGroup);
+        Btn_showPrimarySlice->setObjectName(QString::fromUtf8("Btn_showPrimarySlice"));
+        Btn_showPrimarySlice->setChecked(true);
+
+        sliceControlLayout->addWidget(Btn_showPrimarySlice, 0, 3, 1, 1);
+
+        Combo_SLiceLocation = new QComboBox(sliceControlGroup);
+        Combo_SLiceLocation->addItem(QString());
+        Combo_SLiceLocation->addItem(QString());
+        Combo_SLiceLocation->addItem(QString());
+        Combo_SLiceLocation->setObjectName(QString::fromUtf8("Combo_SLiceLocation"));
+
+        sliceControlLayout->addWidget(Combo_SLiceLocation, 0, 1, 1, 2);
 
 
         sliceSettingsLayout->addWidget(sliceControlGroup);
@@ -664,16 +645,14 @@ public:
 "    border-radius: 9px;\n"
 "}", nullptr));
         sliceControlGroup->setTitle(QCoreApplication::translate("CutplaneDialog", "Slice Control", nullptr));
-        label->setText(QCoreApplication::translate("CutplaneDialog", "Slice No:", nullptr));
+        label_ValueLocation->setText(QCoreApplication::translate("CutplaneDialog", "X: 0.0801", nullptr));
         Btn_AddNew->setText(QCoreApplication::translate("CutplaneDialog", "Extract Slices", nullptr));
-        checkBox->setText(QCoreApplication::translate("CutplaneDialog", "Show Primary Slice", nullptr));
         label_SLoaction->setText(QCoreApplication::translate("CutplaneDialog", "Slice Locations:", nullptr));
+        Btn_showPrimarySlice->setText(QCoreApplication::translate("CutplaneDialog", "Show Primary Slice", nullptr));
         Combo_SLiceLocation->setItemText(0, QCoreApplication::translate("CutplaneDialog", "X-Planes", nullptr));
         Combo_SLiceLocation->setItemText(1, QCoreApplication::translate("CutplaneDialog", "Y-Planes", nullptr));
         Combo_SLiceLocation->setItemText(2, QCoreApplication::translate("CutplaneDialog", "Z-Planes", nullptr));
 
-        label_ValueLocation->setText(QCoreApplication::translate("CutplaneDialog", "X: 0.0801", nullptr));
-        Btn_SetPosition->setText(QCoreApplication::translate("CutplaneDialog", "Set Position", nullptr));
         mappingGroup->setTitle(QCoreApplication::translate("CutplaneDialog", "Mapping Variable", nullptr));
         lab_MapVariable->setText(QCoreApplication::translate("CutplaneDialog", "Variable:", nullptr));
         colorMapGroup->setTitle(QCoreApplication::translate("CutplaneDialog", "Color Map Options", nullptr));

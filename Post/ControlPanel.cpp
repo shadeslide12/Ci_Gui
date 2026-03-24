@@ -135,8 +135,14 @@ void ControlPanel::addCutplaneToTable(int cutplaneIndex, double* origin, double*
     zoneNumItem->setTextAlignment(Qt::AlignCenter);
     ui->dataTable->setItem(newRow, 0, zoneNumItem);
 
-    // Col 1: Zone Name
-    ui->dataTable->setItem(newRow, 1, new QTableWidgetItem(QString("Slice_%1").arg(cutplaneIndex + 1)));
+    // Col 1: Zone Name - 根据法向量判断轴向，显示切面位置
+    QString axisName;
+    double position = 0.0;
+    if (std::abs(normal[0]) > 0.5)      { axisName = "X"; position = origin[0]; }
+    else if (std::abs(normal[1]) > 0.5) { axisName = "Y"; position = origin[1]; }
+    else                                { axisName = "Z"; position = origin[2]; }
+    ui->dataTable->setItem(newRow, 1, new QTableWidgetItem(
+        QString("Slice: %1=%2").arg(axisName).arg(position, 0, 'f', 6)));
 
     // Col 2: Zone Type
     QTableWidgetItem* groupNumItem = new QTableWidgetItem("Slice");

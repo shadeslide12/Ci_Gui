@@ -113,9 +113,8 @@ private slots:
     void isoSurfaceChangeFlowNumber(int);
     void isoSurfaceValueChanged(double);
     void changeFloodNumber(int);
-    
+
     void slicesCheckBoxTriggered();
-    void changeCutplane(double*,double*,int);
     void makeNewCutplane(double* origin, double* normal);
     void updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors, bool isBanded);
     void showCutplane(int, bool);

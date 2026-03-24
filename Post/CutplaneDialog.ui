@@ -114,85 +114,7 @@ QSlider::handle:horizontal {
           <property name="spacing">
            <number>10</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Slice No:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboBox">
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="Btn_AddNew">
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>60</width>
-              <height>30</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Extract Slices</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QCheckBox" name="checkBox">
-            <property name="text">
-             <string>Show Primary Slice</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_SLoaction">
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Slice Locations:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" colspan="2">
-           <widget class="QComboBox" name="Combo_SLiceLocation">
-            <item>
-             <property name="text">
-              <string>X-Planes</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Y-Planes</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Z-Planes</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="4">
+          <item row="1" column="0" colspan="4">
            <layout class="QHBoxLayout" name="sliderLayout">
             <item>
              <widget class="QSlider" name="horizontalSlider">
@@ -215,13 +137,66 @@ QSlider::handle:horizontal {
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="Btn_SetPosition">
+             <widget class="QPushButton" name="Btn_AddNew">
+              <property name="minimumSize">
+               <size>
+                <width>120</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>30</height>
+               </size>
+              </property>
               <property name="text">
-               <string>Set Position</string>
+               <string>Extract Slices</string>
               </property>
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_SLoaction">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Slice Locations:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QCheckBox" name="Btn_showPrimarySlice">
+            <property name="text">
+             <string>Show Primary Slice</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" colspan="2">
+           <widget class="QComboBox" name="Combo_SLiceLocation">
+            <item>
+             <property name="text">
+              <string>X-Planes</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Y-Planes</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Z-Planes</string>
+             </property>
+            </item>
+           </widget>
           </item>
          </layout>
         </widget>

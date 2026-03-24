@@ -870,8 +870,14 @@ void MainWindow::selectBoundaryButtonTriggeded()
         
         // 设置透明度控件的初始状态，与transparancyCheckBox保持一致
         controlPanel->setTransparencyControlsEnabled(ui->transparancyCheckBox->isChecked());
+
+        // 补充在 ControlPanel 创建之前已存在的 slice 记录
+        auto planes = qtvtkWindow->GetPlanes();
+        for (int i = 0; i < (int)planes.size(); i++) {
+            controlPanel->addCutplaneToTable(i, planes[i]->GetOrigin(), planes[i]->GetNormal());
+        }
     }
-    
+
     controlPanel->show();
     
 }
@@ -949,33 +955,12 @@ void MainWindow::isoSurfaceValueChanged(double value)
 
 void MainWindow::slicesCheckBoxTriggered()
 {
-    if (!qtvtkWindow->HasCutplane())
-    {
-        cout << "test" << endl;
-        qtvtkWindow->AddNewCutplane();
-
-        if (controlPanel != nullptr) {
-            // 获取当前cutplane的数量作为索引
-            int cutplaneIndex = qtvtkWindow->GetPlanes().size() - 1; // 新添加的cutplane索引
-            double origin[3] = {0.0, 0.0, 0.0};
-            double normal[3] = {1.0, 0.0, 0.0};
-            controlPanel->addCutplaneToTable(cutplaneIndex, origin, normal);
-        }
-        // 第一次创建cutplane时也要显示ScalarBar
-        if (ui->slicesCheckBox->isChecked()) {
-            qtvtkWindow->ShowCutplaneScalarBar();
-        }
-
-        cout << "add a simple cutplane" << endl;
-        ui->vtkBox->renderWindow()->Render();
-        return;
-    }
     if (ui->slicesCheckBox->isChecked())
     {
         qtvtkWindow->AddCutplaneActors();
         qtvtkWindow->ShowCutplaneScalarBar();
     }
-    else 
+    else
     {
         qtvtkWindow->RemoveCutplaneActors();
         qtvtkWindow->HideCutplaneScalarBar();
@@ -991,64 +976,61 @@ void MainWindow::slicesSettingButtonTriggered()
         return;
     }
     CutplaneDialog *cutplaneDialog = new CutplaneDialog(this);
-    cutplaneDialog->setCutplaneDialog(qtvtkWindow->GetPlanes());
 
     double* bounds = qtvtkWindow->GetModelBounds();
     if (bounds != nullptr) {
         cutplaneDialog->setModelBounds(bounds);
     }
-    
+
     // 设置流场变量数据
     cutplaneDialog->setFlowVariables(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber());
-    
+
     cutplaneDialog->setAttribute(Qt::WA_DeleteOnClose);
     cutplaneDialog->setWindowModality(Qt::ApplicationModal);
-    connect(cutplaneDialog, SIGNAL(finishSetParameters(double*,double*,int)),this, SLOT(changeCutplane(double*,double*,int)));
     connect(cutplaneDialog, &CutplaneDialog::createNewCutplane, this, &MainWindow::makeNewCutplane);
     connect(cutplaneDialog, &CutplaneDialog::colorMappingChanged, this, &MainWindow::updateCutplaneColorMapping);
     connect(cutplaneDialog, &CutplaneDialog::colorSchemeChanged, [this](int presetIndex, bool reverse){
         qtvtkWindow->SetCutplaneColorScheme(presetIndex, reverse);
         ui->vtkBox->renderWindow()->Render();
     });
-    
+
     // 连接变量选择变化信号
     connect(cutplaneDialog, &CutplaneDialog::variableSelectionChanged, [this](int flowNumber){
         qtvtkWindow->SetCutplaneVariable(flowNumber);
         ui->vtkBox->renderWindow()->Render();
     });
-    
+
     // 连接 cutplane scalar bar 方向变化信号
     connect(cutplaneDialog, &CutplaneDialog::cutplaneOrientationChanged, [this](bool isVertical){
         qtvtkWindow->SetCutplaneScalarBarOrientation(isVertical);
         ui->vtkBox->renderWindow()->Render();
     });
-    
-    //* test
-    connect(cutplaneDialog, &CutplaneDialog::sliceLocation,
-            [this](double value,int axis) {
-                if (qtvtkWindow) {
-                    qtvtkWindow->CreatePlanePreview(value,axis);
-                    ui->vtkBox->renderWindow()->Render();
-                }
-            });
 
-    connect(cutplaneDialog, &QDialog::finished,
-        [this]() {
-            if (qtvtkWindow) {
-                qtvtkWindow->HidePlanePreview();
-            }
-        });
+    // 滑块移动时实时更新预览平面位置
+    connect(cutplaneDialog, &CutplaneDialog::sliceLocation, [this](double value, int axis){
+        if (qtvtkWindow) {
+            qtvtkWindow->CreatePlanePreview(value, axis);
+            ui->vtkBox->renderWindow()->Render();
+        }
+    });
+
+    // checkbox 取消选中时隐藏预览平面
+    connect(cutplaneDialog, &CutplaneDialog::hidePreview, [this](){
+        if (qtvtkWindow) {
+            qtvtkWindow->HidePlanePreview();
+            ui->vtkBox->renderWindow()->Render();
+        }
+    });
+
+    // 对话框关闭时隐藏预览平面
+    connect(cutplaneDialog, &QDialog::finished, [this](){
+        if (qtvtkWindow) {
+            qtvtkWindow->HidePlanePreview();
+            ui->vtkBox->renderWindow()->Render();
+        }
+    });
 
     cutplaneDialog->show();
-
-}
-
-void MainWindow::changeCutplane(double* origin, double *normal, int cutplaneNumber)
-{
-    // cout << origin[0] << " " << origin[1] << " " << origin[2] << endl;
-    // cout << normal[0] << " " << normal[1] << " " << normal[2] << endl;
-    qtvtkWindow->SetCutplane(cutplaneNumber, origin,normal);
-    ui->vtkBox->renderWindow()->Render();
 }
 
 void MainWindow::makeNewCutplane(double* origin, double* normal)
