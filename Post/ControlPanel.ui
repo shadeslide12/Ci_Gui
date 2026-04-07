@@ -44,10 +44,10 @@
       <bool>true</bool>
      </property>
      <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
+      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
      </property>
      <property name="gridStyle">
-      <enum>Qt::SolidLine</enum>
+      <enum>Qt::PenStyle::SolidLine</enum>
      </property>
      <property name="rowCount">
       <number>30</number>
@@ -131,16 +131,9 @@ Delete</string>
    <item>
     <layout class="QHBoxLayout" name="buttonLayout">
      <item>
-      <widget class="QPushButton" name="Btn_Reset">
-       <property name="text">
-        <string>Reset</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <spacer name="buttonHorizontalSpacer">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -149,20 +142,6 @@ Delete</string>
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="Btn_Apply">
-       <property name="text">
-        <string>Apply</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="Btn_Close">
-       <property name="text">
-        <string>Close</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>

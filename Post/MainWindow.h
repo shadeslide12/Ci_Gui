@@ -11,8 +11,6 @@
 #include "IsoSurfaceDialog.h"
 #include "CutplaneDialog.h"
 #include "ControlPanel.h"
-#include "ConstHeightPlaneDialog.h"
-#include "ConstSettingDialog.h"
 #include "ProbePanel.h"
 #include "ExportPicDialog.h"
 #include <vtkInteractorStyle.h>
@@ -88,8 +86,6 @@ private slots:
     void on_actionAddOutlineActor_triggered();
     void on_actionAddPointInformation_triggered();
     void on_actionExport_Picture_triggered();
-    void on_ConstHeightCheckBox_toggled(bool trigger);
-
     void xoyViewTriggered();
     void xozViewTriggered();
     void yozViewTriggered();
@@ -119,10 +115,6 @@ private slots:
     void updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors, bool isBanded);
     void showCutplane(int, bool);
 
-    void ConstHeightButtonTriggered();
-    void AddConstHeightPlane(double height);
-    void ChangeConstHeightFlow(int flow);
-    
     // Blade-to-blade slots
     void AddBladeToBladePlane(double span);
     void ChangeBladeToBladePlaneFlow(int flow);

@@ -18,6 +18,9 @@
 #include <QToolBar>
 #include <QMessageBox>
 
+#include <chrono>
+#include <iostream>
+
 #include <vtkRendererCollection.h>
 #include <vtkCamera.h>
 #include <vtkScalarBarRepresentation.h>
@@ -405,7 +408,14 @@ void MainWindow::on_actionAddOutlineActor_triggered()
     {
         qtvtkWindow->InVisiableOutlineActor();
     }
-    else qtvtkWindow->VisiableOutlineActor();
+    else
+    {
+        qtvtkWindow->RemoveEdgeActor();
+        if (!qtvtkWindow->IsOutlineActorVisiable() && !hasPeriodicCopies)
+        {
+            qtvtkWindow->VisiableOutlineActor();
+        }
+    }
     ui->vtkBox->renderWindow()->Render();
 }
 
@@ -733,24 +743,27 @@ void MainWindow::SyncViewsWithMainModel(int flowNumber, double minRange, double 
     if (!qtvtkWindow || !qtvtkWindow->HasGrid())
         return;
 
-    // Meridional View
+    // Meridional View — ChangeMeridionalFlow reuses existing actor/mapper in-place,
+    // so only add actors to renderer when they aren't already present.
     if (!qtvtkWindow->MeridionalPlane.empty()) {
-        Meridionalrenderer->RemoveAllViewProps();
         auto actors = qtvtkWindow->ChangeMeridionalFlow(minRange, maxRange, flowNumber);
-        for (auto& actor : actors) {
-            Meridionalrenderer->AddActor(actor);
+        if (Meridionalrenderer->GetActors()->GetNumberOfItems() == 0) {
+            for (auto& actor : actors) {
+                Meridionalrenderer->AddActor(actor);
+            }
         }
         if (MeridionalrenderWindow && meridionalViewContainer && meridionalViewContainer->isVisible()) {
             MeridionalrenderWindow->Render();
         }
     }
 
-    // Blade-to-Blade View
+    // Blade-to-Blade View — same strategy
     if (!qtvtkWindow->BladeToBladePlane.empty()) {
-        BladeToBladerenderer->RemoveAllViewProps();
         auto actors = qtvtkWindow->ChangeBladeToBladePlaneFlow(flowNumber, minRange, maxRange);
-        for (auto& actor : actors) {
-            BladeToBladerenderer->AddActor(actor);
+        if (BladeToBladerenderer->GetActors()->GetNumberOfItems() == 0) {
+            for (auto& actor : actors) {
+                BladeToBladerenderer->AddActor(actor);
+            }
         }
         if (BladeToBladerenderWindow && bladeToBladeViewContainer && bladeToBladeViewContainer->isVisible()) {
             BladeToBladerenderWindow->Render();
@@ -1041,7 +1054,9 @@ void MainWindow::makeNewCutplane(double* origin, double* normal)
         int cutplaneIndex = qtvtkWindow->GetPlanes().size() - 1; // 新添加的cutplane索引
         controlPanel->addCutplaneToTable(cutplaneIndex, origin, normal);
     }
-    
+
+    qtvtkWindow->ShowCutplaneScalarBar();
+
     cout << "add new cut plane with origin(" << origin[0] << ", " << origin[1] << ", " << origin[2] 
          << ") normal(" << normal[0] << ", " << normal[1] << ", " << normal[2] << ")" << endl;
     ui->vtkBox->renderWindow()->Render();
@@ -1152,9 +1167,6 @@ void MainWindow::InitializeMainWindow()
     connect(ui->IsoSurfaceSettingButton, SIGNAL(clicked()), this, SLOT(isoSurfaceSettingButtonTriggered()));
     connect(ui->addSliceButton, &QPushButton::clicked, this, &MainWindow::slicesSettingButtonTriggered);
 
-    connect(ui->ConstHeightpushButton, SIGNAL(clicked()),this,SLOT(ConstHeightButtonTriggered()));
-//    connect(ui->ConstHeightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(ConstHeightCheckBoxTriggered()));
-    
 
     // Span slider connection (0-100 maps to 0.0-1.0)
     ui->Sli_Span->setRange(0, 100);
@@ -1176,6 +1188,27 @@ void MainWindow::InitializeMainWindow()
             ui->vtkBox->renderWindow()->Render();
             qDebug() << "[Periodic] Cleared all zone copies";
         }
+    });
+
+    connect(ui->Btn_ClearCopyCurrentZone, &QPushButton::clicked, this, [this]() {
+        if (!qtvtkWindow || !qtvtkWindow->HasGrid())
+            return;
+        int zoneIndex = ui->com_copy->currentIndex();
+        if (zoneIndex < 0)
+            return;
+        qtvtkWindow->ClearPeriodicCopiesForZone(zoneIndex);
+        // Only update flag and restore outline when NO zone has copies left
+        if (!qtvtkWindow->HasAnyPeriodicCopies()) {
+            hasPeriodicCopies = false;
+            if (!qtvtkWindow->IsOutlineActorVisiable() && !ui->edgeCheckBox->isChecked())
+            {
+                qtvtkWindow->VisiableOutlineActor();
+            }
+        }
+        ui->vtkBox->renderWindow()->Render();
+        qDebug() << "[Periodic] Cleared copies for zone" << zoneIndex
+                 << "(" << ui->com_copy->currentText() << ")"
+                 << "| remaining copies:" << qtvtkWindow->HasAnyPeriodicCopies();
     });
 
     //* Set View Control    // 创建主分割器
@@ -1339,39 +1372,6 @@ void MainWindow::DisableScrollArea()
     disconnect(ui->lightingCheckBox, SIGNAL(stateChanged(int)), this, SLOT(lightingCheckBoxTriggered()));
 
     ui->scrollArea->setEnabled(false);
-}
-
-
-void MainWindow::on_ConstHeightCheckBox_toggled(bool trigger)
-{
-    if (trigger) {
-        ConstHeightPlaneDialog *constheightdialog = new ConstHeightPlaneDialog(this);
-        constheightdialog->show();
-        connect(constheightdialog, SIGNAL(finishSetParameters(double)), this, SLOT(AddConstHeightPlane(double)));
-    }
-    else
-    {
-        qtvtkWindow->RemoveConstHeight();
-        ui->vtkBox->renderWindow()->Render();
-    }
-}
-
-void MainWindow::ConstHeightButtonTriggered()
-{
-    ConstSettingDialog * settingDialog = new ConstSettingDialog(this);
-    settingDialog->setConstSettingDialog(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber());
-    settingDialog->show();
-    connect(settingDialog,SIGNAL(finishSetHeight(double)),this, SLOT(AddConstHeightPlane(double)));
-    connect(settingDialog,SIGNAL(finishSetFlow(int)),this, SLOT(ChangeConstHeightFlow(int)));
-}
-void MainWindow::AddConstHeightPlane(double height)
-{
-    qtvtkWindow->CreateConstHeight(height);
-}
-
-void MainWindow::ChangeConstHeightFlow(int flow)
-{
-    qtvtkWindow->ChangeConstHeightFlow(flow);
 }
 
 
@@ -1587,6 +1587,7 @@ void MainWindow::on_Check_ThreeView_toggled(bool checked)
 
 void MainWindow::on_Check_Meri_toggled(bool checked)
 {
+    const auto meriToggleT0 = std::chrono::steady_clock::now();
     if (checked)
     {
         SetupMeridionalView();
@@ -1605,6 +1606,10 @@ void MainWindow::on_Check_Meri_toggled(bool checked)
         UpdateViewLabels();
         qDebug() << "Switched to Meridional View mode";
     }
+    const auto meriToggleT1 = std::chrono::steady_clock::now();
+    const auto meriToggleMs =
+        std::chrono::duration_cast<std::chrono::milliseconds>(meriToggleT1 - meriToggleT0).count();
+    std::cout << "on_Check_Meri_toggled elapsed: " << meriToggleMs << " ms\n";
 }
 
 void MainWindow::on_Check_BladeToBlade_toggled(bool checked)

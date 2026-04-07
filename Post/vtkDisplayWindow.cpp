@@ -1,5 +1,9 @@
 #include "vtkDisplayWindow.h"
 #include "ColorMapPreset.h"
+#include <QCoreApplication>
+#include <QFile>
+#include <QDir>
+#include <QStringList>
 
 using std::string; using std::vector;
 #include "time.h"
@@ -80,6 +84,7 @@ void vtkDisplayWindow::ReadAesFile(string aesFileName)
     auto boundaryDatasets = aesReader.GetBoundarys();
     CreateBasicObjects();
     CreateAuxiliaryObject();
+    ApplyDefaultColorPreset();
     renderer->ResetCamera();
     hasGrid = true;
 }
@@ -123,6 +128,10 @@ void vtkDisplayWindow::CreateBasicObjects()
             contourMapper->SetInputData(y.dataset);
             contourMapper->ScalarVisibilityOn();
             contourMapper->SetInterpolateScalarsBeforeMapping(true);
+
+
+
+
             auto flow = aesReader.GetFlows().front();
             contourMapper->SetScalarRange(flow.range);
             contourMapper->GetInput()->GetPointData()->SetActiveScalars(flow.name.c_str());
@@ -161,6 +170,50 @@ void vtkDisplayWindow::CreateBasicObjects()
         }
         boundarys.emplace_back(zoneBoundarys);
     }
+}
+
+void vtkDisplayWindow::ApplyDefaultColorPreset()
+{
+    // Load ColorMaps.json if not yet loaded, then apply "Tec_SmallRainbow" to all flow LUTs
+    ColorMapPreset& preset = ColorMapPreset::instance();
+    if (!preset.isLoaded()) {
+        QString appDir = QCoreApplication::applicationDirPath();
+        QStringList searchPaths = {
+            appDir + "/ColorMaps.json",
+            appDir + "/../ColorMaps.json",
+            appDir + "/../../GUI/Post/ColorMaps.json",
+            QDir::currentPath() + "/ColorMaps.json",
+            QDir::currentPath() + "/GUI/Post/ColorMaps.json",
+        };
+        for (const QString& path : searchPaths) {
+            if (QFile::exists(path)) {
+                if (preset.loadFromJson(path)) break;
+            }
+        }
+    }
+    if (!preset.isLoaded()) {
+        std::cout << "[ApplyDefaultColorPreset] ColorMaps.json not found, keeping default LUT." << std::endl;
+        return;
+    }
+    int idx = preset.getIndexByName("Tec_SmallRainbow");
+    if (idx < 0) {
+        std::cout << "[ApplyDefaultColorPreset] Tec_SmallRainbow not found, keeping default LUT." << std::endl;
+        return;
+    }
+    auto flows = aesReader.GetFlows();
+    for (int f = 0; f < static_cast<int>(flows.size()); ++f) {
+        vtkLookupTable* lut = vtkLookupTable::SafeDownCast(
+            flows[f].mainScalarBar->GetLookupTable());
+        if (lut) {
+            double* r = lut->GetRange();
+            double rMin = r[0], rMax = r[1];
+            preset.applyToLookupTable(idx, lut, false, 256);
+            lut->SetTableRange(rMin, rMax);
+            lut->Modified();
+        }
+    }
+    std::cout << "[ApplyDefaultColorPreset] Applied Tec_SmallRainbow to all " 
+              << flows.size() << " flow LUTs." << std::endl;
 }
 
 void vtkDisplayWindow::CreateAuxiliaryObject()
@@ -365,14 +418,6 @@ void vtkDisplayWindow::RemoveMeridianActor()
     for(int i = 0;i < MeridionalPlaneActor.size();i++)
     {
         renderer->RemoveActor(MeridionalPlaneActor[i]);
-    }
-}
-
-void vtkDisplayWindow::RemoveConstHeight()
-{
-    for(int i = 0;i < ConstHeightPlaneActor.size();i++)
-    {
-        renderer->RemoveActor(ConstHeightPlaneActor[i]);
     }
 }
 
@@ -1128,46 +1173,45 @@ void vtkDisplayWindow::SetBackgroundStyle(const QString &style)
 
 std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateMeridionalPlane()
 {
+    // Already initialized — return existing actors directly
+    if (!MeridionalPlaneActor.empty())
+        return MeridionalPlaneActor;
 
-  if(MeridionalPlaneActor.empty())
-  {
     auto BndGrid = aesReader.GetBoundarys();
     auto Flow = aesReader.GetFlows();
-    vtkSmartPointer<vtkUnstructuredGrid> md = vtkSmartPointer<vtkUnstructuredGrid>::New();
 
-    for(int zone = 0; zone < BndGrid.size(); zone++) {
-      for (int i = 0; i < BndGrid[zone].size(); i++) {
-        if (BndGrid[zone][i].type == 9) {
-          vtkSmartPointer<vtkAppendFilter> appendFilter = vtkSmartPointer<vtkAppendFilter>::New();
-          appendFilter->AddInputData(md);
-          appendFilter->AddInputData(BndGrid[zone][i].dataset);
-          appendFilter->Update();
-
-          md->DeepCopy(appendFilter->GetOutput());
-          break;
+    // Collect all type-9 boundaries with a single AppendFilter (O(N) instead of O(N²))
+    vtkSmartPointer<vtkAppendFilter> appendFilter = vtkSmartPointer<vtkAppendFilter>::New();
+    for (int zone = 0; zone < static_cast<int>(BndGrid.size()); zone++) {
+        for (int i = 0; i < static_cast<int>(BndGrid[zone].size()); i++) {
+            if (BndGrid[zone][i].type == 9) {
+                appendFilter->AddInputData(BndGrid[zone][i].dataset);
+                break;
+            }
         }
-      }
     }
+    appendFilter->Update();
+
+    vtkSmartPointer<vtkUnstructuredGrid> md = vtkSmartPointer<vtkUnstructuredGrid>::New();
+    md->ShallowCopy(appendFilter->GetOutput());
+
+    // Project boundary points onto meridional plane: (x, y, z) → (x, r, 0)
     vtkSmartPointer<vtkPoints> planepts = vtkSmartPointer<vtkPoints>::New();
     for (int m = 0; m < md->GetNumberOfPoints(); m++) {
-      double y = md->GetPoint(m)[1];
-      double z = md->GetPoint(m)[2];
-      double r = sqrt(y * y + z * z);
-      planepts->InsertNextPoint(md->GetPoint(m)[0], r * cos(0), r * sin(0));
+        double* p = md->GetPoint(m);
+        double r = sqrt(p[1] * p[1] + p[2] * p[2]);
+        planepts->InsertNextPoint(p[0], r, 0.0);
     }
 
-  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+    polyData->SetPoints(planepts);
+    polyData->SetPolys(md->GetCells());
 
-  // 设置点
-  polyData->SetPoints(planepts);
+    MeridionalPlane.emplace_back(polyData);
 
-  polyData->SetPolys(md->GetCells());
-
-      MeridionalPlane.emplace_back(polyData);
-
-      ChangeMeridionalFlow(Flow[0].range[0], Flow[0].range[1], curFlow);
-      return MeridionalPlaneActor;
-    }
+    // Use curFlow's own range (not always Flow[0])
+    ChangeMeridionalFlow(Flow[curFlow].range[0], Flow[curFlow].range[1], curFlow);
+    return MeridionalPlaneActor;
 }
 std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::ChangeMeridionalFlow(double minRange, double maxRange, int flowNumber)
 {
@@ -1269,59 +1313,6 @@ void vtkDisplayWindow::VisualizeMeridonalPlane()
         }
     }
 
-}
-
-void vtkDisplayWindow::CreateConstHeight(double height)
-{
-//    if(aesReader.node_radius.empty())
-//    {
-//        std::cout << "can not use this function" << std::endl;
-//        return;
-//    }
-    auto Mesh = aesReader.GetZoneGrids();
-    auto Flow = aesReader.GetFlows();
-    auto BndGrid = aesReader.GetBoundarys();
-    auto TotalMeshes = aesReader.GetTotalGrid();
-    vtkSmartPointer<vtkContourFilter> contour = vtkSmartPointer<vtkContourFilter>::New();
-    contour->SetInputData(TotalMeshes);
-    TotalMeshes->GetPointData()->SetActiveScalars("radius");
-    contour->SetValue(0,height);
-    contour->Update();
-//    contour->GetOutput()->GetPointData()->GetArray(curFlow);
-    contour->GetOutput()->GetPointData()->SetActiveScalars(Flow[curFlow].name.c_str());
-    ConstHeightPlane.emplace_back(contour);
-    vtkSmartPointer<vtkPolyData> polydata;
-//    contour->SetArrayComponent(curFlow);
-    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputConnection(contour->GetOutputPort());
-    mapper->SetScalarRange(Flow[curFlow].range);
-    mapper->SetLookupTable(Flow[curFlow].mainScalarBar->GetLookupTable());
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
-    ConstHeightPlaneActor.emplace_back(actor);
-    renderer->AddActor(actor);
-}
-
-void vtkDisplayWindow::ChangeConstHeightFlow(int flowNumber)
-{
-    auto Flow = aesReader.GetFlows();
-    for(int i = 0;i < ConstHeightPlaneActor.size();i++)
-    {
-        renderer->RemoveActor(ConstHeightPlaneActor[i]);
-    }
-    ConstHeightPlaneActor.clear();
-    for(int i = 0; i < ConstHeightPlane.size(); i++)
-    {
-        ConstHeightPlane[i]->GetOutput()->GetPointData()->SetActiveScalars(Flow[flowNumber].name.c_str());
-        vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-        mapper->SetInputConnection(ConstHeightPlane[i]->GetOutputPort());
-        mapper->SetScalarRange(Flow[flowNumber].range);
-        mapper->SetLookupTable(Flow[flowNumber].mainScalarBar->GetLookupTable());
-        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-        actor->SetMapper(mapper);
-        ConstHeightPlaneActor.emplace_back(actor);
-        renderer->AddActor(actor);
-    }
 }
 
 std::vector<vtkSmartPointer<vtkActor>> vtkDisplayWindow::CreateBladeToBladePlane(double span)
@@ -2102,7 +2093,7 @@ void vtkDisplayWindow::InitializeCutplaneScalarBar()
         
         // 设置位置 - 水平显示在窗口中下方（避免被截断）
         deriveds.cutplaneScalarBar->SetOrientationToHorizontal();
-        deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+        deriveds .cutplaneScalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
         deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetValue(0.2, 0.1);   // 中下方位置
         deriveds.cutplaneScalarBar->SetWidth(0.6);   // 宽度占窗口60%
         deriveds.cutplaneScalarBar->SetHeight(0.06); // 高度占窗口6%

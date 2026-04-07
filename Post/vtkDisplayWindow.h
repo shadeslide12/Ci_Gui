@@ -87,6 +87,7 @@ public:
 
     void ReadAesFile(std::string aesFileName);
     void UpdateFlow(std::string flowFileName);
+    void ApplyDefaultColorPreset();
     
     void VisiableBoundaryActor(int zoneNumber, int bNumber);
     void InVisiableBoundaryActor(int zoneNumber, int bNumber);
@@ -103,7 +104,6 @@ public:
     void RemoveVelocityActor();
 
     void RemoveMeridianActor();
-    void RemoveConstHeight();
 
     void ActivateAxiesWidget();
     void InActivateAxiesWidget();
@@ -174,6 +174,12 @@ public:
     void CreatePeriodicCopies(int zoneIndex, int numCopies, const std::vector<int> &boundaryIndices);
     void ClearPeriodicCopies();
     void ClearPeriodicCopiesForZone(int zoneIndex);
+    bool HasAnyPeriodicCopies() const {
+        return !periodicCopyShadeActorsByZone.empty()   ||
+               !periodicCopyContourActorsByZone.empty() ||
+               !periodicCopyMeshActorsByZone.empty()    ||
+               !periodicCopyEdgeActorsByZone.empty();
+    }
     DerivedObject GetDeriveds() {return deriveds;}
     std::vector<vtkSmartPointer<vtkPlane>> GetPlanes() {return deriveds.cutplanes;}
     int GetCurFlowNumber(){return curFlow;}
@@ -193,18 +199,14 @@ public:
     double* GetModelBounds();
 
     std::vector<vtkSmartPointer<vtkActor>> CreateMeridionalPlane();
-    void CreateConstHeight(double height);
     std::vector<vtkSmartPointer<vtkActor>> ChangeMeridionalFlow(double minRange, double maxRange, int flowNumber);
-    void ChangeConstHeightFlow(int flowNumber);
-    
-    // Blade-to-blade functions (similar to ConstHeight)
+
+    // Blade-to-blade functions
     std::vector<vtkSmartPointer<vtkActor>> CreateBladeToBladePlane(double span);
     std::vector<vtkSmartPointer<vtkActor>> ChangeBladeToBladePlaneFlow(int flowNumber, double minRange, double maxRange);
-    
+
     std::vector<vtkSmartPointer<vtkActor>> MeridionalPlaneActor;
-    std::vector<vtkSmartPointer<vtkActor>> ConstHeightPlaneActor;
     std::vector<vtkSmartPointer<vtkPolyData>> MeridionalPlane;
-    std::vector<vtkSmartPointer<vtkContourFilter>> ConstHeightPlane;
     std::vector<vtkSmartPointer<vtkActor>> BladeToBladePlaneActor;
     std::vector<vtkSmartPointer<vtkPolyData>> BladeToBladePlane;
 private:

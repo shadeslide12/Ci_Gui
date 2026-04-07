@@ -1,5 +1,18 @@
 [
   {
+    "ColorSpace": "RGB",
+    "Name": "Tec_SmallRainbow",
+    "DefaultMap": true,
+    "NanColor": [1, 1, 0],
+    "RGBPoints": [
+      0.000, 0.0, 0.0, 1.0,
+      0.250, 0.0, 1.0, 1.0,
+      0.500, 0.0, 1.0, 0.0,
+      0.743, 1.0, 1.0, 0.0,
+      1.000, 1.0, 0.0, 0.0
+    ]
+  },
+  {
     "ColorSpace": "Diverging",
     "Name": "Cool to Warm",
     "NanColor": [
