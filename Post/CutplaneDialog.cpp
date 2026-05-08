@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <QButtonGroup>
+#include <QColorDialog>
 #include <QCoreApplication>
 #include <QDir>
 using std::cout;
@@ -12,10 +13,20 @@ using std::endl;
 CutplaneDialog::CutplaneDialog(QWidget *parent): QDialog(parent), ui(new Ui::CutplaneDialog)
 {
     ui->setupUi(this);
+    currentTextColor = Qt::black;
 
     connect(ui->Combo_SLiceLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(onSliceLocationChanged(int)));
     connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
     connect(ui->Combo_SekectMapVariable, SIGNAL(currentIndexChanged(int)), this, SLOT(onVariableSelectionChanged(int)));
+
+    // 连接 buttonBox 的 accepted 信号到颜色映射更新
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &CutplaneDialog::onColorMappingChanged);
+    
+    // 连接 Apply 按钮：应用参数但不关闭对话框
+    QPushButton* applyBtn = ui->buttonBox->button(QDialogButtonBox::Apply);
+    if (applyBtn) {
+        connect(applyBtn, &QPushButton::clicked, this, &CutplaneDialog::onColorMappingChanged);
+    }
 
     // 初始化颜色映射预设（从 JSON 加载）
     currentColorMapIndex = 0;
@@ -30,14 +41,11 @@ CutplaneDialog::CutplaneDialog(QWidget *parent): QDialog(parent), ui(new Ui::Cut
     connect(ui->checkReverseColorMap, &QCheckBox::toggled,
             this, &CutplaneDialog::onReverseColorMapToggled);
 
-    // 连接 cutplane scalar bar 方向控制
-    connect(ui->cp_radioVertical, &QRadioButton::toggled,
-            this, &CutplaneDialog::onCutplaneOrientationChanged);
-    connect(ui->cp_radioHorizontal, &QRadioButton::toggled,
-            this, &CutplaneDialog::onCutplaneOrientationChanged);
-
     ui->Combo_ContourType->blockSignals(false);
     ui->checkReverseColorMap->blockSignals(false);
+
+    initializeLegendControls();
+    connectLegendSignals();
 
     // 初始化
     currentAxis = 0;
@@ -51,12 +59,6 @@ CutplaneDialog::CutplaneDialog(QWidget *parent): QDialog(parent), ui(new Ui::Cut
     ui->horizontalSlider->setValue(50);
 
     updateValueLabel(0.0);
-
-    //* Set Group Of Color Method
-    QButtonGroup *group_ColorMethod = new QButtonGroup(this);
-    group_ColorMethod->setExclusive(true);
-    group_ColorMethod->addButton(ui->Check_Banded);
-    group_ColorMethod->addButton(ui->Check_Continuous);
 }
 
 CutplaneDialog::~CutplaneDialog()
@@ -167,22 +169,15 @@ void CutplaneDialog::onColorMappingChanged()
         return;
     }
 
-    int numberOfColors = ui->LnEdit_Numbers->text().toInt(&ok);
-    if (!ok || numberOfColors <= 0) {
-        std::cout << "[Warning] Invalid number of colors: " << ui->LnEdit_Numbers->text().toStdString() << std::endl;
-        return;
-    }
-
     if (minValue >= maxValue) {
         std::cout << "[Warning] Min value must be less than max value" << std::endl;
         return;
     }
 
-    emit colorMappingChanged(minValue, maxValue, numberOfColors, isBaned);
+    emit colorMappingChanged(minValue, maxValue, isBaned);
 
-    std::cout << "[Debug] Shared cutplane color mapping changed: range["
-              << minValue << ", " << maxValue
-              << "], colors=" << numberOfColors << std::endl;
+    std::cout << "[Debug] Cutplane color mapping changed: range["
+              << minValue << ", " << maxValue << "]" << std::endl;
 }
 
 void CutplaneDialog::onColorMapPresetChanged(int comboIndex)
@@ -273,20 +268,12 @@ void CutplaneDialog::updateColorMapPreviewIcons()
     }
 }
 
-void CutplaneDialog::on_Check_Banded_toggled(bool checked)
-{
-    if (checked)
-        isBaned = 1;
-}
-
-void CutplaneDialog::on_Check_Continuous_toggled(bool checked)
-{
-    if (checked)
-        isBaned = 0;
-}
-
 // 设置流场变量数据
-void CutplaneDialog::setFlowVariables(const std::vector<vtkAesReader::FlowData>& flows, int currentFlowNum)
+void CutplaneDialog::setFlowVariables(const std::vector<vtkAesReader::FlowData>& flows, 
+                                      int currentFlowNum,
+                                      double customMin,
+                                      double customMax,
+                                      bool hasCustomRange)
 {
     flowVariables = flows;
     this->currentFlowNumber = currentFlowNum;
@@ -297,7 +284,19 @@ void CutplaneDialog::setFlowVariables(const std::vector<vtkAesReader::FlowData>&
 
     if (currentFlowNumber >= 0 && currentFlowNumber < static_cast<int>(flowVariables.size())) {
         ui->Combo_SekectMapVariable->setCurrentIndex(currentFlowNumber);
-        updateRangeFromCurrentVariable();
+        if (ui->cp_checkShowTitle->isChecked() && ui->cp_comboTitleMode->currentIndex() == 0) {
+            emit cutplaneLegendTitleTextChanged(
+                QString::fromStdString(flowVariables[currentFlowNumber].name), true);
+        }
+        
+        // 如果有自定义范围，使用自定义范围；否则使用原始范围
+        if (hasCustomRange) {
+            ui->LnEdit_Min->setText(QString::number(customMin, 'f', 6));
+            ui->LnEdit_Max->setText(QString::number(customMax, 'f', 6));
+            std::cout << "[Debug] Using custom range: [" << customMin << ", " << customMax << "]" << std::endl;
+        } else {
+            updateRangeFromCurrentVariable();
+        }
     }
 
     std::cout << "[Debug] Flow variables set: " << flowVariables.size()
@@ -311,6 +310,10 @@ void CutplaneDialog::onVariableSelectionChanged(int index)
         currentFlowNumber = index;
         updateRangeFromCurrentVariable();
         emit variableSelectionChanged(currentFlowNumber);
+        if (ui->cp_checkShowTitle->isChecked() && ui->cp_comboTitleMode->currentIndex() == 0) {
+            emit cutplaneLegendTitleTextChanged(
+                QString::fromStdString(flowVariables[currentFlowNumber].name), true);
+        }
 
         std::cout << "[Debug] Variable selection changed to: " << index
                   << " (" << flowVariables[index].name << ")" << std::endl;
@@ -339,10 +342,182 @@ void CutplaneDialog::setMappingControlEnabled(bool enabled)
         ui->MappingControl->setDisabled(true);
 }
 
-void CutplaneDialog::onCutplaneOrientationChanged()
+void CutplaneDialog::initializeLegendControls()
 {
-    bool isVertical = ui->cp_radioVertical->isChecked();
-    std::cout << "[CutplaneDialog] Cutplane scalar bar orientation changed to: "
-              << (isVertical ? "Vertical" : "Horizontal") << std::endl;
-    emit cutplaneOrientationChanged(isVertical);
+    currentTextColor = Qt::black;
+    ui->cp_btnTextColor->setStyleSheet("QPushButton { background-color: black; color: white; }");
+    ui->cp_btnTextColor->setText("Black");
+
+    // Match vtkDisplayWindow::InitializeCutplaneScalarBar defaults.
+    ui->cp_textScalarBarWidth->setText("0.60");
+    ui->cp_textScalarBarHeight->setText("0.06");
+    ui->cp_textLegendXPosition->setText("20");
+    ui->cp_textLegendYPosition->setText("10");
+
+    ui->cp_checkShowLegend->setChecked(true);
+    ui->cp_checkShowTitle->setChecked(true);
+    ui->cp_comboTitleMode->setCurrentIndex(0);
+    ui->cp_textTitleText->setEnabled(false);
+    ui->cp_labelTitleText->setEnabled(false);
+}
+
+void CutplaneDialog::connectLegendSignals()
+{
+    connect(ui->cp_checkShowLegend, &QCheckBox::toggled,
+            this, &CutplaneDialog::onCutplaneShowLegendToggled);
+
+    connect(ui->cp_checkShowTitle, &QCheckBox::toggled,
+            this, &CutplaneDialog::onCutplaneShowTitleToggled);
+    connect(ui->cp_comboTitleMode, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &CutplaneDialog::onCutplaneTitleModeChanged);
+
+    connect(ui->cp_textTitleText, &QLineEdit::editingFinished, [this]() {
+        if (ui->cp_comboTitleMode->currentIndex() == 1) {
+            QString customTitle = ui->cp_textTitleText->text();
+            if (!customTitle.isEmpty()) {
+                emit cutplaneLegendTitleTextChanged(customTitle, false);
+            }
+        }
+    });
+
+    connect(ui->cp_btnTextColor, &QPushButton::clicked,
+            this, &CutplaneDialog::onCutplaneTextColorClicked);
+
+    connect(ui->cp_textLegendXPosition, &QLineEdit::editingFinished,
+            this, &CutplaneDialog::onCutplanePositionOrSizeChanged);
+    connect(ui->cp_textLegendYPosition, &QLineEdit::editingFinished,
+            this, &CutplaneDialog::onCutplanePositionOrSizeChanged);
+    connect(ui->cp_textScalarBarWidth, &QLineEdit::editingFinished,
+            this, &CutplaneDialog::onCutplanePositionOrSizeChanged);
+    connect(ui->cp_textScalarBarHeight, &QLineEdit::editingFinished,
+            this, &CutplaneDialog::onCutplanePositionOrSizeChanged);
+
+    connect(ui->cp_comboFontFamily, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [this]() {
+                emit cutplaneLegendFontChanged(
+                    ui->cp_comboFontFamily->currentText(),
+                    ui->cp_spinFontSize->value(),
+                    ui->cp_checkBold->isChecked(),
+                    ui->cp_checkItalic->isChecked());
+            });
+
+    connect(ui->cp_spinFontSize, QOverload<int>::of(&QSpinBox::valueChanged),
+            [this]() {
+                emit cutplaneLegendFontChanged(
+                    ui->cp_comboFontFamily->currentText(),
+                    ui->cp_spinFontSize->value(),
+                    ui->cp_checkBold->isChecked(),
+                    ui->cp_checkItalic->isChecked());
+            });
+
+    connect(ui->cp_checkBold, &QCheckBox::toggled,
+            [this]() {
+                emit cutplaneLegendFontChanged(
+                    ui->cp_comboFontFamily->currentText(),
+                    ui->cp_spinFontSize->value(),
+                    ui->cp_checkBold->isChecked(),
+                    ui->cp_checkItalic->isChecked());
+            });
+
+    connect(ui->cp_checkItalic, &QCheckBox::toggled,
+            [this]() {
+                emit cutplaneLegendFontChanged(
+                    ui->cp_comboFontFamily->currentText(),
+                    ui->cp_spinFontSize->value(),
+                    ui->cp_checkBold->isChecked(),
+                    ui->cp_checkItalic->isChecked());
+            });
+}
+
+void CutplaneDialog::onCutplaneShowLegendToggled(bool checked)
+{
+    std::cout << "[CutplaneDialog] Legend visibility changed: "
+              << (checked ? "visible" : "hidden") << std::endl;
+    emit cutplaneLegendVisibilityChanged(checked);
+}
+
+void CutplaneDialog::onCutplaneShowTitleToggled(bool checked)
+{
+    ui->cp_comboTitleMode->setEnabled(checked);
+    ui->cp_labelTitleMode->setEnabled(checked);
+
+    bool useCustomText = (ui->cp_comboTitleMode->currentIndex() == 1);
+    ui->cp_textTitleText->setEnabled(checked && useCustomText);
+    ui->cp_labelTitleText->setEnabled(checked && useCustomText);
+
+    emit cutplaneLegendTitleVisibilityChanged(checked);
+    if (checked) {
+        onCutplaneTitleModeChanged(ui->cp_comboTitleMode->currentIndex());
+    }
+}
+
+void CutplaneDialog::onCutplaneTitleModeChanged(int index)
+{
+    bool useCustomText = (index == 1);
+    ui->cp_textTitleText->setEnabled(useCustomText && ui->cp_checkShowTitle->isChecked());
+    ui->cp_labelTitleText->setEnabled(useCustomText && ui->cp_checkShowTitle->isChecked());
+
+    if (useCustomText) {
+        QString customTitle = ui->cp_textTitleText->text();
+        if (customTitle.isEmpty()) {
+            customTitle = "Slice";
+            ui->cp_textTitleText->setText(customTitle);
+        }
+        emit cutplaneLegendTitleTextChanged(customTitle, false);
+    } else {
+        QString varName;
+        if (currentFlowNumber >= 0 && currentFlowNumber < static_cast<int>(flowVariables.size())) {
+            varName = QString::fromStdString(flowVariables[currentFlowNumber].name);
+        }
+        emit cutplaneLegendTitleTextChanged(varName, true);
+    }
+}
+
+void CutplaneDialog::onCutplaneTextColorClicked()
+{
+    QColor color = QColorDialog::getColor(currentTextColor, this, "Select Cutplane Legend Text Color");
+    if (!color.isValid()) {
+        return;
+    }
+
+    currentTextColor = color;
+    QString colorName = color.name();
+    QString textColor = (color.lightness() > 128) ? "black" : "white";
+    ui->cp_btnTextColor->setStyleSheet(
+        QString("QPushButton { background-color: %1; color: %2; }")
+            .arg(colorName).arg(textColor));
+    ui->cp_btnTextColor->setText(colorName);
+
+    emit cutplaneLegendTextColorChanged(color.redF(), color.greenF(), color.blueF());
+}
+
+void CutplaneDialog::onCutplanePositionOrSizeChanged()
+{
+    bool okX = false;
+    bool okY = false;
+    bool okW = false;
+    bool okH = false;
+
+    double xPos = ui->cp_textLegendXPosition->text().toDouble(&okX) / 100.0;
+    double yPos = ui->cp_textLegendYPosition->text().toDouble(&okY) / 100.0;
+    double width = ui->cp_textScalarBarWidth->text().toDouble(&okW);
+    double height = ui->cp_textScalarBarHeight->text().toDouble(&okH);
+
+    if (!okX || !okY || !okW || !okH) {
+        std::cout << "[CutplaneDialog] Invalid legend position/size value" << std::endl;
+        return;
+    }
+
+    if (xPos < 0.0 || xPos > 1.0 || yPos < 0.0 || yPos > 1.0) {
+        std::cout << "[CutplaneDialog] Position values should be between 0 and 100" << std::endl;
+        return;
+    }
+
+    if (width < 0.01 || width > 1.0 || height < 0.01 || height > 1.0) {
+        std::cout << "[CutplaneDialog] Size values should be between 0.01 and 1.0" << std::endl;
+        return;
+    }
+
+    emit cutplaneLegendPositionChanged(xPos, yPos);
+    emit cutplaneLegendSizeChanged(width, height);
 }

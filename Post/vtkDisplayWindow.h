@@ -109,7 +109,7 @@ public:
     void InActivateAxiesWidget();
     void ActivateScalarBarWidget();
     void InActivateScalarBarWidget();
-    void SetScalarBar(double,double,int,int);
+    void SetScalarBar(double,double,int);
     void SetScalarBarSize(double width, double height);
     vtkSmartPointer<vtkScalarBarWidget> GetScalarBarWidget() { return auxiliarys.scalarBarWidget; }
     vtkSmartPointer<vtkScalarBarActor> GetCutplaneScalarBar() { return deriveds.cutplaneScalarBar; }
@@ -121,9 +121,6 @@ public:
     void SetScalarBarTitle(const std::string& title);
     void SetScalarBarTextColor(double r, double g, double b);
     void SetScalarBarFont(const std::string& family, int size, bool bold, bool italic);
-    
-    // Cutplane ScalarBar 控制方法
-    void SetCutplaneScalarBarOrientation(bool isVertical);
     
     void VisiableOutlineActor();
     void InVisiableOutlineActor();
@@ -144,7 +141,7 @@ public:
     void AddNewCutplane();
     void AddNewCutplane(double* origin, double* normal);
     void SetCutplane(int cutplaneNumber, double *origin, double *normal);
-    void SetCutplaneColorMapping(double minValue, double maxValue, int numberOfColors,bool isBanded);
+    void SetCutplaneColorMapping(double minValue, double maxValue, bool isBanded);
     void UpdateCutplaneColorMapping();
     DerivedObject::CutplaneColorMapping GetCutplaneColorMapping();
     void SetCutplaneColorScheme(int presetIndex, bool reverse = false);  // 设置切片颜色方案
@@ -251,4 +248,10 @@ public:
     void ShowCutplaneScalarBar();
     void HideCutplaneScalarBar();
     void InitializeCutplaneScalarBar();
+    void SetCutplaneScalarBarVisibility(bool visible);
+    void SetCutplaneScalarBarPosition(double x, double y);
+    void SetCutplaneScalarBarSize(double width, double height);
+    void SetCutplaneScalarBarTitle(const std::string& title);
+    void SetCutplaneScalarBarTextColor(double r, double g, double b);
+    void SetCutplaneScalarBarFont(const std::string& family, int size, bool bold, bool italic);
 };

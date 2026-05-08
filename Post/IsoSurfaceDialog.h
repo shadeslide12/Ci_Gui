@@ -4,8 +4,6 @@
 
 #include <string>
 using std::string;
-using std::to_string;
-using std::stod; 
 
 #include "vtkAesReader.h"
 
@@ -28,7 +26,6 @@ private slots:
     void parameterChanged();
     void flowNumberChanged();
     void valueChanged();
-    void textChanged(int );
 
 signals:
     void finishSetParameters(double);

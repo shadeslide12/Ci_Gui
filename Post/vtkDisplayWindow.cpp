@@ -267,6 +267,9 @@ void vtkDisplayWindow::CreateScalarBarWidget()
     auxiliarys.scalarBarWidget->SetScalarBarActor(aesReader.GetFlows()[0].mainScalarBar);
     auxiliarys.scalarBarWidget->SetInteractor(renderWindow->GetInteractor());
     auxiliarys.scalarBarWidget->SetEnabled(1);
+
+    // Pin the initial main scalar bar layout instead of relying on VTK defaults.
+    SetScalarBarOrientation(scalarBarIsVertical);
 }
 
 void vtkDisplayWindow::CreateOutlineActor()
@@ -568,9 +571,9 @@ void vtkDisplayWindow::InActivateScalarBarWidget()
     auxiliarys.scalarBarWidget->SetEnabled(0);
 }
 
-void vtkDisplayWindow::SetScalarBar(double m, double M, int number, int flowNumber)
+void vtkDisplayWindow::SetScalarBar(double m, double M, int flowNumber)
 {
-    aesReader.ChangeScalarBar(m,M,number,flowNumber);
+    aesReader.ChangeScalarBar(m, M, flowNumber);
     for (auto &x : boundarys)
     {
         for (auto &y : x)
@@ -783,44 +786,6 @@ void vtkDisplayWindow::SetScalarBarFont(const std::string& family, int size, boo
         }
     }
 }
-
-void vtkDisplayWindow::SetCutplaneScalarBarOrientation(bool isVertical)
-{
-    if (!deriveds.cutplaneScalarBar)
-    {
-        cerr << "Error: Cutplane ScalarBar not initialized" << endl;
-        return;
-    }
-    
-    if (isVertical)
-    {
-        deriveds.cutplaneScalarBar->SetOrientationToVertical();
-        // 垂直时的位置和大小
-        deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetValue(0.9, 0.1);
-        deriveds.cutplaneScalarBar->SetWidth(0.1);   // 宽度占 10%
-        deriveds.cutplaneScalarBar->SetHeight(0.8);  // 高度占 80%
-        
-        // 垂直方向时使用较小的字体（因为 ScalarBar 更大）
-        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(12);
-        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(10);
-    }
-    else
-    {
-        deriveds.cutplaneScalarBar->SetOrientationToHorizontal();
-        // 水平时的位置和大小
-        deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetValue(0.2, 0.1);
-        deriveds.cutplaneScalarBar->SetWidth(0.6);   // 宽度占 60%
-        deriveds.cutplaneScalarBar->SetHeight(0.06); // 高度占 6%
-        
-        // 水平方向时使用更小的字体（因为 ScalarBar 更小）
-        deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetFontSize(10);
-        deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetFontSize(8);
-    }
-    
-    renderWindow->Render();
-    cout << "Cutplane ScalarBar orientation set to: " << (isVertical ? "Vertical" : "Horizontal") << endl;
-}
-
 
 void vtkDisplayWindow::VisiableOutlineActor()
 {
@@ -2021,7 +1986,7 @@ void vtkDisplayWindow::HidePlanePreview()
     }
 }
 
-void vtkDisplayWindow::SetCutplaneColorMapping(double minValue, double maxValue, int numberOfColors,bool isBanded)
+void vtkDisplayWindow::SetCutplaneColorMapping(double minValue, double maxValue, bool isBanded)
 {
     if (!deriveds.cutplaneLookupTable) {
         std::cerr << "No cutplane LookupTable exists" << std::endl;
@@ -2032,10 +1997,13 @@ void vtkDisplayWindow::SetCutplaneColorMapping(double minValue, double maxValue,
     deriveds.cutplaneColorMapping.minValue = minValue;
     deriveds.cutplaneColorMapping.maxValue = maxValue;
     deriveds.cutplaneColorMapping.useCustomRange = true;
+    
+    // 根据 banded 模式设置颜色数量
     if (isBanded)
-        deriveds.cutplaneColorMapping.numberOfColors = numberOfColors;
+        deriveds.cutplaneColorMapping.numberOfColors = 10;  // Banded 模式使用较少的颜色
     else
-        deriveds.cutplaneColorMapping.numberOfColors = 256;
+        deriveds.cutplaneColorMapping.numberOfColors = 256; // Continuous 模式使用高精度颜色
+    
     // 更新LookupTable
     UpdateCutplaneColorMapping();
 }
@@ -2088,7 +2056,13 @@ void vtkDisplayWindow::InitializeCutplaneScalarBar()
     if (!deriveds.cutplaneScalarBar) {
         deriveds.cutplaneScalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
         deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
-        deriveds.cutplaneScalarBar->SetTitle("Slice");
+        {
+            std::string initTitle = "Slice";
+            const auto& flows = aesReader.GetFlows();
+            if (curFlow >= 0 && curFlow < static_cast<int>(flows.size()))
+                initTitle = "Slice: " + flows[curFlow].name;
+            deriveds.cutplaneScalarBar->SetTitle(initTitle.c_str());
+        }
         deriveds.cutplaneScalarBar->SetNumberOfLabels(10);
         
         // 设置位置 - 水平显示在窗口中下方（避免被截断）
@@ -2151,6 +2125,116 @@ void vtkDisplayWindow::HideCutplaneScalarBar()
         deriveds.cutplaneScalarBar->SetVisibility(0);
         std::cout << "[Debug] Hiding cutplane ScalarBar" << std::endl;
     }
+}
+
+void vtkDisplayWindow::SetCutplaneScalarBarVisibility(bool visible)
+{
+    if (visible) {
+        ShowCutplaneScalarBar();
+    } else {
+        HideCutplaneScalarBar();
+    }
+}
+
+void vtkDisplayWindow::SetCutplaneScalarBarPosition(double x, double y)
+{
+    InitializeCutplaneScalarBar();
+    if (!deriveds.cutplaneScalarBar) {
+        return;
+    }
+
+    deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+    deriveds.cutplaneScalarBar->GetPositionCoordinate()->SetValue(x, y);
+    deriveds.cutplaneScalarBar->Modified();
+    renderWindow->Render();
+    std::cout << "[Debug] Cutplane ScalarBar position set to (" << x << ", " << y << ")" << std::endl;
+}
+
+void vtkDisplayWindow::SetCutplaneScalarBarSize(double width, double height)
+{
+    InitializeCutplaneScalarBar();
+    if (!deriveds.cutplaneScalarBar) {
+        return;
+    }
+
+    deriveds.cutplaneScalarBar->SetWidth(width);
+    deriveds.cutplaneScalarBar->SetHeight(height);
+    deriveds.cutplaneScalarBar->Modified();
+    renderWindow->Render();
+    std::cout << "[Debug] Cutplane ScalarBar size set to (" << width << ", " << height << ")" << std::endl;
+}
+
+void vtkDisplayWindow::SetCutplaneScalarBarTitle(const std::string& title)
+{
+    InitializeCutplaneScalarBar();
+    if (!deriveds.cutplaneScalarBar) {
+        return;
+    }
+
+    deriveds.cutplaneScalarBar->SetTitle(title.c_str());
+    deriveds.cutplaneScalarBar->Modified();
+    renderWindow->Render();
+    std::cout << "[Debug] Cutplane ScalarBar title set to: " << title << std::endl;
+}
+
+void vtkDisplayWindow::SetCutplaneScalarBarTextColor(double r, double g, double b)
+{
+    InitializeCutplaneScalarBar();
+    if (!deriveds.cutplaneScalarBar) {
+        return;
+    }
+
+    deriveds.cutplaneScalarBar->GetTitleTextProperty()->SetColor(r, g, b);
+    deriveds.cutplaneScalarBar->GetLabelTextProperty()->SetColor(r, g, b);
+    deriveds.cutplaneScalarBar->GetAnnotationTextProperty()->SetColor(r, g, b);
+    deriveds.cutplaneScalarBar->Modified();
+    renderWindow->Render();
+    std::cout << "[Debug] Cutplane ScalarBar text color set to RGB("
+              << r << ", " << g << ", " << b << ")" << std::endl;
+}
+
+void vtkDisplayWindow::SetCutplaneScalarBarFont(const std::string& family, int size, bool bold, bool italic)
+{
+    InitializeCutplaneScalarBar();
+    if (!deriveds.cutplaneScalarBar) {
+        return;
+    }
+
+    vtkTextProperty* titleProp = deriveds.cutplaneScalarBar->GetTitleTextProperty();
+    titleProp->SetFontSize(size + 2);
+    titleProp->SetBold(bold);
+    titleProp->SetItalic(italic);
+
+    vtkTextProperty* labelProp = deriveds.cutplaneScalarBar->GetLabelTextProperty();
+    labelProp->SetFontSize(size);
+    labelProp->SetBold(bold);
+    labelProp->SetItalic(italic);
+
+    vtkTextProperty* annotationProp = deriveds.cutplaneScalarBar->GetAnnotationTextProperty();
+    annotationProp->SetFontSize(size);
+    annotationProp->SetBold(bold);
+    annotationProp->SetItalic(italic);
+
+    if (family == "Times New Roman" || family == "Times") {
+        titleProp->SetFontFamilyToTimes();
+        labelProp->SetFontFamilyToTimes();
+        annotationProp->SetFontFamilyToTimes();
+    } else if (family == "Courier New" || family == "Courier") {
+        titleProp->SetFontFamilyToCourier();
+        labelProp->SetFontFamilyToCourier();
+        annotationProp->SetFontFamilyToCourier();
+    } else {
+        titleProp->SetFontFamilyToArial();
+        labelProp->SetFontFamilyToArial();
+        annotationProp->SetFontFamilyToArial();
+    }
+
+    deriveds.cutplaneScalarBar->Modified();
+    renderWindow->Render();
+    std::cout << "[Debug] Cutplane ScalarBar font set to: " << family
+              << ", size=" << size
+              << ", bold=" << bold
+              << ", italic=" << italic << std::endl;
 }
 
 void vtkDisplayWindow::SetCutplaneColorScheme(int presetIndex, bool reverse)
@@ -2408,7 +2492,8 @@ void vtkDisplayWindow::SetCutplaneVariable(int flowNumber)
     // 更新标量条（如果存在）
     if (deriveds.cutplaneScalarBar && deriveds.cutplaneLookupTable) {
         deriveds.cutplaneScalarBar->SetLookupTable(deriveds.cutplaneLookupTable);
-        deriveds.cutplaneScalarBar->SetTitle(aesReader.GetFlows()[flowNumber].name.c_str());
+        deriveds.cutplaneScalarBar->SetTitle(
+            ("Slice: " + aesReader.GetFlows()[flowNumber].name).c_str());
     }
     
     std::cout << "[Debug] Cutplane variable updated successfully" << std::endl;

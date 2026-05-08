@@ -23,7 +23,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>CFD Post-processing Tool</string>
+   <string>Cipher_Post</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -556,13 +556,13 @@ QSplitter::handle:pressed {
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>186</width>
+                       <width>100</width>
                        <height>1</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>16777215</width>
+                       <width>150</width>
                        <height>16777215</height>
                       </size>
                      </property>
@@ -589,76 +589,6 @@ QSplitter::handle:pressed {
                      </property>
                     </widget>
                    </item>
-                   <item row="3" column="0">
-                    <spacer name="horizontalSpacer_3">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeType">
-                      <enum>QSizePolicy::Policy::Fixed</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>10</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item row="1" column="0">
-                    <spacer name="horizontalSpacer">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeType">
-                      <enum>QSizePolicy::Policy::Fixed</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>10</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item row="3" column="1">
-                    <widget class="QCheckBox" name="streamlineCheckBox">
-                     <property name="minimumSize">
-                      <size>
-                       <width>186</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="font">
-                      <font>
-                       <pointsize>11</pointsize>
-                       <bold>true</bold>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>Streamtraces</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="2">
-                    <widget class="QPushButton" name="IsoSurfaceSettingButton">
-                     <property name="minimumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
                    <item row="2" column="2">
                     <widget class="QPushButton" name="addSliceButton">
                      <property name="minimumSize">
@@ -678,26 +608,48 @@ QSplitter::handle:pressed {
                      </property>
                     </widget>
                    </item>
-                   <item row="3" column="2">
-                    <widget class="QPushButton" name="addStreamLineButton">
-                     <property name="minimumSize">
+                   <item row="1" column="0">
+                    <spacer name="horizontalSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Policy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
                       <size>
-                       <width>20</width>
+                       <width>10</width>
                        <height>20</height>
                       </size>
                      </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
+                    </spacer>
                    </item>
                   </layout>
+                  <widget class="QPushButton" name="IsoSurfaceSettingButton">
+                   <property name="geometry">
+                    <rect>
+                     <x>191</x>
+                     <y>11</y>
+                     <width>20</width>
+                     <height>20</height>
+                    </rect>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
                  </widget>
                 </item>
                 <item>
@@ -740,22 +692,6 @@ QSplitter::handle:pressed {
                    </size>
                   </property>
                   <layout class="QGridLayout" name="gridLayout_4">
-                   <item row="1" column="0">
-                    <spacer name="horizontalSpacer_16">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeType">
-                      <enum>QSizePolicy::Policy::Fixed</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>10</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
                    <item row="2" column="1">
                     <widget class="QCheckBox" name="lightingCheckBox">
                      <property name="minimumSize">
@@ -775,8 +711,8 @@ QSplitter::handle:pressed {
                      </property>
                     </widget>
                    </item>
-                   <item row="2" column="0">
-                    <spacer name="horizontalSpacer_14">
+                   <item row="1" column="0">
+                    <spacer name="horizontalSpacer_16">
                      <property name="orientation">
                       <enum>Qt::Orientation::Horizontal</enum>
                      </property>
@@ -790,44 +726,6 @@ QSplitter::handle:pressed {
                       </size>
                      </property>
                     </spacer>
-                   </item>
-                   <item row="2" column="2">
-                    <widget class="QPushButton" name="lightingButton">
-                     <property name="minimumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="2">
-                    <widget class="QPushButton" name="transparantButton">
-                     <property name="minimumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
                    </item>
                    <item row="1" column="1">
                     <widget class="QCheckBox" name="transparancyCheckBox">
@@ -871,6 +769,22 @@ QSplitter::handle:pressed {
                       <bool>false</bool>
                      </property>
                     </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <spacer name="horizontalSpacer_14">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Policy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>10</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                   </layout>
                  </widget>

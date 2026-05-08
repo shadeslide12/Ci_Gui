@@ -44,7 +44,7 @@ public:
     void ReadGrid(std::string gridFileName);
     void UpdateFlow(std::string flowFileName);
     void CreateVector(int vx = 1, int vy = 2, int vz = 3);
-    void ChangeScalarBar(double,double,int,int);
+    void ChangeScalarBar(double,double,int);
     void CreateNewVariable();
     void CalculateScaleFactor(int vx, int vy, int vz);
 

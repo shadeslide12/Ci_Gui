@@ -622,8 +622,8 @@ void MainWindow::contourSettingButtonTriggered()
         colorBarDialog->setColorBarDialog(flows, qtvtkWindow->GetCurFlowNumber());
         
         // 连接原有的参数设置信号
-        connect(colorBarDialog, SIGNAL(finishSetParameters(double,double,int,int,double,double)),
-                this, SLOT(setColorBar(double,double,int,int,double,double)));
+        connect(colorBarDialog, SIGNAL(finishSetParameters(double,double,int,double,double)),
+                this, SLOT(setColorBar(double,double,int,double,double)));
         
         // ==================== 连接Legend控制信号 ====================
         
@@ -634,28 +634,21 @@ void MainWindow::contourSettingButtonTriggered()
                     ui->vtkBox->renderWindow()->Render();
                 });
         
-        // 2. 方向控制
-        connect(colorBarDialog, &ColorBarDialog::legendOrientationChanged,
-                [this](bool isVertical) {
-                    qtvtkWindow->SetScalarBarOrientation(isVertical);
-                    ui->vtkBox->renderWindow()->Render();
-                });
-        
-        // 3. 位置控制
+        // 2. 位置控制
         connect(colorBarDialog, &ColorBarDialog::legendPositionChanged,
                 [this](double x, double y) {
                     qtvtkWindow->SetScalarBarPosition(x, y);
                     ui->vtkBox->renderWindow()->Render();
                 });
         
-        // 4. 大小控制
+        // 3. 大小控制
         connect(colorBarDialog, &ColorBarDialog::legendSizeChanged,
                 [this](double width, double height) {
                     qtvtkWindow->SetScalarBarSize(width, height);
                     ui->vtkBox->renderWindow()->Render();
                 });
         
-        // 5. 标题可见性控制
+        // 4. 标题可见性控制
         connect(colorBarDialog, &ColorBarDialog::legendTitleVisibilityChanged,
                 [this](bool visible) {
                     if (!visible) {
@@ -670,7 +663,7 @@ void MainWindow::contourSettingButtonTriggered()
                     ui->vtkBox->renderWindow()->Render();
                 });
         
-        // 6. 标题文本控制
+        // 5. 标题文本控制
         connect(colorBarDialog, &ColorBarDialog::legendTitleTextChanged,
                 [this](const QString& title, bool useVariableName) {
                     if (useVariableName) {
@@ -685,21 +678,21 @@ void MainWindow::contourSettingButtonTriggered()
                     ui->vtkBox->renderWindow()->Render();
                 });
         
-        // 7. 文字颜色控制
+        // 6. 文字颜色控制
         connect(colorBarDialog, &ColorBarDialog::legendTextColorChanged,
                 [this](double r, double g, double b) {
                     qtvtkWindow->SetScalarBarTextColor(r, g, b);
                     ui->vtkBox->renderWindow()->Render();
                 });
         
-        // 8. 字体控制
+        // 7. 字体控制
         connect(colorBarDialog, &ColorBarDialog::legendFontChanged,
                 [this](const QString& family, int size, bool bold, bool italic) {
                     qtvtkWindow->SetScalarBarFont(family.toStdString(), size, bold, italic);
                     ui->vtkBox->renderWindow()->Render();
                 });
         
-        // 9. 颜色映射控制
+        // 8. 颜色映射控制
         connect(colorBarDialog, &ColorBarDialog::colorMapChanged,
                 [this](int flowNumber, int colorMapIndex, bool reverse) {
                     qtvtkWindow->SetBoundaryColorScheme(flowNumber, colorMapIndex, reverse);
@@ -712,7 +705,7 @@ void MainWindow::contourSettingButtonTriggered()
                     }
                 });
         
-        colorBarDialog->setWindowModality(Qt::ApplicationModal);
+        colorBarDialog->setWindowModality(Qt::NonModal);
         cout << "ColorBarDialog created successfully" << endl;
     }
     else
@@ -726,9 +719,9 @@ void MainWindow::contourSettingButtonTriggered()
     ui->vtkBox->renderWindow()->Render();
 }
 
-void MainWindow::setColorBar(double m, double M, int number, int flowNumber, double width, double height)
+void MainWindow::setColorBar(double m, double M, int flowNumber, double width, double height)
 {
-    qtvtkWindow->SetScalarBar(m,M,number,flowNumber);
+    qtvtkWindow->SetScalarBar(m, M, flowNumber);
     qtvtkWindow->SetScalarBarSize(width, height);
     ui->vtkBox->renderWindow()->Render();
 
@@ -935,15 +928,28 @@ void MainWindow::isoSurfaceSettingButtonTriggered()
         cout << "please show isosurface first" << endl;
         return;
     }
-    IsoSurfaceDialog* isoSurfaceDialog = new IsoSurfaceDialog(this);
-    isoSurfaceDialog->setAttribute(Qt::WA_DeleteOnClose);
-    isoSurfaceDialog->setWindowModality(Qt::ApplicationModal);
-    isoSurfaceDialog->setIsoSurfaceDialog(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber() , qtvtkWindow->GetIsoSurfaceFloodNumber(), 
-    qtvtkWindow->GetDeriveds().contourFilter->GetValue(0));
-    connect(isoSurfaceDialog, SIGNAL(changeFloodParameter(int)), this, SLOT(changeFloodNumber(int)));
-    connect(isoSurfaceDialog, SIGNAL(changeFlowParameter(int)), this, SLOT(isoSurfaceChangeFlowNumber(int)));
-    connect(isoSurfaceDialog, SIGNAL(changeIsoSurfaceValue(double)), this, SLOT(isoSurfaceValueChanged(double)));
+    if (isoSurfaceDialog == nullptr)
+    {
+        isoSurfaceDialog = new IsoSurfaceDialog(this);
+        isoSurfaceDialog->setAttribute(Qt::WA_DeleteOnClose);
+        isoSurfaceDialog->setWindowModality(Qt::NonModal);
+
+        connect(isoSurfaceDialog, &QObject::destroyed, [this]() {
+            isoSurfaceDialog = nullptr;
+        });
+        connect(isoSurfaceDialog, SIGNAL(changeFloodParameter(int)), this, SLOT(changeFloodNumber(int)));
+        connect(isoSurfaceDialog, SIGNAL(changeFlowParameter(int)), this, SLOT(isoSurfaceChangeFlowNumber(int)));
+        connect(isoSurfaceDialog, SIGNAL(changeIsoSurfaceValue(double)), this, SLOT(isoSurfaceValueChanged(double)));
+    }
+
+    isoSurfaceDialog->setIsoSurfaceDialog(
+        qtvtkWindow->GetFlows(),
+        qtvtkWindow->GetIsoSurfaceFlowNumber(),
+        qtvtkWindow->GetIsoSurfaceFloodNumber(),
+        qtvtkWindow->GetDeriveds().contourFilter->GetValue(0));
     isoSurfaceDialog->show();
+    isoSurfaceDialog->raise();
+    isoSurfaceDialog->activateWindow();
 
 }
 
@@ -988,62 +994,127 @@ void MainWindow::slicesSettingButtonTriggered()
         cout << "please add slices actor first" << endl;
         return;
     }
-    CutplaneDialog *cutplaneDialog = new CutplaneDialog(this);
+
+    if (cutPlaneDialog == nullptr)
+    {
+        cutPlaneDialog = new CutplaneDialog(this);
+        cutPlaneDialog->setAttribute(Qt::WA_DeleteOnClose);
+        cutPlaneDialog->setWindowModality(Qt::NonModal);
+
+        connect(cutPlaneDialog, &QObject::destroyed, [this]() {
+            cutPlaneDialog = nullptr;
+        });
+
+        connect(cutPlaneDialog, &CutplaneDialog::createNewCutplane, this, &MainWindow::makeNewCutplane);
+        connect(cutPlaneDialog, &CutplaneDialog::colorMappingChanged, this, &MainWindow::updateCutplaneColorMapping);
+        connect(cutPlaneDialog, &CutplaneDialog::colorSchemeChanged, [this](int presetIndex, bool reverse){
+            qtvtkWindow->SetCutplaneColorScheme(presetIndex, reverse);
+            ui->vtkBox->renderWindow()->Render();
+        });
+
+        // 连接变量选择变化信号
+        connect(cutPlaneDialog, &CutplaneDialog::variableSelectionChanged, [this](int flowNumber){
+            qtvtkWindow->SetCutplaneVariable(flowNumber);
+            ui->vtkBox->renderWindow()->Render();
+        });
+
+        connect(cutPlaneDialog, &CutplaneDialog::cutplaneLegendVisibilityChanged, [this](bool visible){
+            qtvtkWindow->SetCutplaneScalarBarVisibility(visible);
+            ui->vtkBox->renderWindow()->Render();
+        });
+
+        connect(cutPlaneDialog, &CutplaneDialog::cutplaneLegendPositionChanged, [this](double x, double y){
+            qtvtkWindow->SetCutplaneScalarBarPosition(x, y);
+            ui->vtkBox->renderWindow()->Render();
+        });
+
+        connect(cutPlaneDialog, &CutplaneDialog::cutplaneLegendSizeChanged, [this](double width, double height){
+            qtvtkWindow->SetCutplaneScalarBarSize(width, height);
+            ui->vtkBox->renderWindow()->Render();
+        });
+
+        connect(cutPlaneDialog, &CutplaneDialog::cutplaneLegendTitleVisibilityChanged, [this](bool visible){
+            if (!visible) {
+                qtvtkWindow->SetCutplaneScalarBarTitle("");
+            }
+            ui->vtkBox->renderWindow()->Render();
+        });
+
+        connect(cutPlaneDialog, &CutplaneDialog::cutplaneLegendTitleTextChanged,
+                [this](const QString& title, bool useVariableName){
+                    if (useVariableName) {
+                        std::string variableName = title.toStdString();
+                        if (variableName.empty()) {
+                            auto flows = qtvtkWindow->GetFlows();
+                            int curFlow = qtvtkWindow->GetCurFlowNumber();
+                            if (curFlow >= 0 && curFlow < static_cast<int>(flows.size())) {
+                                variableName = flows[curFlow].name;
+                            }
+                        }
+                        qtvtkWindow->SetCutplaneScalarBarTitle("Slice: " + variableName);
+                    } else {
+                        qtvtkWindow->SetCutplaneScalarBarTitle(title.toStdString());
+                    }
+                    ui->vtkBox->renderWindow()->Render();
+                });
+
+        connect(cutPlaneDialog, &CutplaneDialog::cutplaneLegendTextColorChanged,
+                [this](double r, double g, double b){
+                    qtvtkWindow->SetCutplaneScalarBarTextColor(r, g, b);
+                    ui->vtkBox->renderWindow()->Render();
+                });
+
+        connect(cutPlaneDialog, &CutplaneDialog::cutplaneLegendFontChanged,
+                [this](const QString& family, int size, bool bold, bool italic){
+                    qtvtkWindow->SetCutplaneScalarBarFont(family.toStdString(), size, bold, italic);
+                    ui->vtkBox->renderWindow()->Render();
+                });
+
+        // 滑块移动时实时更新预览平面位置
+        connect(cutPlaneDialog, &CutplaneDialog::sliceLocation, [this](double value, int axis){
+            if (qtvtkWindow) {
+                qtvtkWindow->CreatePlanePreview(value, axis);
+                ui->vtkBox->renderWindow()->Render();
+            }
+        });
+
+        // checkbox 取消选中时隐藏预览平面
+        connect(cutPlaneDialog, &CutplaneDialog::hidePreview, [this](){
+            if (qtvtkWindow) {
+                qtvtkWindow->HidePlanePreview();
+                ui->vtkBox->renderWindow()->Render();
+            }
+        });
+
+        // 对话框关闭时隐藏预览平面
+        connect(cutPlaneDialog, &QDialog::finished, [this](){
+            if (qtvtkWindow) {
+                qtvtkWindow->HidePlanePreview();
+                ui->vtkBox->renderWindow()->Render();
+            }
+        });
+    }
 
     double* bounds = qtvtkWindow->GetModelBounds();
     if (bounds != nullptr) {
-        cutplaneDialog->setModelBounds(bounds);
+        cutPlaneDialog->setModelBounds(bounds);
     }
 
-    // 设置流场变量数据
-    cutplaneDialog->setFlowVariables(qtvtkWindow->GetFlows(), qtvtkWindow->GetCurFlowNumber());
+    // 获取当前的颜色映射设置
+    auto colorMapping = qtvtkWindow->GetCutplaneColorMapping();
+    
+    // 设置流场变量数据，并传递当前的颜色映射范围
+    cutPlaneDialog->setFlowVariables(
+        qtvtkWindow->GetFlows(), 
+        qtvtkWindow->GetCurFlowNumber(),
+        colorMapping.minValue,
+        colorMapping.maxValue,
+        colorMapping.useCustomRange
+    );
 
-    cutplaneDialog->setAttribute(Qt::WA_DeleteOnClose);
-    cutplaneDialog->setWindowModality(Qt::ApplicationModal);
-    connect(cutplaneDialog, &CutplaneDialog::createNewCutplane, this, &MainWindow::makeNewCutplane);
-    connect(cutplaneDialog, &CutplaneDialog::colorMappingChanged, this, &MainWindow::updateCutplaneColorMapping);
-    connect(cutplaneDialog, &CutplaneDialog::colorSchemeChanged, [this](int presetIndex, bool reverse){
-        qtvtkWindow->SetCutplaneColorScheme(presetIndex, reverse);
-        ui->vtkBox->renderWindow()->Render();
-    });
-
-    // 连接变量选择变化信号
-    connect(cutplaneDialog, &CutplaneDialog::variableSelectionChanged, [this](int flowNumber){
-        qtvtkWindow->SetCutplaneVariable(flowNumber);
-        ui->vtkBox->renderWindow()->Render();
-    });
-
-    // 连接 cutplane scalar bar 方向变化信号
-    connect(cutplaneDialog, &CutplaneDialog::cutplaneOrientationChanged, [this](bool isVertical){
-        qtvtkWindow->SetCutplaneScalarBarOrientation(isVertical);
-        ui->vtkBox->renderWindow()->Render();
-    });
-
-    // 滑块移动时实时更新预览平面位置
-    connect(cutplaneDialog, &CutplaneDialog::sliceLocation, [this](double value, int axis){
-        if (qtvtkWindow) {
-            qtvtkWindow->CreatePlanePreview(value, axis);
-            ui->vtkBox->renderWindow()->Render();
-        }
-    });
-
-    // checkbox 取消选中时隐藏预览平面
-    connect(cutplaneDialog, &CutplaneDialog::hidePreview, [this](){
-        if (qtvtkWindow) {
-            qtvtkWindow->HidePlanePreview();
-            ui->vtkBox->renderWindow()->Render();
-        }
-    });
-
-    // 对话框关闭时隐藏预览平面
-    connect(cutplaneDialog, &QDialog::finished, [this](){
-        if (qtvtkWindow) {
-            qtvtkWindow->HidePlanePreview();
-            ui->vtkBox->renderWindow()->Render();
-        }
-    });
-
-    cutplaneDialog->show();
+    cutPlaneDialog->show();
+    cutPlaneDialog->raise();
+    cutPlaneDialog->activateWindow();
 }
 
 void MainWindow::makeNewCutplane(double* origin, double* normal)
@@ -1064,14 +1135,13 @@ void MainWindow::makeNewCutplane(double* origin, double* normal)
 
 void MainWindow::transparancyCheckBoxTriggered()
 {
-    static bool firstTimeEnabled = true; // 跟踪是否是第一次启用透明度
     bool isChecked = ui->transparancyCheckBox->isChecked();
     
     if (isChecked) {
         // 只在第一次勾选时设置全局透明度为0.5
-        if (firstTimeEnabled) {
+        if (!transparencyInitialized) {
             qtvtkWindow->SetActorTransparancy(0.5);
-            firstTimeEnabled = false; // 标记已经执行过第一次设置
+            transparencyInitialized = true; // 标记已经执行过第一次设置
             
             // 如果ControlPanel存在，同步更新所有spinbox的值为0.5
             if (controlPanel) {
@@ -1095,6 +1165,9 @@ void MainWindow::transparancyCheckBoxTriggered()
                         qtvtkWindow->SetBoundaryTransparency(i, j, opacity);
                     }
                 }
+            } else {
+                // ControlPanel 尚未创建时没有逐 boundary 配置，继续使用默认 50%。
+                qtvtkWindow->SetActorTransparancy(0.5);
             }
         }
         vtkObject::GlobalWarningDisplayOff();
@@ -1305,12 +1378,10 @@ void MainWindow::SetIcons()
     ui->contourSettingButton->setIcon(QIcon((iconPath+"contour.png").c_str()));
     ui->IsoSurfaceSettingButton->setIcon(QIcon((iconPath+"isoSurface.png").c_str()));
     ui->addSliceButton->setIcon(QIcon((iconPath+"cutplane.png").c_str()));
-    ui->addStreamLineButton->setIcon(QIcon((iconPath+"streamline.png").c_str()));
 
     ui->contourSettingButton->setIconSize(ui->contourSettingButton->sizeHint());
     ui->IsoSurfaceSettingButton->setIconSize(ui->IsoSurfaceSettingButton->sizeHint());
     ui->addSliceButton->setIconSize(ui->addSliceButton->sizeHint());
-    ui->addStreamLineButton->setIconSize(ui->addStreamLineButton->sizeHint());
 
     //toolBar's icons
     ui->toolBar->setIconSize(QSize(40,40));
@@ -1535,9 +1606,9 @@ void MainWindow::onPeriodicCopyRequested()
 }
 
 
-void MainWindow::updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors,bool isBaned)
+void MainWindow::updateCutplaneColorMapping(double minValue, double maxValue, bool isBaned)
 {
-    qtvtkWindow->SetCutplaneColorMapping(minValue, maxValue, numberOfColors,isBaned);
+    qtvtkWindow->SetCutplaneColorMapping(minValue, maxValue, isBaned);
     ui->vtkBox->renderWindow()->Render();
 }
 
@@ -1877,6 +1948,7 @@ void MainWindow::InitializeForNewCase()
     b2bInitialized = false;
     periodicCopyBoundaryChecks.clear();
     savedBoundaryTransparencies.clear();
+    transparencyInitialized = false;
 
     // 4b. 清空 VTK 平面数据和 Actor 向量
     if (qtvtkWindow) {
@@ -1897,12 +1969,10 @@ void MainWindow::InitializeForNewCase()
     }
     if (isoSurfaceDialog) {
         isoSurfaceDialog->close();
-        delete isoSurfaceDialog;
         isoSurfaceDialog = nullptr;
     }
     if (cutPlaneDialog) {
         cutPlaneDialog->close();
-        delete cutPlaneDialog;
         cutPlaneDialog = nullptr;
     }
     if (controlPanel) {

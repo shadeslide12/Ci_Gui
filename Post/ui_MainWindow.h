@@ -83,25 +83,20 @@ public:
     QPushButton *selectBoundaryButton;
     QLabel *label_4;
     QWidget *widget_3;
+    QPushButton *IsoSurfaceSettingButton;
     QGridLayout *gridLayout;
     QSpacerItem *horizontalSpacer_2;
     QCheckBox *slicesCheckBox;
     QCheckBox *isoSurfaceCheckBox;
-    QSpacerItem *horizontalSpacer_3;
-    QSpacerItem *horizontalSpacer;
-    QCheckBox *streamlineCheckBox;
-    QPushButton *IsoSurfaceSettingButton;
     QPushButton *addSliceButton;
-    QPushButton *addStreamLineButton;
+    QSpacerItem *horizontalSpacer;
     QLabel *label_6;
     QWidget *widget_5;
     QGridLayout *gridLayout_4;
-    QSpacerItem *horizontalSpacer_16;
     QCheckBox *lightingCheckBox;
-    QSpacerItem *horizontalSpacer_14;
-    QPushButton *lightingButton;
-    QPushButton *transparantButton;
+    QSpacerItem *horizontalSpacer_16;
     QCheckBox *transparancyCheckBox;
+    QSpacerItem *horizontalSpacer_14;
     QLabel *label_2;
     QHBoxLayout *horizontalLayout_6;
     QLabel *label_7;
@@ -144,7 +139,7 @@ public:
     QVTKOpenGLNativeWidget *vtkBox;
     QMenuBar *menubar;
     QMenu *menuFile;
-    QMenu *menuTools;
+    QMenu *menuAbout;
     QStatusBar *statusbar;
     QToolBar *toolBar;
 
@@ -380,6 +375,11 @@ public:
         widget_3->setSizePolicy(sizePolicy3);
         widget_3->setMinimumSize(QSize(220, 0));
         widget_3->setMaximumSize(QSize(220, 16777215));
+        IsoSurfaceSettingButton = new QPushButton(widget_3);
+        IsoSurfaceSettingButton->setObjectName(QString::fromUtf8("IsoSurfaceSettingButton"));
+        IsoSurfaceSettingButton->setGeometry(QRect(191, 11, 20, 20));
+        IsoSurfaceSettingButton->setMinimumSize(QSize(20, 20));
+        IsoSurfaceSettingButton->setMaximumSize(QSize(20, 20));
         gridLayout = new QGridLayout(widget_3);
         gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
         horizontalSpacer_2 = new QSpacerItem(10, 20, QSizePolicy::Policy::Fixed, QSizePolicy::Minimum);
@@ -397,36 +397,14 @@ public:
         isoSurfaceCheckBox->setObjectName(QString::fromUtf8("isoSurfaceCheckBox"));
         sizePolicy.setHeightForWidth(isoSurfaceCheckBox->sizePolicy().hasHeightForWidth());
         isoSurfaceCheckBox->setSizePolicy(sizePolicy);
-        isoSurfaceCheckBox->setMinimumSize(QSize(186, 1));
-        isoSurfaceCheckBox->setMaximumSize(QSize(16777215, 16777215));
+        isoSurfaceCheckBox->setMinimumSize(QSize(100, 1));
+        isoSurfaceCheckBox->setMaximumSize(QSize(150, 16777215));
         isoSurfaceCheckBox->setFont(font);
         isoSurfaceCheckBox->setIconSize(QSize(16, 16));
         isoSurfaceCheckBox->setChecked(false);
         isoSurfaceCheckBox->setAutoExclusive(false);
 
         gridLayout->addWidget(isoSurfaceCheckBox, 1, 1, 1, 1);
-
-        horizontalSpacer_3 = new QSpacerItem(10, 20, QSizePolicy::Policy::Fixed, QSizePolicy::Minimum);
-
-        gridLayout->addItem(horizontalSpacer_3, 3, 0, 1, 1);
-
-        horizontalSpacer = new QSpacerItem(10, 20, QSizePolicy::Policy::Fixed, QSizePolicy::Minimum);
-
-        gridLayout->addItem(horizontalSpacer, 1, 0, 1, 1);
-
-        streamlineCheckBox = new QCheckBox(widget_3);
-        streamlineCheckBox->setObjectName(QString::fromUtf8("streamlineCheckBox"));
-        streamlineCheckBox->setMinimumSize(QSize(186, 0));
-        streamlineCheckBox->setFont(font);
-
-        gridLayout->addWidget(streamlineCheckBox, 3, 1, 1, 1);
-
-        IsoSurfaceSettingButton = new QPushButton(widget_3);
-        IsoSurfaceSettingButton->setObjectName(QString::fromUtf8("IsoSurfaceSettingButton"));
-        IsoSurfaceSettingButton->setMinimumSize(QSize(20, 20));
-        IsoSurfaceSettingButton->setMaximumSize(QSize(20, 20));
-
-        gridLayout->addWidget(IsoSurfaceSettingButton, 1, 2, 1, 1);
 
         addSliceButton = new QPushButton(widget_3);
         addSliceButton->setObjectName(QString::fromUtf8("addSliceButton"));
@@ -435,12 +413,9 @@ public:
 
         gridLayout->addWidget(addSliceButton, 2, 2, 1, 1);
 
-        addStreamLineButton = new QPushButton(widget_3);
-        addStreamLineButton->setObjectName(QString::fromUtf8("addStreamLineButton"));
-        addStreamLineButton->setMinimumSize(QSize(20, 20));
-        addStreamLineButton->setMaximumSize(QSize(20, 20));
+        horizontalSpacer = new QSpacerItem(10, 20, QSizePolicy::Policy::Fixed, QSizePolicy::Minimum);
 
-        gridLayout->addWidget(addStreamLineButton, 3, 2, 1, 1);
+        gridLayout->addItem(horizontalSpacer, 1, 0, 1, 1);
 
 
         verticalLayout->addWidget(widget_3);
@@ -461,10 +436,6 @@ public:
         widget_5->setMaximumSize(QSize(220, 80));
         gridLayout_4 = new QGridLayout(widget_5);
         gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
-        horizontalSpacer_16 = new QSpacerItem(10, 20, QSizePolicy::Policy::Fixed, QSizePolicy::Minimum);
-
-        gridLayout_4->addItem(horizontalSpacer_16, 1, 0, 1, 1);
-
         lightingCheckBox = new QCheckBox(widget_5);
         lightingCheckBox->setObjectName(QString::fromUtf8("lightingCheckBox"));
         lightingCheckBox->setMinimumSize(QSize(186, 0));
@@ -472,23 +443,9 @@ public:
 
         gridLayout_4->addWidget(lightingCheckBox, 2, 1, 1, 1);
 
-        horizontalSpacer_14 = new QSpacerItem(10, 20, QSizePolicy::Policy::Fixed, QSizePolicy::Minimum);
+        horizontalSpacer_16 = new QSpacerItem(10, 20, QSizePolicy::Policy::Fixed, QSizePolicy::Minimum);
 
-        gridLayout_4->addItem(horizontalSpacer_14, 2, 0, 1, 1);
-
-        lightingButton = new QPushButton(widget_5);
-        lightingButton->setObjectName(QString::fromUtf8("lightingButton"));
-        lightingButton->setMinimumSize(QSize(20, 20));
-        lightingButton->setMaximumSize(QSize(20, 20));
-
-        gridLayout_4->addWidget(lightingButton, 2, 2, 1, 1);
-
-        transparantButton = new QPushButton(widget_5);
-        transparantButton->setObjectName(QString::fromUtf8("transparantButton"));
-        transparantButton->setMinimumSize(QSize(20, 20));
-        transparantButton->setMaximumSize(QSize(20, 20));
-
-        gridLayout_4->addWidget(transparantButton, 1, 2, 1, 1);
+        gridLayout_4->addItem(horizontalSpacer_16, 1, 0, 1, 1);
 
         transparancyCheckBox = new QCheckBox(widget_5);
         transparancyCheckBox->setObjectName(QString::fromUtf8("transparancyCheckBox"));
@@ -502,6 +459,10 @@ public:
         transparancyCheckBox->setAutoExclusive(false);
 
         gridLayout_4->addWidget(transparancyCheckBox, 1, 1, 1, 1);
+
+        horizontalSpacer_14 = new QSpacerItem(10, 20, QSizePolicy::Policy::Fixed, QSizePolicy::Minimum);
+
+        gridLayout_4->addItem(horizontalSpacer_14, 2, 0, 1, 1);
 
 
         verticalLayout->addWidget(widget_5);
@@ -761,9 +722,9 @@ public:
         menuFile = new QMenu(menubar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         menuFile->setFont(font4);
-        menuTools = new QMenu(menubar);
-        menuTools->setObjectName(QString::fromUtf8("menuTools"));
-        menuTools->setFont(font4);
+        menuAbout = new QMenu(menubar);
+        menuAbout->setObjectName(QString::fromUtf8("menuAbout"));
+        menuAbout->setFont(font4);
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
@@ -773,7 +734,7 @@ public:
         MainWindow->addToolBar(Qt::TopToolBarArea, toolBar);
 
         menubar->addAction(menuFile->menuAction());
-        menubar->addAction(menuTools->menuAction());
+        menubar->addAction(menuAbout->menuAction());
         menuFile->addAction(actionLoadMesh);
         menuFile->addAction(actionUpdateFlow);
         menuFile->addAction(actionExport_Picture);
@@ -794,7 +755,7 @@ public:
 
     void retranslateUi(QMainWindow *MainWindow)
     {
-        MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "CFD Post-processing Tool", nullptr));
+        MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "Cipher_Post", nullptr));
         actionOpenFile->setText(QCoreApplication::translate("MainWindow", "OpenFile", nullptr));
 #if QT_CONFIG(tooltip)
         actionOpenFile->setToolTip(QCoreApplication::translate("MainWindow", "open aes mesh file", nullptr));
@@ -828,7 +789,7 @@ public:
         actionExport_Picture->setText(QCoreApplication::translate("MainWindow", "Export Picture", nullptr));
         mainSplitter->setStyleSheet(QCoreApplication::translate("MainWindow", "QSplitter::handle {\n"
 "    background-color: #d0d0d0;\n"
-"    border: 0.1px solid #a0a0a0;\n"
+"    border: 1px solid #a0a0a0;\n"
 "}\n"
 "QSplitter::handle:hover {\n"
 "    background-color: #4a8fc4;\n"
@@ -849,16 +810,12 @@ public:
         edgeCheckBox->setText(QCoreApplication::translate("MainWindow", "Edge", nullptr));
         selectBoundaryButton->setText(QCoreApplication::translate("MainWindow", "Control Panel", nullptr));
         label_4->setText(QCoreApplication::translate("MainWindow", "Show derived object", nullptr));
+        IsoSurfaceSettingButton->setText(QString());
         slicesCheckBox->setText(QCoreApplication::translate("MainWindow", "Slices", nullptr));
         isoSurfaceCheckBox->setText(QCoreApplication::translate("MainWindow", "Iso-Surfaces", nullptr));
-        streamlineCheckBox->setText(QCoreApplication::translate("MainWindow", "Streamtraces", nullptr));
-        IsoSurfaceSettingButton->setText(QString());
         addSliceButton->setText(QString());
-        addStreamLineButton->setText(QString());
         label_6->setText(QCoreApplication::translate("MainWindow", "Adjust Show Effects", nullptr));
         lightingCheckBox->setText(QCoreApplication::translate("MainWindow", "Lighting", nullptr));
-        lightingButton->setText(QString());
-        transparantButton->setText(QString());
         transparancyCheckBox->setText(QCoreApplication::translate("MainWindow", "Transparancy", nullptr));
         label_2->setText(QCoreApplication::translate("MainWindow", "Options", nullptr));
         label_7->setText(QCoreApplication::translate("MainWindow", "BackGround", nullptr));
@@ -883,7 +840,7 @@ public:
         label_BladeToBlade->setText(QCoreApplication::translate("MainWindow", "Blade to Blade", nullptr));
         tabWidget_Control->setTabText(tabWidget_Control->indexOf(tab_turbo), QCoreApplication::translate("MainWindow", "Turbo", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "&File", nullptr));
-        menuTools->setTitle(QCoreApplication::translate("MainWindow", "&Tools", nullptr));
+        menuAbout->setTitle(QCoreApplication::translate("MainWindow", "&About", nullptr));
         toolBar->setWindowTitle(QCoreApplication::translate("MainWindow", "toolBar", nullptr));
     } // retranslateUi
 

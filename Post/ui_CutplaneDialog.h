@@ -22,7 +22,6 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QRadioButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QSpinBox>
@@ -61,21 +60,13 @@ public:
     QLabel *lab_ContourType;
     QComboBox *Combo_ContourType;
     QCheckBox *checkReverseColorMap;
-    QHBoxLayout *distributionLayout;
-    QLabel *label_3;
-    QCheckBox *Check_Banded;
-    QCheckBox *Check_Continuous;
-    QSpacerItem *distributionSpacer;
     QGroupBox *contoursGroup;
     QGridLayout *contoursLayout;
     QLabel *label_5;
     QLineEdit *LnEdit_Min;
     QLabel *label_6;
     QLineEdit *LnEdit_Max;
-    QLabel *label_7;
-    QLineEdit *LnEdit_Numbers;
-    QSpacerItem *contoursSpacer;
-    QSpacerItem *sliceSettingsSpacer;
+    QWidget *Wi_Expan;
     QWidget *legendTab;
     QVBoxLayout *cp_legendTabLayout;
     QGroupBox *cp_showLegendGroupBox;
@@ -91,10 +82,6 @@ public:
     QLineEdit *cp_textLegendXPosition;
     QLabel *cp_labelLegendY;
     QLineEdit *cp_textLegendYPosition;
-    QGroupBox *cp_legendOrientationGroupBox;
-    QHBoxLayout *cp_orientationLayout;
-    QRadioButton *cp_radioVertical;
-    QRadioButton *cp_radioHorizontal;
     QGroupBox *cp_textAppearanceGroupBox;
     QFormLayout *cp_textAppearanceFormLayout;
     QLabel *cp_labelTextColor;
@@ -118,7 +105,7 @@ public:
     QHBoxLayout *cp_titleTextLayout;
     QLabel *cp_labelTitleText;
     QLineEdit *cp_textTitleText;
-    QSpacerItem *cp_legendVerticalSpacer;
+    QWidget *widget;
     QDialogButtonBox *buttonBox;
 
     void setupUi(QDialog *CutplaneDialog)
@@ -258,33 +245,6 @@ public:
 
         colorMapLayout->addWidget(checkReverseColorMap);
 
-        distributionLayout = new QHBoxLayout();
-        distributionLayout->setObjectName(QString::fromUtf8("distributionLayout"));
-        label_3 = new QLabel(colorMapGroup);
-        label_3->setObjectName(QString::fromUtf8("label_3"));
-        label_3->setFont(font);
-
-        distributionLayout->addWidget(label_3);
-
-        Check_Banded = new QCheckBox(colorMapGroup);
-        Check_Banded->setObjectName(QString::fromUtf8("Check_Banded"));
-        Check_Banded->setChecked(true);
-
-        distributionLayout->addWidget(Check_Banded);
-
-        Check_Continuous = new QCheckBox(colorMapGroup);
-        Check_Continuous->setObjectName(QString::fromUtf8("Check_Continuous"));
-        Check_Continuous->setChecked(false);
-
-        distributionLayout->addWidget(Check_Continuous);
-
-        distributionSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        distributionLayout->addItem(distributionSpacer);
-
-
-        colorMapLayout->addLayout(distributionLayout);
-
 
         verticalLayout->addWidget(colorMapGroup);
 
@@ -320,31 +280,21 @@ public:
 
         contoursLayout->addWidget(LnEdit_Max, 0, 3, 1, 1);
 
-        label_7 = new QLabel(contoursGroup);
-        label_7->setObjectName(QString::fromUtf8("label_7"));
-        label_7->setFont(font);
-
-        contoursLayout->addWidget(label_7, 1, 0, 1, 1);
-
-        LnEdit_Numbers = new QLineEdit(contoursGroup);
-        LnEdit_Numbers->setObjectName(QString::fromUtf8("LnEdit_Numbers"));
-        LnEdit_Numbers->setMaximumSize(QSize(120, 16777215));
-
-        contoursLayout->addWidget(LnEdit_Numbers, 1, 1, 1, 1);
-
-        contoursSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        contoursLayout->addItem(contoursSpacer, 1, 2, 1, 2);
-
 
         verticalLayout->addWidget(contoursGroup);
 
+        Wi_Expan = new QWidget(MappingControl);
+        Wi_Expan->setObjectName(QString::fromUtf8("Wi_Expan"));
+        QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Expanding);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(Wi_Expan->sizePolicy().hasHeightForWidth());
+        Wi_Expan->setSizePolicy(sizePolicy1);
+
+        verticalLayout->addWidget(Wi_Expan);
+
 
         sliceSettingsLayout->addWidget(MappingControl);
-
-        sliceSettingsSpacer = new QSpacerItem(20, 80, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        sliceSettingsLayout->addItem(sliceSettingsSpacer);
 
         cutplaneTabWidget->addTab(sliceSettingsTab, QString());
         legendTab = new QWidget();
@@ -416,24 +366,6 @@ public:
 
 
         cp_legendTabLayout->addWidget(cp_legendSizeGroupBox);
-
-        cp_legendOrientationGroupBox = new QGroupBox(legendTab);
-        cp_legendOrientationGroupBox->setObjectName(QString::fromUtf8("cp_legendOrientationGroupBox"));
-        cp_orientationLayout = new QHBoxLayout(cp_legendOrientationGroupBox);
-        cp_orientationLayout->setObjectName(QString::fromUtf8("cp_orientationLayout"));
-        cp_radioVertical = new QRadioButton(cp_legendOrientationGroupBox);
-        cp_radioVertical->setObjectName(QString::fromUtf8("cp_radioVertical"));
-        cp_radioVertical->setChecked(true);
-
-        cp_orientationLayout->addWidget(cp_radioVertical);
-
-        cp_radioHorizontal = new QRadioButton(cp_legendOrientationGroupBox);
-        cp_radioHorizontal->setObjectName(QString::fromUtf8("cp_radioHorizontal"));
-
-        cp_orientationLayout->addWidget(cp_radioHorizontal);
-
-
-        cp_legendTabLayout->addWidget(cp_legendOrientationGroupBox);
 
         cp_textAppearanceGroupBox = new QGroupBox(legendTab);
         cp_textAppearanceGroupBox->setObjectName(QString::fromUtf8("cp_textAppearanceGroupBox"));
@@ -556,12 +488,15 @@ public:
 
         cp_legendTitleLayout->addLayout(cp_titleTextLayout);
 
+        widget = new QWidget(cp_legendTitleGroupBox);
+        widget->setObjectName(QString::fromUtf8("widget"));
+        sizePolicy1.setHeightForWidth(widget->sizePolicy().hasHeightForWidth());
+        widget->setSizePolicy(sizePolicy1);
+
+        cp_legendTitleLayout->addWidget(widget);
+
 
         cp_legendTabLayout->addWidget(cp_legendTitleGroupBox);
-
-        cp_legendVerticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        cp_legendTabLayout->addItem(cp_legendVerticalSpacer);
 
         cutplaneTabWidget->addTab(legendTab, QString());
 
@@ -570,7 +505,7 @@ public:
         buttonBox = new QDialogButtonBox(CutplaneDialog);
         buttonBox->setObjectName(QString::fromUtf8("buttonBox"));
         buttonBox->setOrientation(Qt::Orientation::Horizontal);
-        buttonBox->setStandardButtons(QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok);
+        buttonBox->setStandardButtons(QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok);
 
         verticalLayout_2->addWidget(buttonBox);
 
@@ -658,17 +593,12 @@ public:
         colorMapGroup->setTitle(QCoreApplication::translate("CutplaneDialog", "Color Map Options", nullptr));
         lab_ContourType->setText(QCoreApplication::translate("CutplaneDialog", "Color Scheme:", nullptr));
         checkReverseColorMap->setText(QCoreApplication::translate("CutplaneDialog", "Reverse Color Map", nullptr));
-        label_3->setText(QCoreApplication::translate("CutplaneDialog", "Distribution Method:", nullptr));
-        Check_Banded->setText(QCoreApplication::translate("CutplaneDialog", "Banded", nullptr));
-        Check_Continuous->setText(QCoreApplication::translate("CutplaneDialog", "Continuous", nullptr));
         contoursGroup->setTitle(QCoreApplication::translate("CutplaneDialog", "Contours Level", nullptr));
         label_5->setText(QCoreApplication::translate("CutplaneDialog", "Minimum:", nullptr));
         LnEdit_Min->setInputMask(QString());
         LnEdit_Min->setText(QCoreApplication::translate("CutplaneDialog", "0.0", nullptr));
         label_6->setText(QCoreApplication::translate("CutplaneDialog", "Maximum:", nullptr));
         LnEdit_Max->setText(QCoreApplication::translate("CutplaneDialog", "2.0", nullptr));
-        label_7->setText(QCoreApplication::translate("CutplaneDialog", "Numbers:", nullptr));
-        LnEdit_Numbers->setText(QCoreApplication::translate("CutplaneDialog", "10", nullptr));
         cutplaneTabWidget->setTabText(cutplaneTabWidget->indexOf(sliceSettingsTab), QCoreApplication::translate("CutplaneDialog", "Slice Settings", nullptr));
         cp_showLegendGroupBox->setTitle(QCoreApplication::translate("CutplaneDialog", "Legend Display", nullptr));
         cp_checkShowLegend->setText(QCoreApplication::translate("CutplaneDialog", "Show Color Legend", nullptr));
@@ -681,9 +611,6 @@ public:
         cp_textLegendXPosition->setPlaceholderText(QCoreApplication::translate("CutplaneDialog", "90", nullptr));
         cp_labelLegendY->setText(QCoreApplication::translate("CutplaneDialog", "Y Position (%):", nullptr));
         cp_textLegendYPosition->setPlaceholderText(QCoreApplication::translate("CutplaneDialog", "10", nullptr));
-        cp_legendOrientationGroupBox->setTitle(QCoreApplication::translate("CutplaneDialog", "Orientation", nullptr));
-        cp_radioVertical->setText(QCoreApplication::translate("CutplaneDialog", "Vertical", nullptr));
-        cp_radioHorizontal->setText(QCoreApplication::translate("CutplaneDialog", "Horizontal", nullptr));
         cp_textAppearanceGroupBox->setTitle(QCoreApplication::translate("CutplaneDialog", "Text Appearance", nullptr));
         cp_labelTextColor->setText(QCoreApplication::translate("CutplaneDialog", "Text Color:", nullptr));
         cp_btnTextColor->setStyleSheet(QCoreApplication::translate("CutplaneDialog", "QPushButton { background-color: black; color: white; }", nullptr));

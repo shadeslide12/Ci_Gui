@@ -75,9 +75,6 @@ void ColorBarDialog::initializeLegendControls()
     ui->textLegendXPosition->setText("90");
     ui->textLegendYPosition->setText("10");
     
-    // 设置默认方向为垂直
-    ui->radioVertical->setChecked(true);
-    
     // 设置默认显示标题
     ui->checkShowTitle->setChecked(true);
     
@@ -92,19 +89,13 @@ void ColorBarDialog::connectLegendSignals()
     connect(ui->checkShowLegend, &QCheckBox::toggled, 
             this, &ColorBarDialog::onShowLegendToggled);
     
-    // 2. 方向控制
-    connect(ui->radioVertical, &QRadioButton::toggled, 
-            this, &ColorBarDialog::onOrientationChanged);
-    connect(ui->radioHorizontal, &QRadioButton::toggled, 
-            this, &ColorBarDialog::onOrientationChanged);
-    
-    // 3. 标题控制
+    // 2. 标题控制
     connect(ui->checkShowTitle, &QCheckBox::toggled, 
             this, &ColorBarDialog::onShowTitleToggled);
     connect(ui->comboTitleMode, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &ColorBarDialog::onTitleModeChanged);
     
-    // 3.1 自定义标题文本输入（当用户编辑完成时）
+    // 2.1 自定义标题文本输入（当用户编辑完成时）
     connect(ui->textTitleText, &QLineEdit::editingFinished,
             [this]() {
                 if (ui->comboTitleMode->currentIndex() == 1) {  // Use Custom Text mode
@@ -115,11 +106,11 @@ void ColorBarDialog::connectLegendSignals()
                 }
             });
     
-    // 4. 文字颜色控制
+    // 3. 文字颜色控制
     connect(ui->btnTextColor, &QPushButton::clicked, 
             this, &ColorBarDialog::onTextColorClicked);
     
-    // 5. 位置和大小变化（当用户编辑完成时）
+    // 4. 位置和大小变化（当用户编辑完成时）
     connect(ui->textLegendXPosition, &QLineEdit::editingFinished, 
             this, &ColorBarDialog::onPositionOrSizeChanged);
     connect(ui->textLegendYPosition, &QLineEdit::editingFinished, 
@@ -129,7 +120,7 @@ void ColorBarDialog::connectLegendSignals()
     connect(ui->textScalarBarHeight, &QLineEdit::editingFinished, 
             this, &ColorBarDialog::onPositionOrSizeChanged);
     
-    // 6. 字体变化
+    // 5. 字体变化
     connect(ui->comboFontFamily, QOverload<int>::of(&QComboBox::currentIndexChanged),
             [this]() {
                 emit legendFontChanged(
@@ -177,13 +168,6 @@ void ColorBarDialog::onShowLegendToggled(bool checked)
 {
     cout << "Legend visibility changed: " << (checked ? "visible" : "hidden") << endl;
     emit legendVisibilityChanged(checked);
-}
-
-void ColorBarDialog::onOrientationChanged()
-{
-    bool isVertical = ui->radioVertical->isChecked();
-    cout << "Legend orientation changed: " << (isVertical ? "Vertical" : "Horizontal") << endl;
-    emit legendOrientationChanged(isVertical);
 }
 
 void ColorBarDialog::onShowTitleToggled(bool checked)
@@ -322,7 +306,6 @@ void ColorBarDialog::setColorBarDialog(vector<vtkAesReader::FlowData> flows, int
     ui->textParameterRange->setText(rangeText.c_str());
     ui->textColorBarmin->setText(to_string(m).c_str());
     ui->textColorBarMax->setText(to_string(M).c_str());
-    ui->textColorNumber->setText(to_string(flow.mainScalarBar->GetNumberOfLabels()).c_str());
     ui->textScalarBarWidth->setText(QString::number(width, 'f', 2));
     ui->textScalarBarHeight->setText(QString::number(height, 'f', 2));
 }
@@ -339,14 +322,13 @@ void ColorBarDialog::changeFlowNumber(int number)
     ui->textParameterRange->setText(rangeText.c_str());
     ui->textColorBarmin->setText(to_string(m).c_str());
     ui->textColorBarMax->setText(to_string(M).c_str());
-    ui->textColorNumber->setText(to_string(flow.mainScalarBar->GetNumberOfLabels()).c_str());
-    
+
     // 如果标题模式是使用变量名，更新标题
     if (ui->comboTitleMode->currentIndex() == 0) {
         emit legendTitleTextChanged(ui->nameComboBox->currentText(), true);
     }
     
-    emit(finishSetParameters(m, M, flow.mainScalarBar->GetNumberOfLabels(), ui->nameComboBox->currentIndex(), width, height));
+    emit(finishSetParameters(m, M, ui->nameComboBox->currentIndex(), width, height));
 }
 
 void ColorBarDialog::setParameters()
@@ -355,7 +337,6 @@ void ColorBarDialog::setParameters()
     {
         m = stod(ui->textColorBarmin->text().toStdString());
         M = stod(ui->textColorBarMax->text().toStdString());
-        colorNumber = stoi(ui->textColorNumber->text().toStdString());
         width = stod(ui->textScalarBarWidth->text().toStdString());
         height = stod(ui->textScalarBarHeight->text().toStdString());
     }
@@ -367,7 +348,7 @@ void ColorBarDialog::setParameters()
         return;
     }
 
-    if ((colorNumber < 2 || colorNumber > 256) || (m > M))
+    if (m > M)
     {
         cout << "error set colorbar parameters, please check and set again!" << endl;
         this->close();
@@ -382,7 +363,7 @@ void ColorBarDialog::setParameters()
         return;
     }
     
-    emit(finishSetParameters(m, M, colorNumber, ui->nameComboBox->currentIndex(), width, height));
+    emit(finishSetParameters(m, M, ui->nameComboBox->currentIndex(), width, height));
 }
 
 

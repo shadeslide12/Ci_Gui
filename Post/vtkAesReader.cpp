@@ -502,7 +502,7 @@ void vtkAesReader::CreateVector(int vx, int vy, int vz)
     CalculateScaleFactor(vx,vy,vz);
 }
 
-void vtkAesReader::ChangeScalarBar(double m, double M, int number, int flowNumber)
+void vtkAesReader::ChangeScalarBar(double m, double M, int flowNumber)
 {
     vtkLookupTable* lut = vtkLookupTable::SafeDownCast(
         flows[flowNumber].mainScalarBar->GetLookupTable());
@@ -512,15 +512,15 @@ void vtkAesReader::ChangeScalarBar(double m, double M, int number, int flowNumbe
         lut->Modified();
     } else {
         vtkSmartPointer<vtkLookupTable> newLut = vtkSmartPointer<vtkLookupTable>::New();
-        newLut->SetNumberOfColors(number);
+        newLut->SetNumberOfColors(256);  // 使用固定的高精度值
         newLut->SetHueRange(0.6667, 0.0);
         newLut->SetRange(m, M);
         newLut->Build();
         flows[flowNumber].mainScalarBar->SetLookupTable(newLut);
     }
 
-    int numberOfLabels = std::min(number, 12);
-    flows[flowNumber].mainScalarBar->SetNumberOfLabels(numberOfLabels);
+    // 使用固定的标签数量
+    flows[flowNumber].mainScalarBar->SetNumberOfLabels(10);
 }
 
 void vtkAesReader::CalculateScaleFactor(int vx, int vy, int vz)

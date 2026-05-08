@@ -28,7 +28,6 @@ private slots:
     
     // Legend控制槽函数
     void onShowLegendToggled(bool checked);
-    void onOrientationChanged();
     void onShowTitleToggled(bool checked);
     void onTitleModeChanged(int index);
     void onTextColorClicked();
@@ -39,11 +38,10 @@ private slots:
     void onReverseColorMapToggled(bool checked);
 
 signals:
-    void finishSetParameters(double, double, int, int, double, double);
+    void finishSetParameters(double, double, int, double, double);
     
     // 新增信号用于Legend控制
     void legendVisibilityChanged(bool visible);
-    void legendOrientationChanged(bool isVertical);
     void legendPositionChanged(double x, double y);
     void legendSizeChanged(double width, double height);
     void legendTitleVisibilityChanged(bool visible);
@@ -65,7 +63,6 @@ private:
     std::vector<vtkAesReader::FlowData> flowInfo;
     double rangeM;
     double rangem;
-    int colorNumber;
     
     // Legend相关状态
     QColor currentTextColor;

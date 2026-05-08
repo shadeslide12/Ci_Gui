@@ -98,7 +98,7 @@ private slots:
     void transparancyCheckBoxTriggered();
     void lightingCheckBoxTriggered();
 
-    void setColorBar(double,double,int,int,double,double);
+    void setColorBar(double,double,int,double,double);
 
     void selectBoundaryButtonTriggeded();
     void showBoundaryActor(int,int,bool);
@@ -112,7 +112,7 @@ private slots:
 
     void slicesCheckBoxTriggered();
     void makeNewCutplane(double* origin, double* normal);
-    void updateCutplaneColorMapping(double minValue, double maxValue, int numberOfColors, bool isBanded);
+    void updateCutplaneColorMapping(double minValue, double maxValue, bool isBanded);
     void showCutplane(int, bool);
 
     // Blade-to-blade slots
@@ -205,4 +205,5 @@ private:
     
     // 保存boundary透明度状态
     std::vector<std::vector<double>> savedBoundaryTransparencies;
+    bool transparencyInitialized = false;
 };

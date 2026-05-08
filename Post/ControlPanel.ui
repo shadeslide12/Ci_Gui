@@ -117,7 +117,7 @@ Mode</string>
      </column>
      <column>
       <property name="text">
-       <string>Transculency</string>
+       <string>Translucency</string>
       </property>
      </column>
      <column>

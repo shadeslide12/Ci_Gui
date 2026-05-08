@@ -82,10 +82,10 @@ void ControlPanel::setupTable(std::vector<std::vector<vtkAesReader::Boundary>> b
         // Col 1: Zone Name
         ui->dataTable->setItem(row, 1, new QTableWidgetItem(boundaryNames[row]));
 
-        // Col 2: Zone Type
-        QTableWidgetItem* groupNumItem = new QTableWidgetItem("Main Model");
-        groupNumItem->setTextAlignment(Qt::AlignCenter);
-        ui->dataTable->setItem(row, 2, groupNumItem);
+        // Col 2: Zone Type → "Boundary" for all boundary rows
+        QTableWidgetItem* zoneTypeItem = new QTableWidgetItem("Boundary");
+        zoneTypeItem->setTextAlignment(Qt::AlignCenter);
+        ui->dataTable->setItem(row, 2, zoneTypeItem);
 
         // Col 3: Show Zone (CheckBox)
         QWidget* checkBoxWidget = createCheckBoxWidget(true);
@@ -96,8 +96,13 @@ void ControlPanel::setupTable(std::vector<std::vector<vtkAesReader::Boundary>> b
         }
         ui->dataTable->setCellWidget(row, 3, checkBoxWidget);
 
-        // Col 4: Contour Mode (ComboBox, boundary行不连接信号)
-        ui->dataTable->setCellWidget(row, 4, createComboBoxWidget());
+        // Col 4: Contour Mode → N/A (not applicable for boundary rows)
+        {
+            QTableWidgetItem* naItem = new QTableWidgetItem("N/A");
+            naItem->setTextAlignment(Qt::AlignCenter);
+            naItem->setFlags(naItem->flags() & ~Qt::ItemIsEnabled);
+            ui->dataTable->setItem(row, 4, naItem);
+        }
 
         // Col 5: Transculency (SpinBox)
         QWidget* transparencyWidget = createTransparencyWidget(0.5);
@@ -109,8 +114,13 @@ void ControlPanel::setupTable(std::vector<std::vector<vtkAesReader::Boundary>> b
         }
         ui->dataTable->setCellWidget(row, 5, transparencyWidget);
 
-        // Col 6: Zone Delete (Button, boundary行不连接信号)
-        ui->dataTable->setCellWidget(row, 6, createDeleteButtonWidget());
+        // Col 6: Zone Delete → N/A (not applicable for boundary rows)
+        {
+            QTableWidgetItem* naItem = new QTableWidgetItem("N/A");
+            naItem->setTextAlignment(Qt::AlignCenter);
+            naItem->setFlags(naItem->flags() & ~Qt::ItemIsEnabled);
+            ui->dataTable->setItem(row, 6, naItem);
+        }
     }
 }
 

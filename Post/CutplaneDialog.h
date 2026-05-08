@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include <QColor>
+#include <QString>
 
 #include <vector>
 #include <vtkSmartPointer.h>
@@ -21,7 +22,11 @@ public:
     ~CutplaneDialog();
 
     void setModelBounds(double* bounds);
-    void setFlowVariables(const std::vector<vtkAesReader::FlowData>& flows, int currentFlowNumber);
+    void setFlowVariables(const std::vector<vtkAesReader::FlowData>& flows, 
+                          int currentFlowNumber,
+                          double customMin = -1.0,
+                          double customMax = -1.0,
+                          bool hasCustomRange = false);
     void updateRangeFromCurrentVariable();
     void setMappingControlEnabled(bool enabled);
 
@@ -31,21 +36,28 @@ private slots:
     void onColorMapPresetChanged(int index);
     void onReverseColorMapToggled(bool checked);
     void onVariableSelectionChanged(int index);
-    void onCutplaneOrientationChanged();
+    void onCutplaneShowLegendToggled(bool checked);
+    void onCutplaneShowTitleToggled(bool checked);
+    void onCutplaneTitleModeChanged(int index);
+    void onCutplaneTextColorClicked();
+    void onCutplanePositionOrSizeChanged();
     void on_Btn_AddNew_clicked();
     void on_Btn_showPrimarySlice_toggled(bool checked);
-
-    void on_Check_Banded_toggled(bool checked);
-    void on_Check_Continuous_toggled(bool checked);
 
 signals:
     void createNewCutplane(double*, double*);
     void sliceLocation(double value, int axis); // 滑块移动时实时发送，用于预览平面位置
     void hidePreview();                         // 隐藏预览平面
-    void colorMappingChanged(double minValue, double maxValue, int numberOfColors, bool isBanded);
+    void colorMappingChanged(double minValue, double maxValue, bool isBanded);
     void colorSchemeChanged(int presetIndex, bool reverse);
     void variableSelectionChanged(int flowNumber);
-    void cutplaneOrientationChanged(bool isVertical);
+    void cutplaneLegendVisibilityChanged(bool visible);
+    void cutplaneLegendPositionChanged(double x, double y);
+    void cutplaneLegendSizeChanged(double width, double height);
+    void cutplaneLegendTitleVisibilityChanged(bool visible);
+    void cutplaneLegendTitleTextChanged(const QString& title, bool useVariableName);
+    void cutplaneLegendTextColorChanged(double r, double g, double b);
+    void cutplaneLegendFontChanged(const QString& family, int size, bool bold, bool italic);
 
 private:
     Ui::CutplaneDialog *ui;
@@ -61,11 +73,14 @@ private:
     int currentFlowNumber;
 
     int currentColorMapIndex;
+    QColor currentTextColor;
+    void initializeLegendControls();
+    void connectLegendSignals();
     void initializeColorMapPresets();
     void updateColorMapPreviewIcons();
 
     void updateSliderRange();
     void updateValueLabel(double value);
     void onColorMappingChanged();
-    bool isBaned = 1;
+    bool isBaned = 0;  // 默认使用 Continuous 模式
 };
